@@ -18,9 +18,9 @@ export const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 );
 
 export const PAYMENT_STATUSES = [
-  { value: "NO_PAYMENT", label: "No Payment" },
-  { value: "LUNAS", label: "Lunas" },
-  { value: "DONE_DP", label: "Done DP" },
+  { value: "NO_PAYMENT", label: "Unpaid" },
+  { value: "LUNAS", label: "Fully Paid" },
+  { value: "DONE_DP", label: "Deposit Paid" },
 ] as const;
 
 export const PAYMENT_LABEL: Record<string, string> = Object.fromEntries(

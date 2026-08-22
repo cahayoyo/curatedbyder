@@ -31,6 +31,7 @@ import {
   Eye,
   Layers,
   ListOrdered,
+  MapPin,
   MessageCircle,
   MoreVertical,
   PackageCheck,
@@ -65,7 +66,7 @@ type OrderDTO = {
   paymentStatus: string;
   status: string;
   batch: { id: string; name: string } | null;
-  buyer: { id: string; name: string; phone: string | null };
+  buyer: { id: string; name: string; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
 };
 
@@ -131,6 +132,7 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     "*Detail Pembelian*",
     `Invoice : ${order.invoiceNumber}`,
     `Total Harga Buku: ${formatIDR(order.total)}`,
+    `Alamat : ${order.buyer.contact || "—"}`,
     "",
     "*Detail Buku*",
   ];
@@ -306,6 +308,11 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
               <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">No. HP</span>
               <span className="ml-auto text-right font-medium">{order.buyer.phone || "—"}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-muted-foreground">Alamat</span>
+              <span className="ml-auto text-right font-medium">{order.buyer.contact || "—"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Store className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

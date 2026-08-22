@@ -6,7 +6,7 @@ import { STATUSES, PAYMENT_STATUSES, SOURCES, ETAS } from "@/lib/orderOptions";
 export type OrderPdfDTO = {
   invoiceNumber: string;
   soldAt: Date;
-  buyer: { name: string; phone: string | null };
+  buyer: { name: string; phone: string | null; contact: string | null };
   source: string;
   batch: { name: string } | null;
   eta: string | null;
@@ -63,12 +63,13 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFontSize(10);
   doc.text(`Pembeli   : ${order.buyer.name}`, margin, 42);
   doc.text(`Phone     : ${order.buyer.phone || "—"}`, margin, 47);
-  doc.text(`Sumber    : ${SOURCE_LABEL[order.source] || order.source}`, margin, 52);
-  doc.text(`Batch     : ${order.batch?.name || "—"}`, margin, 57);
-  doc.text(`ETA       : ${etaLabel(order.eta)}`, margin, 62);
+  doc.text(`Alamat    : ${order.buyer.contact || "—"}`, margin, 52);
+  doc.text(`Sumber    : ${SOURCE_LABEL[order.source] || order.source}`, margin, 57);
+  doc.text(`Batch     : ${order.batch?.name || "—"}`, margin, 62);
+  doc.text(`ETA       : ${etaLabel(order.eta)}`, margin, 66);
 
   autoTable(doc, {
-    startY: 70,
+    startY: 74,
     head: [["#", "Judul Buku", "Format", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),

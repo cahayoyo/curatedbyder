@@ -52,7 +52,7 @@ export default async function AdminOrdersPage({
     db.order.findMany({
       where,
       include: {
-        buyer: { select: { id: true, name: true, phone: true } },
+        buyer: { select: { id: true, name: true, phone: true, contact: true } },
         batch: true,
         items: { include: { book: { select: { title: true, formats: true } } } },
       },

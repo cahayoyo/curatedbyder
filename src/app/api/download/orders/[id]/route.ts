@@ -14,7 +14,7 @@ export async function GET(
   const order = await db.order.findUnique({
     where: { id },
     include: {
-      buyer: { select: { name: true, phone: true } },
+      buyer: { select: { name: true, phone: true, contact: true } },
       batch: { select: { name: true } },
       items: {
         include: { book: { select: { title: true, formats: true } } },
