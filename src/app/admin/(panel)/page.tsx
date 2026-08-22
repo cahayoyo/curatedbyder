@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { LayoutDashboard, Users, PackageSearch, TrendingUp, ShoppingCart } from "lucide-react";
 
@@ -39,66 +38,54 @@ export default async function AdminOverviewPage() {
         Overview
       </h2>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              Total buyer
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-lg font-bold">{buyers}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <ShoppingCart className="h-4 w-4" />
-              Total orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-lg font-bold">{orders.length}</CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-lg border p-4">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            Total buyer
+          </p>
+          <p className="text-2xl font-bold">{buyers}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ShoppingCart className="h-4 w-4" />
+            Total orders
+          </p>
+          <p className="text-2xl font-bold">{orders.length}</p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-1.5">
-            <TrendingUp className="h-4 w-4" />
-            Best-selling books
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-1 text-sm">
-            {bestSellers.map((b) => (
-              <li key={b.title} className="flex justify-between">
-                <span>{b.title}</span>
-                <span className="font-medium">{b.qty} sold</span>
-              </li>
-            ))}
-            {bestSellers.length === 0 && <li className="text-muted-foreground">No orders yet.</li>}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
+          <TrendingUp className="h-4 w-4" />
+          Best-selling books
+        </p>
+        <ul className="space-y-1 text-sm">
+          {bestSellers.map((b) => (
+            <li key={b.title} className="flex justify-between">
+              <span>{b.title}</span>
+              <span className="font-medium">{b.qty} sold</span>
+            </li>
+          ))}
+          {bestSellers.length === 0 && <li className="text-muted-foreground">No orders yet.</li>}
+        </ul>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-1.5">
-            <PackageSearch className="h-4 w-4" />
-            Orders by source
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-1 text-sm">
-            {Array.from(bySource.entries()).map(([c, n]) => (
-              <li key={c} className="flex justify-between">
-                <span>{c}</span>
-                <span className="font-medium">{n}</span>
-              </li>
-            ))}
-            {bySource.size === 0 && <li className="text-muted-foreground">No orders yet.</li>}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
+          <PackageSearch className="h-4 w-4" />
+          Orders by source
+        </p>
+        <ul className="space-y-1 text-sm">
+          {Array.from(bySource.entries()).map(([c, n]) => (
+            <li key={c} className="flex justify-between">
+              <span>{c}</span>
+              <span className="font-medium">{n}</span>
+            </li>
+          ))}
+          {bySource.size === 0 && <li className="text-muted-foreground">No orders yet.</li>}
+        </ul>
+      </div>
     </div>
   );
 }

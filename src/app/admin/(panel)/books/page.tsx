@@ -47,8 +47,7 @@ export default async function AdminBooksPage({
       }
     : undefined;
 
-  const [totalBooks, totalFiltered, books] = await Promise.all([
-    db.book.count(),
+  const [totalFiltered, books, totalStock] = await Promise.all([
     db.book.count({ where }),
     db.book.findMany({
       where,
@@ -56,9 +55,8 @@ export default async function AdminBooksPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
+    db.book.aggregate({ where, _sum: { stock: true } }),
   ]);
-
-  const totalStock = await db.book.aggregate({ _sum: { stock: true } });
 
   return (
     <div className="space-y-4">
@@ -82,7 +80,7 @@ export default async function AdminBooksPage({
             <Package className="h-4 w-4" />
             Total Buku
           </p>
-          <p className="text-2xl font-bold">{totalBooks}</p>
+          <p className="text-2xl font-bold">{totalFiltered}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
