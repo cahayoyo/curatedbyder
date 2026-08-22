@@ -181,7 +181,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
             <ReceiptText className="h-5 w-5 text-[#D97A7A]" />
           </span>
-          <span className="font-mono text-base font-bold">{order.invoiceNumber}</span>
+          <span className="font-mono text-xs font-bold">{order.invoiceNumber}</span>
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           <Badge variant="outline" className="whitespace-nowrap border-emerald-300 bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">

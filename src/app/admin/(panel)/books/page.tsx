@@ -139,7 +139,7 @@ export default async function AdminBooksPage({
       <div className="flex items-start gap-2">
         <BookFilter basePath="/admin/books" />
         <div className="w-[70%] md:w-[80%]">
-          <SearchInput basePath="/admin/books" placeholder="Cari judul buku..." />
+          <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
         </div>
       </div>
 

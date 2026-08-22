@@ -171,9 +171,8 @@ export function BookFilter({ basePath }: { basePath: string }) {
 
             <Button
                 type="button"
-                variant="outline"
                 onClick={reset}
-                className="mt-3 h-9 w-full border border-input bg-transparent text-black transition-colors hover:bg-white hover:text-black"
+                className="mt-3 h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
               >
                 Reset Filter
               </Button>

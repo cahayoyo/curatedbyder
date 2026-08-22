@@ -39,6 +39,8 @@ export default async function AdminOrdersPage({
     batch?: string;
     eta?: string;
     source?: string;
+    dateFrom?: string;
+    dateTo?: string;
   };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -58,6 +60,19 @@ export default async function AdminOrdersPage({
     .split(",")
     .map((s) => s.trim())
     .filter((s) => SOURCES.some((x) => x.value === s));
+
+  const dateFrom = (() => {
+    const v = searchParams?.dateFrom?.trim();
+    if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+    const d = new Date(`${v}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  })();
+  const dateTo = (() => {
+    const v = searchParams?.dateTo?.trim();
+    if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+    const d = new Date(`${v}T23:59:59.999`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  })();
 
   const where: Prisma.OrderWhereInput = {};
   if (q) {
@@ -81,6 +96,11 @@ export default async function AdminOrdersPage({
   }
   if (sources.length > 0) {
     where.source = { in: sources as Source[] };
+  }
+  if (dateFrom || dateTo) {
+    where.soldAt = {};
+    if (dateFrom) where.soldAt.gte = dateFrom;
+    if (dateTo) where.soldAt.lte = dateTo;
   }
 
   const [totalOrders, totalFiltered, orders, batches] = await Promise.all([
@@ -338,6 +358,8 @@ export default async function AdminOrdersPage({
           batch: searchParams?.batch ?? "",
           eta: searchParams?.eta ?? "",
           source: searchParams?.source ?? "",
+          dateFrom: searchParams?.dateFrom ?? "",
+          dateTo: searchParams?.dateTo ?? "",
         }}
       />
     </div>

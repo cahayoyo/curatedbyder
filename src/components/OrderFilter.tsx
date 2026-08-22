@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { SlidersHorizontal } from "lucide-react";
 import { SOURCES, STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
 
@@ -24,6 +25,8 @@ export function OrderFilter({
   const [batch, setBatch] = useState("");
   const [eta, setEta] = useState("");
   const [source, setSource] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const urlList = (key: string) =>
     searchParams.get(key)?.split(",").filter(Boolean) ?? [];
@@ -33,7 +36,9 @@ export function OrderFilter({
     (searchParams.get("status") ? 1 : 0) +
     (searchParams.get("batch") ? 1 : 0) +
     (searchParams.get("eta") ? 1 : 0) +
-    urlList("source").length;
+    urlList("source").length +
+    (searchParams.get("dateFrom") ? 1 : 0) +
+    (searchParams.get("dateTo") ? 1 : 0);
 
   function toggleOpen() {
     const next = !open;
@@ -43,6 +48,8 @@ export function OrderFilter({
       setBatch(searchParams.get("batch") ?? "");
       setEta(searchParams.get("eta") ?? "");
       setSource(urlList("source"));
+      setDateFrom(searchParams.get("dateFrom") ?? "");
+      setDateTo(searchParams.get("dateTo") ?? "");
     }
     setOpen(next);
   }
@@ -74,14 +81,26 @@ export function OrderFilter({
     router.push(`${basePath}?${params.toString()}`);
   }
 
+  function pushDate(key: "dateFrom" | "dateTo", next: string) {
+    if (key === "dateFrom") setDateFrom(next);
+    else setDateTo(next);
+    const params = new URLSearchParams(searchParams.toString());
+    if (next) params.set(key, next);
+    else params.delete(key);
+    params.delete("page");
+    router.push(`${basePath}?${params.toString()}`);
+  }
+
   function reset() {
     setPaymentStatus([]);
     setStatus("");
     setBatch("");
     setEta("");
     setSource([]);
+    setDateFrom("");
+    setDateTo("");
     const params = new URLSearchParams(searchParams.toString());
-    ["paymentStatus", "status", "batch", "eta", "source"].forEach((k) =>
+    ["paymentStatus", "status", "batch", "eta", "source", "dateFrom", "dateTo"].forEach((k) =>
       params.delete(k)
     );
     params.delete("page");
@@ -211,6 +230,30 @@ export function OrderFilter({
 
             <div className="my-3 h-px w-full bg-black/15" />
 
+            <p className="mb-2 text-sm font-semibold">Tanggal Order</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Dari</Label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => pushDate("dateFrom", e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Sampai</Label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => pushDate("dateTo", e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="my-3 h-px w-full bg-black/15" />
+
             <p className="mb-2 text-sm font-semibold">Source</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
               {SOURCES.map((opt) => (
@@ -229,11 +272,10 @@ export function OrderFilter({
 
             <Button
               type="button"
-              variant="outline"
               onClick={() => {
                 reset();
               }}
-              className="h-9 w-full border border-input bg-transparent text-black transition-colors hover:bg-white hover:text-black"
+              className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
             >
               Reset Filter
             </Button>
