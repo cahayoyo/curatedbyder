@@ -195,12 +195,13 @@ async function main() {
         const n = userPhoneIdx.get(r.nama) ?? phoneCounter++;
         userPhoneIdx.set(r.nama, n);
         const phone = `0812${String(n).padStart(4, "0")}`;
+        const firstName = r.nama.split(/\s+/)[0]?.toLowerCase() ?? "";
         const u = await db.user.create({
           data: {
             name: r.nama,
             role: "USER",
             phone,
-            username: `user${String(n).padStart(4, "0")}`,
+            username: `${firstName}${String(n).padStart(4, "0")}`,
           },
         });
         userMap.set(r.nama, u.id);
