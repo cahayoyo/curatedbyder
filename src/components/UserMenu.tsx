@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,10 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserRound, LogOut } from "lucide-react";
+import { customSignOut } from "@/server/actions/auth";
 
 export function UserMenu({ name, role }: { name?: string; role?: string }) {
+  const [isPending, startTransition] = useTransition();
   const isAdmin = role === "SUPER_ADMIN";
   const signOutUrl = isAdmin ? "/admin" : "/";
+
+  const handleSignOut = () => {
+    startTransition(async () => {
+      await customSignOut();
+      window.location.href = signOutUrl;
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -37,11 +46,12 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
         <DropdownMenuLabel className="text-black/80">{name || "Account"}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => signOut({ callbackUrl: signOutUrl })}
+          onSelect={handleSignOut}
+          disabled={isPending}
           className="cursor-pointer bg-[#FED6D6] font-semibold text-black transition-colors hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
         >
           <LogOut className="h-4 w-4" />
-          Sign out
+          {isPending ? "Signing out..." : "Sign out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
