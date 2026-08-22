@@ -231,38 +231,43 @@ export function OrderForm({
       <div className="space-y-2">
         <Label>Buku</Label>
         {items.map((item, idx) => (
-          <div key={idx} className="grid grid-cols-[1fr_90px_110px_auto] items-center gap-2">
-            <div className="space-y-1">
+          <div
+            key={idx}
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[1fr_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+          >
+            <div className="min-w-0 space-y-1">
               <span className="text-xs text-muted-foreground">Judul Buku</span>
               <Select value={item.bookId} onValueChange={(v) => updateItem(idx, { bookId: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full min-w-0 truncate">
                   <SelectValue placeholder="Select book" />
                 </SelectTrigger>
                 <SelectContent>
                   {books.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
-                      {b.title} ({b.stock} left)
+                      {b.title} (stok {b.stock})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Quantity</span>
-              <Input
-                type="number"
-                min="1"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, { quantity: e.target.value })}
-              />
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Harga</span>
-              <Input
-                readOnly
-                value={item.bookId ? fmtRupiah(bookPrice(item.bookId)) : "—"}
-                className="bg-black/5 text-sm"
-              />
+            <div className="grid grid-cols-2 gap-3 sm:contents">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Quantity</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, { quantity: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Harga</span>
+                <Input
+                  readOnly
+                  value={item.bookId ? fmtRupiah(bookPrice(item.bookId)) : "—"}
+                  className="bg-black/5 text-sm"
+                />
+              </div>
             </div>
             {items.length > 1 ? (
               <Button
@@ -270,12 +275,12 @@ export function OrderForm({
                 variant="ghost"
                 size="icon"
                 onClick={() => removeItem(idx)}
-                className="self-end text-destructive"
+                className="justify-self-end text-destructive sm:self-end"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             ) : (
-              <div className="w-9" />
+              <div className="hidden sm:block" />
             )}
           </div>
         ))}
