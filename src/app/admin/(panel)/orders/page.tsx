@@ -9,6 +9,7 @@ import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
 import { ETAS } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
+import { OrderCard } from "@/components/OrderCard";
 import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
 import {
   Table,
@@ -51,7 +52,7 @@ export default async function AdminOrdersPage({
     db.order.findMany({
       where,
       include: {
-        buyer: { select: { name: true } },
+        buyer: { select: { id: true, name: true, phone: true } },
         batch: true,
         items: { include: { book: { select: { title: true, formats: true } } } },
       },
@@ -116,7 +117,44 @@ export default async function AdminOrdersPage({
         <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      {/* Mobile: card layout */}
+      <div className="space-y-3 md:hidden">
+        {orders.map((s) => (
+          <OrderCard
+            key={s.id}
+            order={{
+              id: s.id,
+              invoiceNumber: s.invoiceNumber,
+              eta: s.eta,
+              soldAt: s.soldAt,
+              source: s.source,
+              total: s.total,
+              dp: s.dp,
+              remaining: s.remaining,
+              paymentStatus: s.paymentStatus,
+              status: s.status,
+              batch: s.batch,
+              buyer: s.buyer,
+              items: s.items.map((it) => ({
+                id: it.id,
+                quantity: it.quantity,
+                unitPrice: it.unitPrice,
+                subtotal: it.subtotal,
+                book: { title: it.book.title, formats: it.book.formats },
+              })),
+            }}
+            onDelete={deleteOrder.bind(null, s.id)}
+          />
+        ))}
+        {orders.length === 0 && (
+          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+            Belum ada pesanan.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: table layout */}
+      <div className="hidden overflow-x-auto rounded-lg border md:block">
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
