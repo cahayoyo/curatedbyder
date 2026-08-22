@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  USER
+}
+
+enum Source {
+  INSTAGRAM
+  SHOPEE
+  OTHER
+}
+
+enum SaleStatus {
+  ORDER_PLACED
+  SHIPPING_TO_INDONESIA
+  ARRIVED_IN_INDONESIA
+  ARRIVED_AT_WAREHOUSE
+  SHIPPED_TO_CUSTOMER
+  ORDER_DELIVERED
+}
+
+enum PaymentStatus {
+  NO_PAYMENT
+  LUNAS
+  DONE_DP
+}
+
+enum Eta {
+  JAN
+  FEB
+  MAR
+  APR
+  MAY
+  JUN
+  JUL
+  AUG
+  SEP
+  OCT
+  NOV
+  DEC
+}
+
+enum Format {
+  HC
+  PB
+  BB
+  BS
+  SB
+}
+
+enum Batch {
+  NONE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  name         String
+  phone        String?  @unique
+  passwordHash String?
+  role         Role     @default(USER)
+  contact      String?
+  createdAt    DateTime @default(now())
+  sales        Sale[]
+}
+
+model Book {
+  id        String    @id @default(cuid())
+  title     String   @unique
+  price     Int
+  stock     Int       @default(0)
+  createdAt DateTime  @default(now())
+  items     SaleItem[]
+}
+
+model Sale {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  buyerId       String
+  buyer         User          @relation(fields: [buyerId], references: [id])
+  source        Source
+  status        SaleStatus    @default(ORDER_PLACED)
+  total         Int
+  soldAt        DateTime      @default(now())
+  batch         Batch?
+  eta           Eta?
+  format        Format?
+  dp            Int?
+  remaining     Int?
+  paymentStatus PaymentStatus @default(NO_PAYMENT)
+  createdAt     DateTime      @default(now())
+  items         SaleItem[]
+}
+
+model SaleItem {
+  id        String @id @default(cuid())
+  saleId    String
+  sale      Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  bookId    String
+  book      Book   @relation(fields: [bookId], references: [id])
+  quantity  Int
+  unitPrice Int
+  subtotal  Int
+}

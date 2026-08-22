@@ -1,0 +1,22 @@
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/session";
+import { SalesForm } from "@/components/SalesForm";
+
+export default async function NewSalePage() {
+  await requireRole("SUPER_ADMIN");
+
+  const [buyers, books] = await Promise.all([
+    db.user.findMany({ where: { role: "USER" }, orderBy: { name: "asc" } }),
+    db.book.findMany({ orderBy: { title: "asc" } }),
+  ]);
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Buat Order</h2>
+      <SalesForm
+        buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
+        books={books.map((b) => ({ id: b.id, title: b.title, price: b.price, stock: b.stock }))}
+      />
+    </div>
+  );
+}
