@@ -102,7 +102,7 @@ function Row({ icon, title, detail, label, children }: { icon: React.ReactNode; 
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       <HintIcon icon={icon} title={title} detail={detail} />
-      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="w-16 shrink-0 text-muted-foreground">{label}</span>
       <span className="line-clamp-1 min-w-0 flex-1 text-black/80">{children}</span>
     </div>
   );
@@ -144,7 +144,8 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     );
   } else {
     order.items.forEach((it, i) => {
-      lines.push("", `Buku ${i + 1}`);
+      if (i > 0) lines.push("");
+      lines.push(`Buku ${i + 1}`);
       lines.push(
         `Nama Buku : ${it.book.title}`,
         `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
@@ -250,33 +251,38 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
       <div className="mt-2 h-px w-full bg-black/15" />
 
       {/* Items */}
-      <div className="mt-2 space-y-1.5">
+      <div className="mt-2 space-y-2.5">
         {order.items.map((it, i) => (
-          <div key={it.id || i} className="flex items-center gap-[3.25rem] text-sm">
-            <div className="flex min-w-0 items-center gap-1.5">
+          <div key={it.id || i} className="flex items-start gap-1.5 text-sm">
+            <div className="mt-[3px]">
               <HintIcon
                 icon={<BookOpen className="h-3.5 w-3.5 shrink-0" />}
                 title={`Item ${i + 1}`}
                 detail={`${it.book.title} · ${it.book.formats.length ? it.book.formats.join(", ") : "—"}`}
               />
-              <span className="min-w-0">
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
                 <span className="line-clamp-1">{it.book.title}</span>
-                <span className="block text-[11px] text-muted-foreground">
-                  {it.book.formats.length ? it.book.formats.join(", ") : "—"} · {it.quantity} × {formatIDR(it.unitPrice)}
-                </span>
-                <span
-                  className={cn(
-                    "mt-0.5 inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium",
-                    it.book.status === "PRE_ORDER"
-                      ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                      : "border-emerald-300 bg-emerald-100 text-emerald-800"
-                  )}
-                >
-                  {it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-                </span>
+                <span className="shrink-0 font-bold">{formatIDR(it.subtotal)}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {it.book.formats.length ? it.book.formats.join(", ") : "—"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {it.quantity} × {formatIDR(it.unitPrice)}
+              </p>
+              <span
+                className={cn(
+                  "mt-0.5 inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium",
+                  it.book.status === "PRE_ORDER"
+                    ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                    : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                )}
+              >
+                {it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
               </span>
             </div>
-            <span className="shrink-0 font-bold">{formatIDR(it.subtotal)}</span>
           </div>
         ))}
       </div>
@@ -284,23 +290,29 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
       {/* Divider */}
       <div className="mt-2 h-px w-full bg-black/15" />
 
-      {/* Price summary: centered group */}
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm">
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Calculator className="h-3.5 w-3.5" />
-          <span>Total</span>
+      {/* Price summary: label on top, value below */}
+      <div className="mt-2 flex flex-wrap items-start justify-center gap-x-8 gap-y-2 text-sm">
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calculator className="h-3.5 w-3.5" />
+            <span>Total</span>
+          </div>
+          <span className="font-bold">{formatIDR(order.total)}</span>
         </div>
-        <span className="font-bold">{formatIDR(order.total)}</span>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Wallet className="h-3.5 w-3.5" />
-          <span>DP</span>
-        </span>
-        <span className="font-semibold">{formatIDR(order.dp ?? 0)}</span>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <PiggyBank className="h-3.5 w-3.5" />
-          <span>Sisa</span>
-        </span>
-        <span className="font-semibold">{formatIDR(order.remaining ?? 0)}</span>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Wallet className="h-3.5 w-3.5" />
+            <span>DP</span>
+          </div>
+          <span className="font-semibold">{formatIDR(order.dp ?? 0)}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <PiggyBank className="h-3.5 w-3.5" />
+            <span>Sisa</span>
+          </div>
+          <span className="font-semibold">{formatIDR(order.remaining ?? 0)}</span>
+        </div>
       </div>
 
       {/* Detail dialog */}
