@@ -151,8 +151,12 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
     ).padStart(2, "0")}`;
     const invoiceNumber = `INVDER-${day}-${String(countToday + 1).padStart(4, "0")}`;
 
+    const shippingCost = data.shippingCost ?? 0;
+    const orderTotal = total + shippingCost;
     const remaining =
-      data.dp != null && data.dp > 0 ? Math.max(0, total - data.dp) : null;
+      data.dp != null && data.dp > 0
+        ? Math.max(0, orderTotal - data.dp)
+        : null;
 
     const order = await tx.order.create({
       data: {
@@ -160,7 +164,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         buyerId: data.buyerId,
         batchId: data.batchId,
         status: data.status,
-        total,
+        total: orderTotal,
         eta: data.eta,
         dp: data.dp,
         remaining,
@@ -236,8 +240,12 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       }
     }
 
+    const shippingCost = data.shippingCost ?? 0;
+    const orderTotal = total + shippingCost;
     const remaining =
-      data.dp != null && data.dp > 0 ? Math.max(0, total - data.dp) : null;
+      data.dp != null && data.dp > 0
+        ? Math.max(0, orderTotal - data.dp)
+        : null;
 
     await tx.order.update({
       where: { id },
@@ -250,7 +258,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         shippingCost: data.shippingCost,
         trackingNumber: data.trackingNumber,
         paymentStatus: data.paymentStatus,
-        total,
+        total: orderTotal,
         status: data.status,
         items: {
           deleteMany: {},

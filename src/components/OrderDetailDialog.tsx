@@ -65,7 +65,7 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     "",
     "*Detail Pembelian*",
     `Invoice : ${order.invoiceNumber}`,
-    `Total Harga Buku: ${formatIDR(order.total)}`,
+    `Total Harga: ${formatIDR(order.total)}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
     `No Resi : ${order.trackingNumber || "--"}`,
     `Alamat : ${order.buyer.contact || "—"}`,

@@ -88,10 +88,12 @@ export function OrderForm({
     return books.find((b) => b.id === bookId)?.price ?? 0;
   }
 
-  const total = items.reduce((acc, it) => {
+  const bookTotal = items.reduce((acc, it) => {
     const qty = Number(it.quantity) || 0;
     return acc + bookPrice(it.bookId) * qty;
   }, 0);
+  const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
+  const total = bookTotal + shippingCostNum;
   const dpNum = dp ? Number(dp) : 0;
   const remaining = dpNum > 0 ? Math.max(0, total - dpNum) : null;
 
@@ -311,16 +313,16 @@ export function OrderForm({
               className="pl-10 placeholder:text-black/30"
               value={shippingCost ? formatRp(shippingCost) : ""}
               onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
-              placeholder="Diisi jika sudah tiba di Indonesia..."
+              placeholder="Masukkan ongkir..."
             />
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>No Resi</Label>
+          <Label>Nomor Resi</Label>
           <Input
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Diisi setelah ada resi..."
+            placeholder="Masukkan nomor resi..."
           />
         </div>
       </div>
