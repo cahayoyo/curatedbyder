@@ -29,6 +29,7 @@ import { formatIDR } from "@/lib/format";
 import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
+import { BookCard } from "@/components/BookCard";
 
 const PAGE_SIZE = 20;
 
@@ -97,7 +98,33 @@ export default async function AdminBooksPage({
         <SearchInput basePath="/admin/books" placeholder="Cari judul buku..." />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      {/* Mobile: card layout */}
+      <div className="space-y-3 md:hidden">
+        {books.map((b) => (
+          <BookCard
+            key={b.id}
+            book={{
+              id: b.id,
+              title: b.title,
+              image: b.image,
+              publisher: b.publisher,
+              info: b.info,
+              formats: b.formats as string[],
+              price: b.price,
+              stock: b.stock,
+            }}
+            onDelete={deleteBook.bind(null, b.id)}
+          />
+        ))}
+        {books.length === 0 && (
+          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+            No books yet.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: table layout */}
+      <div className="hidden overflow-x-auto rounded-lg border md:block">
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
