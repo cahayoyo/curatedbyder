@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
+import { generateUsername } from "@/lib/username";
 
 function isAdmin(session: { user?: {
   id?: string;
@@ -30,9 +31,14 @@ export async function createBuyer(input: z.infer<typeof buyerSchema>) {
   const existing = await db.user.findFirst({ where: { phone: data.phone } });
   if (existing) throw new Error("A buyer with this phone already exists");
 
+  const username = generateUsername(data.name, data.phone);
+  const usernameExist = await db.user.findFirst({ where: { username } });
+  if (usernameExist) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+
   const buyer = await db.user.create({
     data: {
       name: data.name,
+      username,
       phone: data.phone,
       contact: data.contact,
       role: "USER",
@@ -54,9 +60,15 @@ export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>
   });
   if (existing) throw new Error("A buyer with this phone already exists");
 
+  const username = generateUsername(data.name, data.phone);
+  const usernameExist = await db.user.findFirst({
+    where: { username, NOT: { id } },
+  });
+  if (usernameExist) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+
   const buyer = await db.user.update({
     where: { id },
-    data: { name: data.name, phone: data.phone, contact: data.contact },
+    data: { name: data.name, username, phone: data.phone, contact: data.contact },
   });
 
   revalidatePath("/admin/buyers");

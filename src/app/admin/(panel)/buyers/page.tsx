@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard } from "lucide-react";
+import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard, AtSign, ListOrdered } from "lucide-react";
 import { DeleteBuyerButton } from "@/components/DeleteBuyerButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { BuyerSearch } from "@/components/BuyerSearch";
@@ -33,6 +33,7 @@ export default async function AdminBuyersPage({
         OR: [
           { name: { contains: q, mode: "insensitive" as const } },
           { phone: { contains: q, mode: "insensitive" as const } },
+          { username: { contains: q, mode: "insensitive" as const } },
         ],
       }
     : { role: "USER" as const };
@@ -84,6 +85,18 @@ export default async function AdminBuyersPage({
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
+                    <ListOrdered className="h-3.5 w-3.5" />
+                    No
+                  </span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1">
+                    <AtSign className="h-3.5 w-3.5" />
+                    Username
+                  </span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
                     Nama
                   </span>
@@ -109,8 +122,12 @@ export default async function AdminBuyersPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {buyers.map((b) => (
+            {buyers.map((b, i) => (
               <TableRow key={b.id} className="border-b border-input last:border-0">
+                <TableCell className="text-muted-foreground">
+                  {(page - 1) * PAGE_SIZE + i + 1}
+                </TableCell>
+                <TableCell className="font-mono text-xs">{b.username ?? "-"}</TableCell>
                 <TableCell className="font-medium">{b.name}</TableCell>
                 <TableCell>{b.phone ?? "-"}</TableCell>
                 <TableCell>{b.contact || "-"}</TableCell>
@@ -130,7 +147,7 @@ export default async function AdminBuyersPage({
             ))}
             {buyers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Belum ada pembeli.
                 </TableCell>
               </TableRow>

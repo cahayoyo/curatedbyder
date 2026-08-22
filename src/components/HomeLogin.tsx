@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, BookOpen, ShoppingBag, UserRound, Phone } from "lucide-react";
+import { AtSign, BookOpen, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
   { label: "Instagram", href: "https://www.instagram.com", icon: AtSign },
@@ -23,18 +23,7 @@ const BOOK_ACCENTS = [
 export function HomeLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [fieldError, setFieldError] = useState<{ name?: boolean; phone?: boolean }>({});
-
-  function clearError(field: "name" | "phone") {
-    setFieldError((f) => (f[field] ? { ...f, [field]: false } : f));
-  }
-
-  function onFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === "phone") {
-      e.target.value = e.target.value.replace(/\D/g, "");
-    }
-    clearError(e.target.name === "name" ? "name" : "phone");
-  }
+  const [fieldError, setFieldError] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,20 +32,15 @@ export function HomeLogin() {
     const res = await signIn("credentials", {
       redirect: false,
       mode: "buyer",
-      name: String(form.get("name") || ""),
-      phone: String(form.get("phone") || ""),
+      username: String(form.get("username") || ""),
     });
 
     if (res?.error) {
-      const err = res.error.toLowerCase();
-      setFieldError({
-        name: err.includes("name"),
-        phone: err.includes("phone"),
-      });
+      setFieldError(true);
       setLoading(false);
       return;
     }
-    setFieldError({});
+    setFieldError(false);
     router.push("/dashboard");
     router.refresh();
   }
@@ -83,45 +67,30 @@ export function HomeLogin() {
           />
         ))}
         <div className="relative z-10 space-y-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="login-name">Nama</Label>
-          <div className="relative">
-            <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="login-name"
-              name="name"
-              required
-              autoComplete="name"
-              placeholder="CuratedByDer"
-              className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              onChange={onFieldChange}
-              aria-invalid={fieldError.name}
-            />
+          <div className="space-y-1.5">
+            <Label htmlFor="login-username">Username</Label>
+            <div className="relative">
+              <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="login-username"
+                name="username"
+                required
+                autoComplete="username"
+                placeholder="Contoh: prabowo2345"
+                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                onChange={() => fieldError && setFieldError(false)}
+                aria-invalid={fieldError}
+              />
+            </div>
+            {fieldError && (
+              <p className="text-xs font-medium text-red-600">Username tidak ditemukan!</p>
+            )}
+            <p className="text-xs text-black/60">
+              Username = nama depan + 4 angka terakhir nomor HP. Contoh:{" "}
+              <span className="font-semibold">prabowo subianto</span> + 08128312345 →{" "}
+              <span className="font-semibold">prabowo2345</span>
+            </p>
           </div>
-          {fieldError.name && (
-            <p className="text-xs font-medium text-red-600">Nama tidak ditemukan!</p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="login-phone">Nomor Telepon</Label>
-          <div className="relative">
-            <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="login-phone"
-              name="phone"
-              type="tel"
-              required
-              autoComplete="tel"
-              placeholder="0812 345 6789"
-              className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              onChange={onFieldChange}
-              aria-invalid={fieldError.phone}
-            />
-          </div>
-          {fieldError.phone && (
-            <p className="text-xs font-medium text-red-600">Nomor telepon tidak ditemukan!</p>
-          )}
-        </div>
         </div>
 
         <Button

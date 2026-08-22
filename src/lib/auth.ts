@@ -11,8 +11,7 @@ export const authOptions: NextAuthOptions = {
       name: "credentials",
       credentials: {
         mode: { label: "Mode", type: "text" },
-        name: { label: "Name", type: "text" },
-        phone: { label: "Phone", type: "text" },
+        username: { label: "Username", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
@@ -30,27 +29,13 @@ export const authOptions: NextAuthOptions = {
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
-        // Buyer: name + phone (no password)
+        // Buyer: username only (auto-generated: firstName + last 4 digits of phone)
         if (credentials?.mode === "buyer") {
-          const normalizedName = (credentials.name || "").trim();
-          const normalizedPhone = (credentials.phone || "").trim();
-          if (!normalizedName || !normalizedPhone) return null;
+          const username = (credentials.username || "").trim().toLowerCase();
+          if (!username) return null;
 
-          const [nameUser, phoneUser] = await Promise.all([
-            db.user.findFirst({ where: { name: normalizedName, role: "USER" } }),
-            db.user.findFirst({ where: { phone: normalizedPhone, role: "USER" } }),
-          ]);
-
-          // Both are unknown → flag both
-          if (!nameUser && !phoneUser) {
-            throw new Error("Name not found; Phone not found");
-          }
-          if (!nameUser) throw new Error("Name not found");
-          if (!phoneUser) throw new Error("Phone not found");
-
-          // Both exist; require them to be the same person
-          const user = nameUser.id === phoneUser.id ? nameUser : null;
-          if (!user) throw new Error("Name and phone do not match");
+          const user = await db.user.findFirst({ where: { username, role: "USER" } });
+          if (!user) throw new Error("Username not found");
 
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }

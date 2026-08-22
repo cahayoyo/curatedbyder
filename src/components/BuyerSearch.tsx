@@ -30,7 +30,7 @@ export function BuyerSearch() {
       <Input
         value={value}
         onChange={onChange}
-        placeholder="Cari nama / nomor telepon..."
+        placeholder="Cari username / nama / nomor telepon..."
         className="pl-10 placeholder:text-black/30"
       />
     </div>

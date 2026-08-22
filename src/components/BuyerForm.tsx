@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AtSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { generateUsername } from "@/lib/username";
 
 type InitialBuyer = {
   id?: string;
@@ -137,6 +138,13 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                 className="placeholder:text-[#b5b5b5]"
               />
             </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-md bg-black/5 px-3 py-2">
+            <AtSign className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Username:</span>
+            <span className="font-mono font-semibold">
+              {r.name.trim() && r.phone ? generateUsername(r.name, r.phone) : "—"}
+            </span>
           </div>
         </div>
       ))}
