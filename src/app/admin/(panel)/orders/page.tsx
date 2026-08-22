@@ -11,9 +11,10 @@ import { Pagination } from "@/components/Pagination";
 import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
+import { OrderSummaryAccordion, type OrderSummaryDTO } from "@/components/OrderSummaryAccord";
 import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
-import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
+import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -92,23 +93,62 @@ export default async function AdminOrdersPage({
     if (dateTo) where.soldAt.lte = dateTo;
   }
 
-  const [totalOrders, totalFiltered, orders, batches, sums] = await Promise.all([
-    db.order.count(),
-    db.order.count({ where }),
-    db.order.findMany({
-      where,
-      include: {
-        buyer: { select: { id: true, name: true, phone: true, contact: true } },
-        batch: { select: { id: true, name: true } },
-        items: { include: { book: { select: { title: true, formats: true, status: true } } } },
-      },
-      orderBy: { soldAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    db.batch.findMany({ orderBy: { name: "asc" } }),
-    db.order.aggregate({ _sum: { dp: true, remaining: true } }),
-  ]);
+  const [totalOrders, totalFiltered, orders, batches, sums, byBatch, byEta, byPayment, byStatus] =
+    await Promise.all([
+      db.order.count(),
+      db.order.count({ where }),
+      db.order.findMany({
+        where,
+        include: {
+          buyer: { select: { id: true, name: true, phone: true, contact: true } },
+          batch: { select: { id: true, name: true } },
+          items: { include: { book: { select: { title: true, formats: true, status: true } } } },
+        },
+        orderBy: { soldAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+      db.batch.findMany({ orderBy: { name: "asc" } }),
+      db.order.aggregate({ _sum: { total: true } }),
+      db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
+    ]);
+
+  const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
+  const etaMap = new Map(byEta.map((e) => [e.eta, e]));
+  const paymentMap = new Map(byPayment.map((p) => [p.paymentStatus, p]));
+  const statusMap = new Map(byStatus.map((s) => [s.status, s]));
+
+  const summaryData: OrderSummaryDTO = {
+    totalOrders,
+    grandTotal: sums._sum.total ?? 0,
+    byBatch: batches.map((b) => ({
+      value: b.id,
+      label: b.name,
+      count: batchMap.get(b.id)?._count._all ?? 0,
+      total: batchMap.get(b.id)?._sum.total ?? 0,
+    })),
+    byEta: ETAS.map((e) => ({
+      value: e.value,
+      label: e.label,
+      count: etaMap.get(e.value)?._count._all ?? 0,
+      total: etaMap.get(e.value)?._sum.total ?? 0,
+    })),
+    byPayment: PAYMENT_STATUSES.map((p) => ({
+      value: p.value,
+      label: p.label,
+      count: paymentMap.get(p.value)?._count._all ?? 0,
+      total: paymentMap.get(p.value)?._sum.total ?? 0,
+    })),
+    byStatus: STATUSES.map((s) => ({
+      value: s.value,
+      label: s.label,
+      count: statusMap.get(s.value)?._count._all ?? 0,
+      total: statusMap.get(s.value)?._sum.total ?? 0,
+    })),
+  };
 
   return (
     <div className="space-y-4">
@@ -130,33 +170,7 @@ export default async function AdminOrdersPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <FileText className="h-4 w-4" />
-            Total Order
-          </p>
-          <p className="text-2xl font-bold">{totalOrders}</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Coins className="h-4 w-4" />
-            Total DP
-          </p>
-          <p className="text-xl font-bold">
-            {formatIDR(sums._sum.dp ?? 0)}
-          </p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <HandCoins className="h-4 w-4" />
-            Total Sisa
-          </p>
-          <p className="text-xl font-bold">
-            {formatIDR(sums._sum.remaining ?? 0)}
-          </p>
-        </div>
-      </div>
+      <OrderSummaryAccordion {...summaryData} />
 
       <div className="flex items-start gap-2">
         <OrderFilter basePath="/admin/orders" batches={batches} />
