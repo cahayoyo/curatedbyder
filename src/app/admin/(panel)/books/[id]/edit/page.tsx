@@ -18,6 +18,7 @@ export default async function EditBookPage({ params }: { params: { id: string } 
           image: book.image,
           price: book.price,
           stock: book.stock,
+          status: book.status,
           formats: book.formats,
         }}
       />

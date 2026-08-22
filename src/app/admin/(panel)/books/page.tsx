@@ -21,6 +21,7 @@ import {
   Building2,
   Info,
   ImageIcon,
+  CircleCheckBig,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -112,6 +113,7 @@ export default async function AdminBooksPage({
               formats: b.formats as string[],
               price: b.price,
               stock: b.stock,
+              status: b.status,
             }}
             onDelete={deleteBook.bind(null, b.id)}
           />
@@ -170,6 +172,12 @@ export default async function AdminBooksPage({
                   Stok
                 </span>
               </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <CircleCheckBig className="h-3.5 w-3.5" />
+                  Status
+                </span>
+              </TableHead>
               <TableHead className="text-center font-bold">
                 <span className="inline-flex items-center gap-1">
                   <Hand className="h-3.5 w-3.5" />
@@ -218,6 +226,18 @@ export default async function AdminBooksPage({
                   {b.stock}
                 </Badge>
                 </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={
+                      b.status === "PRE_ORDER"
+                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                        : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                    }
+                  >
+                    {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <NavActionButton
@@ -239,7 +259,7 @@ export default async function AdminBooksPage({
             ))}
             {books.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No books yet.
                 </TableCell>
               </TableRow>

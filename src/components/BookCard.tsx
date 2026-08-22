@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Building2, Info, MoreVertical, Pencil, Tag, Trash2, ImageIcon, BookOpen } from "lucide-react";
 import { formatIDR } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type BookDTO = {
   id: string;
@@ -31,6 +32,7 @@ type BookDTO = {
   formats: string[];
   price: number;
   stock: number;
+  status: "READY_STOCK" | "PRE_ORDER";
 };
 
 function HintIcon({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
@@ -67,6 +69,12 @@ function stockBadgeClass(stock: number) {
   return "border-transparent bg-primary text-primary-foreground";
 }
 
+function statusBadgeClass(status: BookDTO["status"]) {
+  return status === "PRE_ORDER"
+    ? "border-amber-300 bg-yellow-300 text-yellow-900"
+    : "border-emerald-300 bg-emerald-100 text-emerald-800";
+}
+
 function CardThumb({ book }: { book: BookDTO }) {
   if (!book.image) {
     return (
@@ -88,12 +96,16 @@ export function BookCard({ book, onDelete }: { book: BookDTO; onDelete: () => vo
 
   return (
     <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
-      {/* Header: title + 3-dot menu */}
+      {/* Header: title + status badge + 3-dot menu */}
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1.5 font-semibold leading-snug">
           <BookOpen className="h-4 w-4 shrink-0 text-[#D97A7A]" />
           <span className="line-clamp-2">{book.title}</span>
         </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Badge variant="outline" className={cn("text-xs", statusBadgeClass(book.status))}>
+            {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+          </Badge>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -122,6 +134,7 @@ export function BookCard({ book, onDelete }: { book: BookDTO; onDelete: () => vo
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
       {/* Divider under title */}

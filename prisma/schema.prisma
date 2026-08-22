@@ -56,6 +56,11 @@ enum Format {
   SB
 }
 
+enum StockStatus {
+  READY_STOCK
+  PRE_ORDER
+}
+
 model Batch {
   id     String  @id @default(cuid())
   name   String  @unique
@@ -83,6 +88,7 @@ model Book {
   image     String?
   price     Int
   stock     Int        @default(0)
+  status    StockStatus @default(READY_STOCK)
   formats   Format[]   @default([])
   createdAt DateTime   @default(now())
   items     OrderItem[]

@@ -24,6 +24,7 @@ const bookSchema = z.object({
   image: z.string().trim().max(2000).optional(),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
+  status: z.enum(["READY_STOCK", "PRE_ORDER"]).default("READY_STOCK"),
   formats: z.array(z.enum(["HC", "PB", "BB", "SET", "SB"])).default([]),
 });
 
@@ -55,6 +56,7 @@ export async function createBook(input: z.infer<typeof bookSchema>) {
         image: orNull(data.image),
         price: data.price,
         stock: data.stock,
+        status: data.status,
         formats: data.formats,
       },
     });
@@ -85,6 +87,7 @@ export async function updateBook(id: string, input: z.infer<typeof bookSchema>) 
         image: orNull(data.image),
         price: data.price,
         stock: data.stock,
+        status: data.status,
         formats: data.formats,
       },
     });

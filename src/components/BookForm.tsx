@@ -21,6 +21,7 @@ type InitialBook = {
   image: string | null;
   price: number;
   stock: number;
+  status: "READY_STOCK" | "PRE_ORDER";
   formats: string[];
 };
 
@@ -32,6 +33,7 @@ type BookRow = {
   image: string;
   price: string;
   stock: string;
+  status: "READY_STOCK" | "PRE_ORDER";
   formats: string[];
 };
 
@@ -42,6 +44,7 @@ const emptyRow = (): BookRow => ({
   image: "",
   price: "",
   stock: "0",
+  status: "READY_STOCK",
   formats: [],
 });
 
@@ -59,6 +62,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             image: initial.image ?? "",
             price: initial.price != null ? String(initial.price) : "",
             stock: initial.stock != null ? String(initial.stock) : "0",
+            status: initial.status ?? "READY_STOCK",
             formats: initial.formats ?? [],
           },
         ]
@@ -114,6 +118,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             image: r.image,
             price: Number(r.price),
             stock: Number(r.stock),
+            status: r.status,
             formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
           });
           toast.success("Buku diubah");
@@ -126,6 +131,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
               image: r.image,
               price: Number(r.price),
               stock: Number(r.stock),
+              status: r.status,
               formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
             });
           }
@@ -251,6 +257,33 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
                 }}
                 required
               />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Status Stok</Label>
+            <div className="flex flex-wrap gap-4 pt-1">
+              {(
+                [
+                  { value: "READY_STOCK", label: "Ready Stok" },
+                  { value: "PRE_ORDER", label: "Pre Order" },
+                ] as const
+              ).map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex cursor-pointer items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="radio"
+                    name={`status-${i}`}
+                    value={opt.value}
+                    checked={r.status === opt.value}
+                    onChange={() => upRow(i, "status", opt.value)}
+                    className="h-4 w-4 accent-[#D97A7A]"
+                  />
+                  {opt.label}
+                </label>
+              ))}
             </div>
           </div>
         </div>
