@@ -101,6 +101,8 @@ model Order {
   eta           Eta
   dp            Int?
   remaining     Int?
+  shippingCost  Int?
+  trackingNumber String?
   paymentStatus PaymentStatus @default(NO_PAYMENT)
   createdAt     DateTime      @default(now())
   items         OrderItem[]

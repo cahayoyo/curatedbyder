@@ -45,6 +45,8 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           status: order.status,
           eta: order.eta,
           dp: order.dp,
+          shippingCost: order.shippingCost,
+          trackingNumber: order.trackingNumber,
           paymentStatus: order.paymentStatus,
           items: order.items.map((it) => ({
             bookId: it.bookId,

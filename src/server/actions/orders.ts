@@ -16,6 +16,14 @@ const orderSchema = z.object({
   batchId: z.string().min(1),
   eta: z.enum(ETA_TYPE),
   dp: z.number().int().min(0).optional().nullable(),
+  shippingCost: z.number().int().min(0).optional().nullable(),
+  trackingNumber: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null)),
   paymentStatus: z.enum(PAYMENT_TYPE),
   status: z.enum(STATUS_TYPE),
   items: z
@@ -156,6 +164,8 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         eta: data.eta,
         dp: data.dp,
         remaining,
+        shippingCost: data.shippingCost,
+        trackingNumber: data.trackingNumber,
         paymentStatus: data.paymentStatus,
         items: { create: items },
       },
@@ -237,6 +247,8 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         eta: data.eta,
         dp: data.dp,
         remaining,
+        shippingCost: data.shippingCost,
+        trackingNumber: data.trackingNumber,
         paymentStatus: data.paymentStatus,
         total,
         status: data.status,

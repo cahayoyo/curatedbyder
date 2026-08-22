@@ -13,13 +13,36 @@ export const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 
 export const PAYMENT_STATUSES = [
   { value: "NO_PAYMENT", label: "Unpaid" },
-  { value: "LUNAS", label: "Fully Paid" },
   { value: "DONE_DP", label: "Deposit Paid" },
+  { value: "LUNAS", label: "Fully Paid" },
 ] as const;
 
 export const PAYMENT_LABEL: Record<string, string> = Object.fromEntries(
   PAYMENT_STATUSES.map((p) => [p.value, p.label])
 );
+
+export const PAYMENT_BADGE: Record<string, string> = {
+  NO_PAYMENT: "border-red-300 bg-red-100 text-red-800",
+  DONE_DP: "border-amber-300 bg-amber-100 text-amber-800",
+  LUNAS: "border-emerald-300 bg-emerald-100 text-emerald-800",
+};
+
+export const STATUS_BADGE: Record<string, string> = {
+  ORDER_PLACED: "border-gray-300 bg-gray-100 text-gray-700",
+  SHIPPING_TO_INDONESIA: "border-sky-300 bg-sky-100 text-sky-800",
+  ARRIVED_IN_INDONESIA: "border-indigo-300 bg-indigo-100 text-indigo-800",
+  ARRIVED_AT_WAREHOUSE: "border-violet-300 bg-violet-100 text-violet-800",
+  SHIPPED_TO_CUSTOMER: "border-orange-300 bg-orange-100 text-orange-800",
+  ORDER_DELIVERED: "border-emerald-300 bg-emerald-100 text-emerald-800",
+};
+
+export const FORMAT_BADGE: Record<string, string> = {
+  HC: "border-sky-300 bg-sky-100 text-sky-800",
+  PB: "border-violet-300 bg-violet-100 text-violet-800",
+  BB: "border-amber-300 bg-amber-100 text-amber-800",
+  SET: "border-emerald-300 bg-emerald-100 text-emerald-800",
+  SB: "border-rose-300 bg-rose-100 text-rose-800",
+};
 
 export const BOOK_STATUSES = [
   { value: "READY_STOCK", label: "Ready Stok" },

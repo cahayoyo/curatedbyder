@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/format";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog";
 import {
@@ -34,6 +34,8 @@ import {
   PiggyBank,
   ReceiptText,
   Trash2,
+  Truck,
+  Package,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -174,9 +176,18 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
                 <span className="line-clamp-1">{it.book.title}</span>
                 <span className="shrink-0 font-bold">{formatIDR(it.subtotal)}</span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                {it.book.formats.length ? it.book.formats.join(", ") : "—"}
-              </p>
+              <p className="flex flex-wrap items-center gap-1">
+                  {it.book.formats.length
+                    ? it.book.formats.map((f) => (
+                        <span
+                          key={f}
+                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                        >
+                          {f}
+                        </span>
+                      ))
+                    : "—"}
+                </p>
               <p className="text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)}
               </p>
@@ -220,6 +231,20 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
             <span>Sisa</span>
           </div>
           <span className="font-semibold">{formatIDR(order.remaining ?? 0)}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Truck className="h-3.5 w-3.5" />
+            <span>Ongkir</span>
+          </div>
+          <span className="font-semibold">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Package className="h-3.5 w-3.5" />
+            <span>No Resi</span>
+          </div>
+          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "--"}</span>
         </div>
       </div>
 

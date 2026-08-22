@@ -18,6 +18,8 @@ type OrderPdfDTO = {
   total: number;
   dp: number | null;
   remaining: number | null;
+  shippingCost: number | null;
+  trackingNumber: string | null;
   paymentStatus: string;
   status: string;
 };
@@ -73,10 +75,12 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.text(`Total : ${formatIDR(order.total)}`, pageWidth - margin, lastY, { align: "right" });
   doc.text(`DP    : ${formatIDR(order.dp ?? 0)}`, pageWidth - margin, lastY + 6, { align: "right" });
   doc.text(`Sisa  : ${formatIDR(order.remaining ?? 0)}`, pageWidth - margin, lastY + 12, { align: "right" });
+  doc.text(`Ongkir: ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`, pageWidth - margin, lastY + 18, { align: "right" });
 
   doc.setFontSize(9);
   doc.text(`Status Bayar : ${PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}`, margin, lastY + 12);
   doc.text(`Status Order : ${STATUS_LABEL[order.status] || order.status}`, margin, lastY + 17);
+  doc.text(`No Resi      : ${order.trackingNumber || "--"}`, margin, lastY + 22);
 
   return doc;
 }

@@ -10,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { STATUSES, PAYMENT_STATUSES, STATUS_BADGE, PAYMENT_BADGE } from "@/lib/orderOptions";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function StatusSelect({ orderId, current }: { orderId: string; current: string }) {
@@ -31,7 +32,12 @@ export function StatusSelect({ orderId, current }: { orderId: string; current: s
 
   return (
     <Select value={current} onValueChange={onChange} disabled={pending}>
-      <SelectTrigger className="w-44">
+      <SelectTrigger
+        className={cn(
+          "h-9 items-center whitespace-nowrap px-3 font-medium",
+          STATUS_BADGE[current] ?? "border-gray-300 bg-gray-100 text-gray-700"
+        )}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -69,7 +75,12 @@ export function PaymentStatusSelect({
 
   return (
     <Select value={current} onValueChange={onChange} disabled={pending}>
-      <SelectTrigger className="w-32">
+      <SelectTrigger
+        className={cn(
+          "h-9 items-center whitespace-nowrap px-3 font-medium",
+          PAYMENT_BADGE[current] ?? "border-red-300 bg-red-100 text-red-800"
+        )}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

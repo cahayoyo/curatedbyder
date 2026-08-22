@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Fragment } from "react";
 import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -7,12 +8,12 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
-import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
 import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
-import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
+import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -177,6 +178,8 @@ export default async function AdminOrdersPage({
               total: s.total,
               dp: s.dp,
               remaining: s.remaining,
+              shippingCost: s.shippingCost,
+              trackingNumber: s.trackingNumber,
               paymentStatus: s.paymentStatus,
               status: s.status,
               batch: s.batch,
@@ -239,6 +242,12 @@ export default async function AdminOrdersPage({
                   <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" />Remaining</span>
                 </TableHead>
               <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" />Ongkir</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Package className="h-3.5 w-3.5" />No Resi</span>
+                </TableHead>
+              <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
                 </TableHead>
               <TableHead className="font-bold">
@@ -251,107 +260,115 @@ export default async function AdminOrdersPage({
           </TableHeader>
           <TableBody>
             {orders.map((s) => (
-              <TableRow key={s.id} className="border-b border-input last:border-0">
-                <TableCell className="font-mono text-xs font-medium">{s.invoiceNumber}</TableCell>
-                <TableCell>{s.batch?.name || "—"}</TableCell>
-                <TableCell>{etaLabel(s.eta)}</TableCell>
-                <TableCell>{s.buyer.name}</TableCell>
-                <TableCell>
-                  <ul className="text-xs">
-                    {s.items.map((it, i) => (
-                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
-                        {it.book.title}
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>
-                  <ul className="text-xs">
-                    {s.items.map((it, i) => (
-                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
-                        {it.book.formats.length > 0 ? it.book.formats.join(", ") : "—"}
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>
-                  <ul className="text-xs">
-                    {s.items.map((it, i) => (
-                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
-                        {it.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>
-                  <ul className="text-xs">
-                    {s.items.map((it, i) => (
-                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
-                        {formatIDR(it.unitPrice)}
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>{formatIDR(s.total)}</TableCell>
-                <TableCell>{formatIDR(s.dp)}</TableCell>
-                <TableCell>{formatIDR(s.remaining)}</TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
-                    {s.dp != null && (
-                      <p className="text-xs text-muted-foreground">
-                        DP {formatIDR(s.dp)} / sisa {formatIDR(s.remaining)}
-                      </p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusSelect orderId={s.id} current={s.status} />
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <OrderViewButton
-                      order={{
-                        id: s.id,
-                        invoiceNumber: s.invoiceNumber,
-                        eta: s.eta,
-                        soldAt: s.soldAt,
-                        total: s.total,
-                        dp: s.dp,
-                        remaining: s.remaining,
-                        paymentStatus: s.paymentStatus,
-                        status: s.status,
-                        batch: s.batch,
-                        buyer: s.buyer,
-                        items: s.items.map((it) => ({
-                          id: it.id,
-                          quantity: it.quantity,
-                          unitPrice: it.unitPrice,
-                          subtotal: it.subtotal,
-                          book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
-                        })),
-                      }}
-                    />
-                    <NavActionButton
-                      href={`/admin/orders/${s.id}/edit`}
-                      icon={<Pencil className="h-3.5 w-3.5" />}
-                      className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
-                    >
-                      Ubah
-                    </NavActionButton>
-                    <ConfirmDeleteButton
-                      title="Konfirmasi Hapus"
-                      description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
-                      successMessage="Order dihapus"
-                      onConfirm={deleteOrder.bind(null, s.id)}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
+              <Fragment key={s.id}>
+                <TableRow className="border-b border-input last:border-0">
+                  <TableCell className="font-mono text-xs font-medium" rowSpan={s.items.length}>{s.invoiceNumber}</TableCell>
+                  <TableCell rowSpan={s.items.length}>{s.batch?.name || "—"}</TableCell>
+                  <TableCell rowSpan={s.items.length}>{etaLabel(s.eta)}</TableCell>
+                  <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
+                  <TableCell className="align-top text-xs">{s.items[0].book.title}</TableCell>
+                  <TableCell className="align-top">
+                    <div className="flex flex-wrap items-center gap-1">
+                      {s.items[0].book.formats.length > 0
+                        ? s.items[0].book.formats.map((f) => (
+                            <span
+                              key={f}
+                              className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                            >
+                              {f}
+                            </span>
+                          ))
+                        : "—"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="align-top text-xs">{s.items[0].quantity}</TableCell>
+                  <TableCell className="align-top text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.remaining)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
+                  <TableCell className="border-l border-input font-mono text-xs" rowSpan={s.items.length}>{s.trackingNumber || "—"}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
+                    <div className="space-y-1">
+                      <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
+                      {s.dp != null && s.paymentStatus !== "LUNAS" && (
+                        <p className="text-xs text-muted-foreground">
+                          DP {formatIDR(s.dp)} / sisa {formatIDR(s.remaining)}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
+                    <StatusSelect orderId={s.id} current={s.status} />
+                  </TableCell>
+                  <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
+                    <div className="flex justify-center gap-2">
+                      <OrderViewButton
+                        order={{
+                          id: s.id,
+                          invoiceNumber: s.invoiceNumber,
+                          eta: s.eta,
+                          soldAt: s.soldAt,
+                          total: s.total,
+                          dp: s.dp,
+                          remaining: s.remaining,
+                          shippingCost: s.shippingCost,
+                          trackingNumber: s.trackingNumber,
+                          paymentStatus: s.paymentStatus,
+                          status: s.status,
+                          batch: s.batch,
+                          buyer: s.buyer,
+                          items: s.items.map((it) => ({
+                            id: it.id,
+                            quantity: it.quantity,
+                            unitPrice: it.unitPrice,
+                            subtotal: it.subtotal,
+                            book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
+                          })),
+                        }}
+                      />
+                      <NavActionButton
+                        href={`/admin/orders/${s.id}/edit`}
+                        icon={<Pencil className="h-3.5 w-3.5" />}
+                        className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+                      >
+                        Ubah
+                      </NavActionButton>
+                      <ConfirmDeleteButton
+                        title="Konfirmasi Hapus"
+                        description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
+                        successMessage="Order dihapus"
+                        onConfirm={deleteOrder.bind(null, s.id)}
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+                {s.items.slice(1).map((it, i) => (
+                  <TableRow key={`${s.id}-item-${i}`} className="border-b border-input last:border-0">
+                    <TableCell className="align-top text-xs">{it.book.title}</TableCell>
+                    <TableCell className="align-top">
+                      <div className="flex flex-wrap items-center gap-1">
+                        {it.book.formats.length > 0
+                          ? it.book.formats.map((f) => (
+                              <span
+                                key={f}
+                                className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                              >
+                                {f}
+                              </span>
+                            ))
+                          : "—"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top text-xs">{it.quantity}</TableCell>
+                    <TableCell className="align-top text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                  </TableRow>
+                ))}
+              </Fragment>
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-muted-foreground">
+                <TableCell colSpan={16} className="text-center text-muted-foreground">
                   No orders yet.
                 </TableCell>
               </TableRow>

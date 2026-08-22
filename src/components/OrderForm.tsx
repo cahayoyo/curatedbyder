@@ -32,6 +32,8 @@ type OrderInitial = {
   status: string;
   eta: string;
   dp: number | null;
+  shippingCost: number | null;
+  trackingNumber: string | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
   items: { bookId: string; quantity: number }[];
 };
@@ -56,6 +58,12 @@ export function OrderForm({
   const [batchId, setBatchId] = useState<string>(initial?.batchId ?? "");
   const [eta, setEta] = useState(initial?.eta ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
+  const [shippingCost, setShippingCost] = useState(
+    initial?.shippingCost != null ? String(initial.shippingCost) : ""
+  );
+  const [trackingNumber, setTrackingNumber] = useState(
+    initial?.trackingNumber ?? ""
+  );
   const [paymentStatus, setPaymentStatus] = useState<string>(
     initial?.paymentStatus ?? "NO_PAYMENT"
   );
@@ -121,6 +129,8 @@ export function OrderForm({
             | "NOV"
             | "DEC",
           dp: dp ? Number(dp) : null,
+          shippingCost: shippingCost ? Number(shippingCost) : null,
+          trackingNumber: trackingNumber.trim() || null,
           paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
           status: status as
             | "ORDER_PLACED"
@@ -286,6 +296,32 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label>Remaining</Label>
           <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Ongkir</Label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+              Rp
+            </span>
+            <Input
+              inputMode="numeric"
+              className="pl-10 placeholder:text-black/30"
+              value={shippingCost ? formatRp(shippingCost) : ""}
+              onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
+              placeholder="Diisi jika sudah tiba di Indonesia..."
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>No Resi</Label>
+          <Input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="Diisi setelah ada resi..."
+          />
         </div>
       </div>
 

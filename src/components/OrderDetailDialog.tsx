@@ -22,10 +22,12 @@ import {
   ListOrdered,
   MapPin,
   MessageCircle,
+  Package,
   PackageCheck,
   Phone,
   PiggyBank,
   ShieldCheck,
+  Truck,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -46,6 +48,8 @@ export type OrderDTO = {
   total: number;
   dp: number | null;
   remaining: number | null;
+  shippingCost: number | null;
+  trackingNumber: string | null;
   paymentStatus: string;
   status: string;
   batch: { id: string; name: string } | null;
@@ -62,6 +66,8 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     "*Detail Pembelian*",
     `Invoice : ${order.invoiceNumber}`,
     `Total Harga Buku: ${formatIDR(order.total)}`,
+    `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
+    `No Resi : ${order.trackingNumber || "--"}`,
     `Alamat : ${order.buyer.contact || "—"}`,
     "",
     "*Detail Buku*",
@@ -151,6 +157,16 @@ export function OrderDetailDialog({
             <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">ETA</span>
             <span className="ml-auto font-medium">{etaLabel(order.eta)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Ongkir</span>
+            <span className="ml-auto font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">No Resi</span>
+            <span className="ml-auto text-right font-mono font-medium">{order.trackingNumber || "—"}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
