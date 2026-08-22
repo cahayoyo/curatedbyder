@@ -13,6 +13,9 @@ export default async function EditBookPage({ params }: { params: { id: string } 
         initial={{
           id: book.id,
           title: book.title,
+          publisher: book.publisher,
+          info: book.info,
+          image: book.image,
           price: book.price,
           stock: book.stock,
           formats: book.formats,

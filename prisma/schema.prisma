@@ -78,6 +78,9 @@ model User {
 model Book {
   id        String      @id @default(cuid())
   title     String     @unique
+  publisher String?
+  info      String?
+  image     String?
   price     Int
   stock     Int        @default(0)
   formats   Format[]   @default([])

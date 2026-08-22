@@ -8,11 +8,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BookPlus, Pencil, BookOpen, Package, ListOrdered, Banknote, Boxes, Hand, Tag } from "lucide-react";
+import {
+  BookPlus,
+  Pencil,
+  BookOpen,
+  Package,
+  ListOrdered,
+  Banknote,
+  Boxes,
+  Hand,
+  Tag,
+  Building2,
+  Info,
+  ImageIcon,
+} from "lucide-react";
 import { DeleteBookButton } from "@/components/DeleteBookButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { BookSearch } from "@/components/BookSearch";
 import { Pagination } from "@/components/Pagination";
+import { BookThumbnail } from "@/components/BookThumbnail";
 
 const PAGE_SIZE = 20;
 
@@ -24,7 +38,14 @@ export default async function AdminBooksPage({
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
-  const where = q ? { title: { contains: q, mode: "insensitive" as const } } : undefined;
+  const where = q
+    ? {
+        OR: [
+          { title: { contains: q, mode: "insensitive" as const } },
+          { publisher: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : undefined;
 
   const [totalBooks, totalFiltered, books] = await Promise.all([
     db.book.count(),
@@ -76,46 +97,80 @@ export default async function AdminBooksPage({
         <BookSearch />
       </div>
 
-      <div className="rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border">
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1">
-                    <ListOrdered className="h-3.5 w-3.5" />
-                    Judul
-                  </span>
-                </TableHead>
+                <span className="flex items-center gap-1">
+                  <ListOrdered className="h-3.5 w-3.5" />
+                  Judul
+                </span>
+              </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1">
-                    <Tag className="h-3.5 w-3.5" />
-                    Format
-                  </span>
-                </TableHead>
+                <span className="flex items-center gap-1">
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  Gambar
+                </span>
+              </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1">
-                    <Banknote className="h-3.5 w-3.5" />
-                    Harga
-                  </span>
-                </TableHead>
+                <span className="flex items-center gap-1">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Publisher
+                </span>
+              </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1">
-                    <Boxes className="h-3.5 w-3.5" />
-                    Stok
-                  </span>
-                </TableHead>
+                <span className="flex items-center gap-1">
+                  <Info className="h-3.5 w-3.5" />
+                  Informasi
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Tag className="h-3.5 w-3.5" />
+                  Format
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Banknote className="h-3.5 w-3.5" />
+                  Harga
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Boxes className="h-3.5 w-3.5" />
+                  Stok
+                </span>
+              </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1">
-                    <Hand className="h-3.5 w-3.5" />
-                    Aksi
-                  </span>
-                </TableHead>
+                <span className="inline-flex items-center gap-1">
+                  <Hand className="h-3.5 w-3.5" />
+                  Aksi
+                </span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {books.map((b) => (
               <TableRow key={b.id} className="border-b border-input last:border-0">
                 <TableCell className="font-medium">{b.title}</TableCell>
+                <TableCell>
+                  {b.image ? (
+                    <BookThumbnail src={b.image} alt={b.title} />
+                  ) : (
+                    <div className="flex h-32 w-28 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-xs font-medium text-[#D97A7A]/70">
+                      <span className="flex flex-col items-center gap-1">
+                        <ImageIcon className="h-7 w-7" />
+                        empty
+                      </span>
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>{b.publisher || "—"}</TableCell>
+                <TableCell className="max-w-[200px]">
+                  <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
+                </TableCell>
                 <TableCell>
                   {b.formats.length > 0 ? b.formats.join(", ") : "—"}
                 </TableCell>
@@ -145,7 +200,7 @@ export default async function AdminBooksPage({
             ))}
             {books.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No books yet.
                 </TableCell>
               </TableRow>

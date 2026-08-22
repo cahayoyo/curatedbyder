@@ -19,10 +19,18 @@ function isAdmin(session: { user?: {
 
 const bookSchema = z.object({
   title: z.string().trim().min(1),
+  publisher: z.string().trim().max(500).optional(),
+  info: z.string().trim().max(5000).optional(),
+  image: z.string().trim().max(2000).optional(),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
   formats: z.array(z.enum(["HC", "PB", "BB", "SET", "SB"])).default([]),
 });
+
+function orNull(v: string | undefined | null): string | null {
+  const t = v?.trim();
+  return t ? t : null;
+}
 
 async function ensureUniqueTitle(title: string, excludeId?: string) {
   const existing = await db.book.findUnique({ where: { title } });
@@ -42,6 +50,9 @@ export async function createBook(input: z.infer<typeof bookSchema>) {
     const book = await db.book.create({
       data: {
         title: data.title,
+        publisher: orNull(data.publisher),
+        info: orNull(data.info),
+        image: orNull(data.image),
         price: data.price,
         stock: data.stock,
         formats: data.formats,
@@ -69,6 +80,9 @@ export async function updateBook(id: string, input: z.infer<typeof bookSchema>) 
       where: { id },
       data: {
         title: data.title,
+        publisher: orNull(data.publisher),
+        info: orNull(data.info),
+        image: orNull(data.image),
         price: data.price,
         stock: data.stock,
         formats: data.formats,
