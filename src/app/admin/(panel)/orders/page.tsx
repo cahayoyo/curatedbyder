@@ -230,7 +230,7 @@ export default async function AdminOrdersPage({
                       title="Konfirmasi Hapus"
                       description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
                       successMessage="Order dihapus"
-                      onConfirm={() => deleteOrder(s.id)}
+                      onConfirm={deleteOrder.bind(null, s.id)}
                     />
                   </div>
                 </TableCell>

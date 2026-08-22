@@ -142,7 +142,7 @@ export default async function AdminBuyersPage({
                       title="Konfirmasi Hapus"
                       description={`Apakah anda benar ingin menghapus pembeli "${b.name}"?`}
                       successMessage="Pembeli dihapus"
-                      onConfirm={() => deleteBuyer(b.id)}
+                      onConfirm={deleteBuyer.bind(null, b.id)}
                     />
                   </div>
                 </TableCell>

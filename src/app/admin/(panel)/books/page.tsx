@@ -204,7 +204,7 @@ export default async function AdminBooksPage({
                       title="Konfirmasi Hapus"
                       description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
                       successMessage="Buku dihapus"
-                      onConfirm={() => deleteBook(b.id)}
+                      onConfirm={deleteBook.bind(null, b.id)}
                     />
                   </div>
                 </TableCell>
