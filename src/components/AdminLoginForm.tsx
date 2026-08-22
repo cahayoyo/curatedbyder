@@ -47,7 +47,7 @@ export function AdminLoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm" style={{ backgroundColor: "#F6F1E7" }}>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="space-y-1.5">
@@ -93,7 +93,8 @@ export function AdminLoginForm() {
           <Button
             type="submit"
             variant="outline"
-            className="w-full transition-all hover:bg-black hover:text-white"
+            className="w-full transition-all "
+            style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
             disabled={loading}
           >
             {loading ? "Memproses..." : "Masuk"}
