@@ -22,7 +22,8 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
         <Button
           variant="outline"
           aria-label="Account menu"
-          className="relative h-10 items-center gap-2 border border-input px-2 py-1 transition-colors hover:bg-[#FED6D6] hover:text-black"
+          style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
+          className="relative h-10 items-center gap-2 border border-input px-2 py-1 transition-colors hover:bg-[#c96666] hover:text-white"
         >
           <UserRound className="h-5 w-5" />
           <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-background" />
@@ -37,7 +38,8 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => signOut({ callbackUrl: signOutUrl })}
-          className="cursor-pointer text-destructive hover:bg-black/10 focus:bg-black/10 focus:text-destructive"
+          style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
+          className="cursor-pointer font-semibold transition-colors hover:bg-[#c96666] focus:bg-[#c96666] focus:text-white"
         >
           <LogOut className="h-4 w-4" />
           Sign out

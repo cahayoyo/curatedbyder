@@ -3,11 +3,12 @@ import { Prisma } from "@prisma/client";
 import { requireRole } from "@/lib/session";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
+import { CreateBatchDialog } from "@/components/CreateBatchDialog";
 import { DeleteOrderButton } from "@/components/DeleteOrderButton";
 import { OrderSearch } from "@/components/OrderSearch";
 import { Pagination } from "@/components/Pagination";
-import { ETAS, BATCHES } from "@/lib/orderOptions";
-import { Plus, Pencil } from "lucide-react";
+import { ETAS } from "@/lib/orderOptions";
+import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,7 +36,7 @@ function etaLabel(v: string | null | undefined) {
 
 function batchLabel(v: string | null | undefined) {
   if (v == null) return "—";
-  return BATCHES.find((b) => b.value === v)?.label ?? v;
+  return v;
 }
 
 export default async function AdminOrdersPage({
@@ -66,7 +67,8 @@ export default async function AdminOrdersPage({
       where,
       include: {
         buyer: { select: { name: true } },
-        items: { include: { book: { select: { title: true } } } },
+        batch: true,
+        items: { include: { book: { select: { title: true, formats: true } } } },
       },
       orderBy: { soldAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
@@ -77,23 +79,35 @@ export default async function AdminOrdersPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">List Order</h2>
-        <NavActionButton
-          href="/admin/orders/new"
-          icon={<Plus className="h-4 w-4" />}
-          className="border border-input shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
-        >
-          Tambah Order
-        </NavActionButton>
+        <h2 className="flex items-center gap-2 text-2xl font-bold">
+          <ShoppingCart className="h-6 w-6" />
+          List Order
+        </h2>
+        <div className="flex items-center gap-2">
+          <CreateBatchDialog />
+          <NavActionButton
+            href="/admin/orders/new"
+            icon={<Plus className="h-4 w-4" />}
+            className="border border-input shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
+          >
+            Tambah Order
+          </NavActionButton>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Total Order</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Total Order
+          </p>
           <p className="text-2xl font-bold">{totalOrders}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Total DP</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Coins className="h-4 w-4" />
+            Total DP
+          </p>
           <p className="text-xl font-bold">
             {fmt(
               orders.reduce((acc, s) => acc + (s.dp ?? 0), 0)
@@ -101,7 +115,10 @@ export default async function AdminOrdersPage({
           </p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Total Sisa</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <HandCoins className="h-4 w-4" />
+            Total Sisa
+          </p>
           <p className="text-xl font-bold">
             {fmt(
               orders.reduce((acc, s) => acc + (s.remaining ?? 0), 0)
@@ -118,27 +135,55 @@ export default async function AdminOrdersPage({
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
-              <TableHead className="font-bold">Invoice</TableHead>
-              <TableHead className="font-bold">Batch</TableHead>
-              <TableHead className="font-bold">Eta</TableHead>
-              <TableHead className="font-bold">Nama</TableHead>
-              <TableHead className="font-bold">Judul Buku</TableHead>
-              <TableHead className="font-bold">Format</TableHead>
-              <TableHead className="font-bold">Quantity</TableHead>
-              <TableHead className="font-bold">Harga</TableHead>
-              <TableHead className="font-bold">Total</TableHead>
-              <TableHead className="font-bold">DP</TableHead>
-              <TableHead className="font-bold">Remaining</TableHead>
-              <TableHead className="font-bold">Status Pembayaran</TableHead>
-              <TableHead className="font-bold">Status Order</TableHead>
-              <TableHead className="text-center font-bold">Aksi</TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" />Invoice</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />Batch</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />Eta</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />Nama</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />Judul Buku</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" />Harga</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" />Total</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" />DP</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" />Remaining</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Order</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
+                </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((s) => (
               <TableRow key={s.id} className="border-b border-input last:border-0">
                 <TableCell className="font-mono text-xs font-medium">{s.invoiceNumber}</TableCell>
-                <TableCell>{batchLabel(s.batch)}</TableCell>
+                <TableCell>{batchLabel(s.batch?.name)}</TableCell>
                 <TableCell>{etaLabel(s.eta)}</TableCell>
                 <TableCell>{s.buyer.name}</TableCell>
                 <TableCell>
@@ -148,7 +193,15 @@ export default async function AdminOrdersPage({
                     ))}
                   </ul>
                 </TableCell>
-                <TableCell>{s.format ?? "—"}</TableCell>
+                <TableCell>
+                  <ul className="text-xs">
+                    {s.items.map((it, i) => (
+                      <li key={i}>
+                        {it.book.formats.length > 0 ? it.book.formats.join(", ") : "—"}
+                      </li>
+                    ))}
+                  </ul>
+                </TableCell>
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (

@@ -49,8 +49,3 @@ export const FORMATS = [
   { value: "BS", label: "BS" },
   { value: "SB", label: "SB" },
 ] as const;
-
-export const BATCHES = [
-  { value: "BATCH1", label: "Batch 1" },
-  { value: "BATCH2", label: "Batch 2" },
-] as const;

@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Pencil } from "lucide-react";
+import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard } from "lucide-react";
 import { DeleteBuyerButton } from "@/components/DeleteBuyerButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { BuyerSearch } from "@/components/BuyerSearch";
@@ -51,7 +51,10 @@ export default async function AdminBuyersPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Daftar Pembeli</h2>
+        <h2 className="flex items-center gap-2 text-2xl font-bold">
+          <Users className="h-6 w-6" />
+          Daftar Pembeli
+        </h2>
         <NavActionButton
           href="/admin/buyers/new"
           icon={<UserPlus className="h-4 w-4" />}
@@ -63,7 +66,10 @@ export default async function AdminBuyersPage({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Total Pembeli</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <IdCard className="h-4 w-4" />
+            Total Pembeli
+          </p>
           <p className="text-2xl font-bold">{totalBuyers}</p>
         </div>
       </div>
@@ -76,10 +82,30 @@ export default async function AdminBuyersPage({
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
-              <TableHead className="font-bold">Nama</TableHead>
-              <TableHead className="font-bold">Nomor Telepon</TableHead>
-              <TableHead className="font-bold">Alamat</TableHead>
-              <TableHead className="text-center font-bold">Aksi</TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5" />
+                    Nama
+                  </span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1">
+                    <Phone className="h-3.5 w-3.5" />
+                    Nomor Telepon
+                  </span>
+                </TableHead>
+              <TableHead className="font-bold">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Alamat
+                  </span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1">
+                    <Hand className="h-3.5 w-3.5" />
+                    Aksi
+                  </span>
+                </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

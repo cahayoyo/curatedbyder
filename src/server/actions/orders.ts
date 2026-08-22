@@ -28,9 +28,8 @@ const statusEnum = z.enum([
 const orderSchema = z.object({
   buyerId: z.string().min(1),
   source: z.enum(["INSTAGRAM", "SHOPEE", "OTHER"]),
-  batch: z.enum(["BATCH1", "BATCH2"]),
+  batchId: z.string().min(1),
   eta: z.enum(["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]),
-  format: z.enum(["HC", "PB", "BB", "BS", "SB"]).optional().nullable(),
   dp: z.number().int().min(0).optional().nullable(),
   paymentStatus: z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]),
   status: statusEnum,
@@ -38,6 +37,25 @@ const orderSchema = z.object({
     .array(z.object({ bookId: z.string(), quantity: z.number().int().min(1) }))
     .min(1),
 });
+
+export async function createBatch(name: string) {
+  const session = await getServerSession(authOptions);
+  if (!isAdmin(session)) throw new Error("Forbidden");
+
+  const batchName = name.trim().toUpperCase();
+  if (!batchName) throw new Error("Nama batch tidak boleh kosong");
+  if (!/^[A-Z0-9]+$/.test(batchName)) {
+    throw new Error("Nama batch hanya boleh huruf/angka (mis. BATCH3)");
+  }
+
+  const existing = await db.batch.findUnique({ where: { name: batchName } });
+  if (existing) return { ok: false, error: "Batch sudah ada" };
+
+  await db.batch.create({ data: { name: batchName } });
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/orders/new");
+  return { ok: true as const };
+}
 
 export async function createOrder(input: z.infer<typeof orderSchema>) {
   const session = await getServerSession(authOptions);
@@ -84,11 +102,10 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         invoiceNumber,
         buyerId: data.buyerId,
         source: data.source,
-        batch: data.batch,
+        batchId: data.batchId,
         status: "ORDER_PLACED",
         total,
         eta: data.eta,
-        format: data.format,
         dp: data.dp,
         remaining,
         paymentStatus: data.paymentStatus,
@@ -179,9 +196,8 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       data: {
         buyerId: data.buyerId,
         source: data.source,
-        batch: data.batch,
+        batchId: data.batchId,
         eta: data.eta,
-        format: data.format,
         dp: data.dp,
         remaining,
         paymentStatus: data.paymentStatus,

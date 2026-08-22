@@ -13,13 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SOURCES, ETAS, FORMATS, STATUSES, BATCHES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { SOURCES, ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number };
+type Batch = { id: string; name: string };
 type LineItem = { bookId: string; quantity: string };
 
 type OrderInitial = {
@@ -27,10 +28,9 @@ type OrderInitial = {
   invoiceNumber: string;
   buyerId: string;
   source: "INSTAGRAM" | "SHOPEE" | "OTHER";
-  batch: string;
+  batchId: string;
   status: string;
   eta: string;
-  format: string | null;
   dp: number | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
   items: { bookId: string; quantity: number }[];
@@ -42,19 +42,20 @@ const btn =
 export function OrderForm({
   buyers,
   books,
+  batches,
   initial,
 }: {
   buyers: Buyer[];
   books: Book[];
+  batches: Batch[];
   initial?: OrderInitial;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
   const [source, setSource] = useState<string>(initial?.source ?? "INSTAGRAM");
-  const [batch, setBatch] = useState<string>(initial?.batch ?? "");
+  const [batchId, setBatchId] = useState<string>(initial?.batchId ?? "");
   const [eta, setEta] = useState(initial?.eta ?? "");
-  const [format, setFormat] = useState(initial?.format ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
   const [paymentStatus, setPaymentStatus] = useState<string>(
     initial?.paymentStatus ?? "NO_PAYMENT"
@@ -94,7 +95,7 @@ export function OrderForm({
       .map((i) => ({ bookId: i.bookId, quantity: Number(i.quantity) }));
 
     if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
-    if (!batch) return toast.error("Batch wajib dipilih");
+    if (!batchId) return toast.error("Batch wajib dipilih");
     if (!eta) return toast.error("ETA wajib dipilih");
     if (!source) return toast.error("Source wajib dipilih");
     if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
@@ -108,7 +109,7 @@ export function OrderForm({
         const payload = {
           buyerId,
           source: source as "INSTAGRAM" | "SHOPEE" | "OTHER",
-          batch: batch as "BATCH1" | "BATCH2",
+          batchId,
           eta: eta as
             | "JAN"
             | "FEB"
@@ -122,7 +123,6 @@ export function OrderForm({
             | "OCT"
             | "NOV"
             | "DEC",
-          format: (format || null) as "HC" | "PB" | "BB" | "BS" | "SB",
           dp: dp ? Number(dp) : null,
           paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
           status: status as
@@ -168,14 +168,14 @@ export function OrderForm({
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="space-y-1.5">
           <Label>Batch</Label>
-          <Select value={batch} onValueChange={setBatch}>
+          <Select value={batchId} onValueChange={setBatchId}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih batch" />
             </SelectTrigger>
             <SelectContent>
-              {BATCHES.map((b) => (
-                <SelectItem key={b.value} value={b.value}>
-                  {b.label}
+              {batches.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -284,22 +284,7 @@ export function OrderForm({
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        <div className="space-y-1.5">
-          <Label>Format</Label>
-          <Select value={format} onValueChange={setFormat}>
-            <SelectTrigger>
-              <SelectValue placeholder="-" />
-            </SelectTrigger>
-            <SelectContent>
-              {FORMATS.map((f) => (
-                <SelectItem key={f.value} value={f.value}>
-                  {f.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label>Total</Label>
           <Input readOnly value={fmtRupiah(total)} className="bg-black/5" />

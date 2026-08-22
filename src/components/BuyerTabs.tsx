@@ -30,7 +30,6 @@ export type OrderDTO = {
   dp: number | null;
   remaining: number | null;
   eta: string | null;
-  format: string | null;
   items: OrderItemDTO[];
 };
 

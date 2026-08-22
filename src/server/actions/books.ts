@@ -21,6 +21,7 @@ const bookSchema = z.object({
   title: z.string().trim().min(1),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
+  formats: z.array(z.enum(["HC", "PB", "BB", "BS", "SB"])).default([]),
 });
 
 async function ensureUniqueTitle(title: string, excludeId?: string) {
@@ -43,6 +44,7 @@ export async function createBook(input: z.infer<typeof bookSchema>) {
         title: data.title,
         price: data.price,
         stock: data.stock,
+        formats: data.formats,
       },
     });
     revalidatePath("/admin/books");
@@ -69,6 +71,7 @@ export async function updateBook(id: string, input: z.infer<typeof bookSchema>) 
         title: data.title,
         price: data.price,
         stock: data.stock,
+        formats: data.formats,
       },
     });
     revalidatePath("/admin/books");

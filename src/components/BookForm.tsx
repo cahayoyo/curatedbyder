@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FORMATS } from "@/lib/orderOptions";
 
 type InitialBook = {
   id?: string;
   title: string;
   price: number;
   stock: number;
+  formats: string[];
 };
 
 type BookRow = {
@@ -22,6 +24,7 @@ type BookRow = {
   title: string;
   price: string;
   stock: string;
+  formats: string[];
 };
 
 export function BookForm({ initial }: { initial?: InitialBook }) {
@@ -35,9 +38,10 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             title: initial.title,
             price: initial.price != null ? String(initial.price) : "",
             stock: initial.stock != null ? String(initial.stock) : "0",
+            formats: initial.formats ?? [],
           },
         ]
-      : [{ title: "", price: "", stock: "0" }]
+      : [{ title: "", price: "", stock: "0", formats: [] }]
   );
 
   function formatRp(digits: string): string {
@@ -51,7 +55,22 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
   }
 
   function addRow() {
-    setRows((rs) => [...rs, { title: "", price: "", stock: "0" }]);
+    setRows((rs) => [...rs, { title: "", price: "", stock: "0", formats: [] }]);
+  }
+
+  function toggleFormat(index: number, value: string) {
+    setRows((rs) =>
+      rs.map((r, i) =>
+        i === index
+          ? {
+              ...r,
+              formats: r.formats.includes(value)
+                ? r.formats.filter((f) => f !== value)
+                : [...r.formats, value],
+            }
+          : r
+      )
+    );
   }
 
   function removeRow(index: number) {
@@ -71,6 +90,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             title: r.title,
             price: Number(r.price),
             stock: Number(r.stock),
+            formats: r.formats as ("HC" | "PB" | "BB" | "BS" | "SB")[],
           });
           toast.success("Buku diubah");
         } else {
@@ -79,6 +99,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
               title: r.title,
               price: Number(r.price),
               stock: Number(r.stock),
+              formats: r.formats as ("HC" | "PB" | "BB" | "BS" | "SB")[],
             });
           }
           toast.success(`${rows.length} buku(i) buat`);
@@ -150,6 +171,25 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
                 }}
                 required
               />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Format</Label>
+            <div className="flex flex-wrap gap-3">
+              {FORMATS.map((f) => (
+                <label
+                  key={f.value}
+                  className="flex cursor-pointer items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={r.formats.includes(f.value)}
+                    onChange={() => toggleFormat(i, f.value)}
+                    className="h-4 w-4 accent-[#D97A7A]"
+                  />
+                  {f.label}
+                </label>
+              ))}
             </div>
           </div>
         </div>

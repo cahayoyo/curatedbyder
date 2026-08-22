@@ -5,9 +5,10 @@ import { OrderForm } from "@/components/OrderForm";
 export default async function NewOrderPage() {
   await requireRole("SUPER_ADMIN");
 
-  const [buyers, books] = await Promise.all([
+  const [buyers, books, batches] = await Promise.all([
     db.user.findMany({ where: { role: "USER" }, orderBy: { name: "asc" } }),
     db.book.findMany({ orderBy: { title: "asc" } }),
+    db.batch.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -16,6 +17,7 @@ export default async function NewOrderPage() {
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({ id: b.id, title: b.title, price: b.price, stock: b.stock }))}
+        batches={batches.map((b) => ({ id: b.id, name: b.name }))}
       />
     </div>
   );

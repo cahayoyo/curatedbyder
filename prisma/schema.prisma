@@ -56,9 +56,10 @@ enum Format {
   SB
 }
 
-enum Batch {
-  BATCH1
-  BATCH2
+model Batch {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  orders Order[]
 }
 
 model User {
@@ -74,11 +75,12 @@ model User {
 }
 
 model Book {
-  id        String    @id @default(cuid())
-  title     String   @unique
+  id        String      @id @default(cuid())
+  title     String     @unique
   price     Int
-  stock     Int       @default(0)
-  createdAt DateTime  @default(now())
+  stock     Int        @default(0)
+  formats   Format[]   @default([])
+  createdAt DateTime   @default(now())
   items     OrderItem[]
 }
 
@@ -91,9 +93,9 @@ model Order {
   status        OrderStatus   @default(ORDER_PLACED)
   total         Int
   soldAt        DateTime      @default(now())
-  batch         Batch
+  batchId       String
+  batch         Batch         @relation(fields: [batchId], references: [id])
   eta           Eta
-  format        Format?
   dp            Int?
   remaining     Int?
   paymentStatus PaymentStatus @default(NO_PAYMENT)

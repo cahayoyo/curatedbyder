@@ -6,13 +6,14 @@ import { OrderForm } from "@/components/OrderForm";
 export default async function EditOrderPage({ params }: { params: { id: string } }) {
   await requireRole("SUPER_ADMIN");
 
-  const [order, buyers, books] = await Promise.all([
+  const [order, buyers, books, batches] = await Promise.all([
     db.order.findUnique({
       where: { id: params.id },
       include: { items: { select: { bookId: true, quantity: true } } },
     }),
     db.user.findMany({ where: { role: "USER" }, orderBy: { name: "asc" } }),
     db.book.findMany({ orderBy: { title: "asc" } }),
+    db.batch.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   if (!order) notFound();
@@ -28,15 +29,15 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           price: b.price,
           stock: b.stock,
         }))}
+        batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         initial={{
           id: order.id,
           invoiceNumber: order.invoiceNumber,
           buyerId: order.buyerId,
           source: order.source,
-          batch: order.batch,
+          batchId: order.batchId,
           status: order.status,
           eta: order.eta,
-          format: order.format,
           dp: order.dp,
           paymentStatus: order.paymentStatus,
           items: order.items.map((it) => ({

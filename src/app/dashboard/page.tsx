@@ -25,7 +25,6 @@ export default async function DashboardPage() {
     dp: s.dp,
     remaining: s.remaining,
     eta: s.eta,
-    format: s.format,
     items: s.items.map((i) => ({
       quantity: i.quantity,
       unitPrice: i.unitPrice,
