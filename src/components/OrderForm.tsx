@@ -41,6 +41,59 @@ type OrderInitial = {
 const btn =
   "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#FED6D6] hover:text-black";
 
+function SearchSelect({
+  options,
+  value,
+  onValueChange,
+  placeholder,
+  triggerClassName,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onValueChange: (v: string) => void;
+  placeholder: string;
+  triggerClassName?: string;
+}) {
+  const [search, setSearch] = useState("");
+  const q = search.trim().toLowerCase();
+  const filtered = q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options;
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        onValueChange(v);
+        setSearch("");
+      }}
+    >
+      <SelectTrigger className={triggerClassName}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        <div className="sticky top-0 z-10 border-b border-input bg-popover p-1">
+          <Input
+            autoFocus
+            placeholder={`Cari ${placeholder.toLowerCase()}...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="h-8"
+          />
+        </div>
+        {filtered.length === 0 ? (
+          <p className="px-2 py-4 text-center text-xs text-muted-foreground">Tidak ada hasil</p>
+        ) : (
+          filtered.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function OrderForm({
   buyers,
   books,
@@ -193,18 +246,12 @@ export function OrderForm({
         </div>
         <div className="space-y-1.5">
           <Label>Nama</Label>
-          <Select value={buyerId} onValueChange={setBuyerId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select buyer" />
-            </SelectTrigger>
-            <SelectContent>
-              {buyers.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            options={buyers.map((b) => ({ value: b.id, label: b.name }))}
+            value={buyerId}
+            onValueChange={setBuyerId}
+            placeholder="Select buyer"
+          />
         </div>
       </div>
 
@@ -217,18 +264,16 @@ export function OrderForm({
           >
             <div className="min-w-0 space-y-1">
               <span className="text-xs text-muted-foreground">Judul Buku</span>
-              <Select value={item.bookId} onValueChange={(v) => updateItem(idx, { bookId: v })}>
-                <SelectTrigger className="w-full min-w-0 truncate">
-                  <SelectValue placeholder="Select book" />
-                </SelectTrigger>
-                <SelectContent>
-                  {books.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.title} (stok {b.stock})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                options={books.map((b) => ({
+                  value: b.id,
+                  label: `${b.title} (stok ${b.stock})`,
+                }))}
+                value={item.bookId}
+                onValueChange={(v) => updateItem(idx, { bookId: v })}
+                placeholder="Select book"
+                triggerClassName="w-full min-w-0 truncate"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3 sm:contents">
               <div className="space-y-1">
