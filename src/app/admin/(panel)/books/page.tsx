@@ -165,7 +165,7 @@ export default async function AdminBooksPage({
         ))}
         {books.length === 0 && (
           <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-            No books yet.
+            Belum ada buku.
           </div>
         )}
       </div>
@@ -313,7 +313,7 @@ export default async function AdminBooksPage({
             {books.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground">
-                  No books yet.
+                  Belum ada buku.
                 </TableCell>
               </TableRow>
             )}

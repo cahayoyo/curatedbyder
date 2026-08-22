@@ -383,7 +383,7 @@ export default async function AdminOrdersPage({
             {orders.length === 0 && (
               <TableRow>
                 <TableCell colSpan={16} className="text-center text-muted-foreground">
-                  No orders yet.
+                  Belum ada pesanan.
                 </TableCell>
               </TableRow>
             )}
