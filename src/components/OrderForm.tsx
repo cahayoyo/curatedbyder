@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createSale, updateSale } from "@/server/actions/sales";
+import { createOrder, updateOrder } from "@/server/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SOURCES, ETAS, FORMATS, STATUSES, PAYMENT_STATUSES } from "@/lib/saleOptions";
+import { SOURCES, ETAS, FORMATS, STATUSES, BATCHES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -22,13 +22,14 @@ type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number };
 type LineItem = { bookId: string; quantity: string };
 
-type SaleInitial = {
+type OrderInitial = {
   id: string;
   invoiceNumber: string;
   buyerId: string;
   source: "INSTAGRAM" | "SHOPEE" | "OTHER";
+  batch: string;
   status: string;
-  eta: string | null;
+  eta: string;
   format: string | null;
   dp: number | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
@@ -38,19 +39,20 @@ type SaleInitial = {
 const btn =
   "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#FED6D6] hover:text-black";
 
-export function SalesForm({
+export function OrderForm({
   buyers,
   books,
   initial,
 }: {
   buyers: Buyer[];
   books: Book[];
-  initial?: SaleInitial;
+  initial?: OrderInitial;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
   const [source, setSource] = useState<string>(initial?.source ?? "INSTAGRAM");
+  const [batch, setBatch] = useState<string>(initial?.batch ?? "");
   const [eta, setEta] = useState(initial?.eta ?? "");
   const [format, setFormat] = useState(initial?.format ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
@@ -91,15 +93,23 @@ export function SalesForm({
       .filter((i) => i.bookId)
       .map((i) => ({ bookId: i.bookId, quantity: Number(i.quantity) }));
 
-    if (!buyerId) return toast.error("Select a buyer");
-    if (itemPayload.length === 0) return toast.error("Add at least one book");
+    if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
+    if (!batch) return toast.error("Batch wajib dipilih");
+    if (!eta) return toast.error("ETA wajib dipilih");
+    if (!source) return toast.error("Source wajib dipilih");
+    if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
+    if (!status) return toast.error("Status order wajib dipilih");
+    if (itemPayload.length === 0) return toast.error("Pilih minimal satu buku");
+    const hasEmptyBook = items.some((i) => !i.bookId);
+    if (hasEmptyBook) return toast.error("Semua baris buku wajib diisi");
 
     startTransition(async () => {
       try {
         const payload = {
           buyerId,
           source: source as "INSTAGRAM" | "SHOPEE" | "OTHER",
-          eta: (eta || null) as
+          batch: batch as "BATCH1" | "BATCH2",
+          eta: eta as
             | "JAN"
             | "FEB"
             | "MAR"
@@ -114,7 +124,7 @@ export function SalesForm({
             | "DEC",
           format: (format || null) as "HC" | "PB" | "BB" | "BS" | "SB",
           dp: dp ? Number(dp) : null,
-          paymentStatus: (paymentStatus || null) as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
+          paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
           status: status as
             | "ORDER_PLACED"
             | "SHIPPING_TO_INDONESIA"
@@ -125,13 +135,13 @@ export function SalesForm({
           items: itemPayload,
         };
         if (initial?.id) {
-          await updateSale(initial.id, payload);
+          await updateOrder(initial.id, payload);
           toast.success("Order diubah");
         } else {
-          const sale = await createSale(payload);
-          toast.success(`Order recorded: ${sale.invoiceNumber}`);
+          const order = await createOrder(payload);
+          toast.success(`Order recorded: ${order.invoiceNumber}`);
         }
-        router.push("/admin/sales");
+        router.push("/admin/orders");
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to record order");
@@ -155,9 +165,24 @@ export function SalesForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <div className="space-y-1.5">
-          <Label>Eta</Label>
+          <Label>Batch</Label>
+          <Select value={batch} onValueChange={setBatch}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih batch" />
+            </SelectTrigger>
+            <SelectContent>
+              {BATCHES.map((b) => (
+                <SelectItem key={b.value} value={b.value}>
+                  {b.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>ETA</Label>
           <Select value={eta} onValueChange={setEta}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih bulan" />

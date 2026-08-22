@@ -85,7 +85,7 @@ export async function deleteBook(id: string) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
-  const sold = await db.saleItem.count({ where: { bookId: id } });
+  const sold = await db.orderItem.count({ where: { bookId: id } });
   if (sold > 0) {
     throw new Error("Buku ini sudah pernah terjual dan tidak bisa dihapus.");
   }

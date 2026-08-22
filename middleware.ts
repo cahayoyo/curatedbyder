@@ -9,15 +9,21 @@ export default withAuth(
     // /admin/login is public
     if (pathname === "/admin/login") return;
 
-    // Buyers / dashboard: any authenticated user
+    // Buyer dashboard: USER only. Admin gets bounced to /admin.
     if (pathname.startsWith("/dashboard")) {
       if (!token) return NextResponse.redirect(new URL("/login", req.url));
+      if (token.role !== "USER") {
+        return NextResponse.redirect(new URL("/admin", req.url));
+      }
       return;
     }
 
     // Admin panel: everything under /admin requires SUPER_ADMIN
     if (pathname.startsWith("/admin")) {
       if (!token || token.role !== "SUPER_ADMIN") {
+        if (token && token.role === "USER") {
+          return NextResponse.redirect(new URL("/dashboard", req.url));
+        }
         return NextResponse.redirect(new URL("/admin/login", req.url));
       }
       return;

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteSale } from "@/server/actions/sales";
+import { deleteOrder } from "@/server/actions/orders";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function DeleteSaleButton({ id, invoiceNumber }: { id: string; invoiceNumber: string }) {
+export function DeleteOrderButton({ id, invoiceNumber }: { id: string; invoiceNumber: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -23,7 +23,7 @@ export function DeleteSaleButton({ id, invoiceNumber }: { id: string; invoiceNum
   function handleDelete() {
     startTransition(async () => {
       try {
-        await deleteSale(id);
+        await deleteOrder(id);
         setOpen(false);
         toast.success("Order dihapus");
         router.refresh();

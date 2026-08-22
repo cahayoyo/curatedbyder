@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "CuratedByDer",
-  description: "Bookstore inventory, sales, and order tracking.",
+  description: "Bookstore inventory and order tracking.",
 };
 
 export default function RootLayout({

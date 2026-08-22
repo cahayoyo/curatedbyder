@@ -25,29 +25,27 @@ const statusEnum = z.enum([
   "ORDER_DELIVERED",
 ]);
 
-const saleSchema = z.object({
+const orderSchema = z.object({
   buyerId: z.string().min(1),
   source: z.enum(["INSTAGRAM", "SHOPEE", "OTHER"]),
-  eta: z
-    .enum(["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"])
-    .optional()
-    .nullable(),
+  batch: z.enum(["BATCH1", "BATCH2"]),
+  eta: z.enum(["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]),
   format: z.enum(["HC", "PB", "BB", "BS", "SB"]).optional().nullable(),
   dp: z.number().int().min(0).optional().nullable(),
-  paymentStatus: z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]).optional().nullable(),
-  status: statusEnum.optional(),
+  paymentStatus: z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]),
+  status: statusEnum,
   items: z
     .array(z.object({ bookId: z.string(), quantity: z.number().int().min(1) }))
     .min(1),
 });
 
-export async function createSale(input: z.infer<typeof saleSchema>) {
+export async function createOrder(input: z.infer<typeof orderSchema>) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
-  const data = saleSchema.parse(input);
+  const data = orderSchema.parse(input);
 
-  const sale = await db.$transaction(async (tx) => {
+  const order = await db.$transaction(async (tx) => {
     const books = await tx.book.findMany({
       where: { id: { in: data.items.map((i) => i.bookId) } },
     });
@@ -73,7 +71,7 @@ export async function createSale(input: z.infer<typeof saleSchema>) {
       now.getDate()
     ).padStart(2, "0")}`;
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const countToday = await tx.sale.count({
+    const countToday = await tx.order.count({
       where: { soldAt: { gte: startOfDay } },
     });
     const invoiceNumber = `INVDER-${day}-${String(countToday + 1).padStart(4, "0")}`;
@@ -81,18 +79,19 @@ export async function createSale(input: z.infer<typeof saleSchema>) {
     const remaining =
       data.dp != null && data.dp > 0 ? Math.max(0, total - data.dp) : null;
 
-    const sale = await tx.sale.create({
+    const order = await tx.order.create({
       data: {
         invoiceNumber,
         buyerId: data.buyerId,
         source: data.source,
+        batch: data.batch,
         status: "ORDER_PLACED",
         total,
         eta: data.eta,
         format: data.format,
         dp: data.dp,
         remaining,
-        paymentStatus: data.paymentStatus ?? "NO_PAYMENT",
+        paymentStatus: data.paymentStatus,
         items: { create: items },
       },
     });
@@ -104,27 +103,27 @@ export async function createSale(input: z.infer<typeof saleSchema>) {
       });
     }
 
-    return sale;
+    return order;
   });
 
   revalidatePath("/admin");
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
-  return sale;
+  return order;
 }
 
-export async function updateSale(id: string, input: z.infer<typeof saleSchema>) {
+export async function updateOrder(id: string, input: z.infer<typeof orderSchema>) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
-  const data = saleSchema.parse(input);
+  const data = orderSchema.parse(input);
 
   await db.$transaction(async (tx) => {
-    const existing = await tx.sale.findUnique({
+    const existing = await tx.order.findUnique({
       where: { id },
       include: { items: true },
     });
-    if (!existing) throw new Error("Sale not found");
+    if (!existing) throw new Error("Order not found");
 
     const oldMap = new Map(existing.items.map((it) => [it.bookId, it.quantity]));
 
@@ -175,18 +174,19 @@ export async function updateSale(id: string, input: z.infer<typeof saleSchema>) 
     const remaining =
       data.dp != null && data.dp > 0 ? Math.max(0, total - data.dp) : null;
 
-    await tx.sale.update({
+    await tx.order.update({
       where: { id },
       data: {
         buyerId: data.buyerId,
         source: data.source,
+        batch: data.batch,
         eta: data.eta,
         format: data.format,
         dp: data.dp,
         remaining,
-        paymentStatus: data.paymentStatus ?? "NO_PAYMENT",
+        paymentStatus: data.paymentStatus,
         total,
-        ...(data.status ? { status: data.status } : {}),
+        status: data.status,
         items: {
           deleteMany: {},
           create: items.map((it) => ({
@@ -201,21 +201,21 @@ export async function updateSale(id: string, input: z.infer<typeof saleSchema>) 
   });
 
   revalidatePath("/admin");
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
 }
 
-export async function updateSaleStatus(id: string, status: string) {
+export async function updateOrderStatus(id: string, status: string) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
   const valid = statusEnum.parse(status);
-  const sale = await db.sale.update({ where: { id }, data: { status: valid } });
+  const order = await db.order.update({ where: { id }, data: { status: valid } });
 
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
-  return sale;
+  return order;
 }
 
 export async function updatePaymentStatus(id: string, paymentStatus: string) {
@@ -223,34 +223,34 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
   if (!isAdmin(session)) throw new Error("Forbidden");
 
   const valid = z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]).parse(paymentStatus);
-  const sale = await db.sale.update({ where: { id }, data: { paymentStatus: valid } });
+  const order = await db.order.update({ where: { id }, data: { paymentStatus: valid } });
 
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   revalidatePath("/admin");
-  return sale;
+  return order;
 }
 
-export async function deleteSale(id: string) {
+export async function deleteOrder(id: string) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
   await db.$transaction(async (tx) => {
-    const sale = await tx.sale.findUnique({
+    const order = await tx.order.findUnique({
       where: { id },
       include: { items: true },
     });
-    if (!sale) throw new Error("Sale not found");
+    if (!order) throw new Error("Order not found");
 
-    for (const item of sale.items) {
+    for (const item of order.items) {
       await tx.book.update({
         where: { id: item.bookId },
         data: { stock: { increment: item.quantity } },
       });
     }
-    await tx.sale.delete({ where: { id } });
+    await tx.order.delete({ where: { id } });
   });
 
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
 }

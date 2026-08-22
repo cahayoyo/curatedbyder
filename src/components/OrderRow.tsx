@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateSaleStatus, updatePaymentStatus } from "@/server/actions/sales";
+import { updateOrderStatus, updatePaymentStatus } from "@/server/actions/orders";
 import {
   Select,
   SelectContent,
@@ -10,17 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUSES, PAYMENT_STATUSES } from "@/lib/saleOptions";
+import { STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { toast } from "sonner";
 
-export function StatusSelect({ saleId, current }: { saleId: string; current: string }) {
+export function StatusSelect({ orderId, current }: { orderId: string; current: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function onChange(value: string) {
     startTransition(async () => {
       try {
-        await updateSaleStatus(saleId, value);
+        await updateOrderStatus(orderId, value);
         toast.success("Status updated");
         router.refresh();
       } catch (err) {
@@ -46,10 +46,10 @@ export function StatusSelect({ saleId, current }: { saleId: string; current: str
 }
 
 export function PaymentStatusSelect({
-  saleId,
+  orderId,
   current,
 }: {
-  saleId: string;
+  orderId: string;
   current: string;
 }) {
   const router = useRouter();
@@ -58,7 +58,7 @@ export function PaymentStatusSelect({
   function onChange(value: string) {
     startTransition(async () => {
       try {
-        await updatePaymentStatus(saleId, value);
+        await updatePaymentStatus(orderId, value);
         toast.success("Payment updated");
         router.refresh();
       } catch (err) {

@@ -40,7 +40,7 @@ export async function createBuyer(input: z.infer<typeof buyerSchema>) {
   });
 
   revalidatePath("/admin/buyers");
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   return buyer;
 }
 
@@ -60,7 +60,7 @@ export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>
   });
 
   revalidatePath("/admin/buyers");
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
   return buyer;
 }
 
@@ -68,7 +68,7 @@ export async function deleteBuyer(id: string) {
   const session = await getServerSession(authOptions);
   if (!isAdmin(session)) throw new Error("Forbidden");
 
-  const sold = await db.sale.count({ where: { buyerId: id } });
+  const sold = await db.order.count({ where: { buyerId: id } });
   if (sold > 0) {
     const buyer = await db.user.findUnique({ where: { id } });
     throw new Error(
@@ -78,5 +78,5 @@ export async function deleteBuyer(id: string) {
 
   await db.user.delete({ where: { id } });
   revalidatePath("/admin/buyers");
-  revalidatePath("/admin/sales");
+  revalidatePath("/admin/orders");
 }

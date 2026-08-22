@@ -96,7 +96,7 @@ export default async function AdminBooksPage({
                     <NavActionButton
                       href={`/admin/books/${b.id}/edit`}
                       icon={<Pencil className="h-3.5 w-3.5" />}
-                      className="h-9 border border-input bg-transparent px-3 text-xs shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+                      className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
                     >
                       Ubah
                     </NavActionButton>

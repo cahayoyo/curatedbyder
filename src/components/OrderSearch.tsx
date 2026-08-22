@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-export function SaleSearch() {
+export function OrderSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
@@ -21,7 +21,7 @@ export function SaleSearch() {
     if (v) params.set("q", v);
     else params.delete("q");
     params.delete("page");
-    router.replace(`/admin/sales?${params.toString()}`);
+    router.replace(`/admin/orders?${params.toString()}`);
   }
 
   return (

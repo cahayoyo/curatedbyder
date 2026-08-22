@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { UserMenu } from "@/components/UserMenu";
 import Link from "next/link";
 
@@ -10,7 +11,8 @@ export default async function DashboardLayout({
 }) {
   const session = await getServerSession(authOptions);
   const user = session?.user as { name?: string; role?: string } | undefined;
-  const isAdmin = user?.role === "SUPER_ADMIN";
+  if (user?.role === "SUPER_ADMIN") redirect("/admin");
+  if (!user) redirect("/login");
 
   return (
     <div className="min-h-screen">
@@ -20,11 +22,6 @@ export default async function DashboardLayout({
             CuratedByDer
           </Link>
           <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link href="/admin" className="text-sm text-muted-foreground hover:underline">
-                Admin
-              </Link>
-            )}
             <UserMenu name={user?.name} role={user?.role} />
           </div>
         </div>

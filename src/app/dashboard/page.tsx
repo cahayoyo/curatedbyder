@@ -1,12 +1,12 @@
-import { requireSession } from "@/lib/session";
+import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
-import { BuyerTabs, SaleDTO } from "@/components/BuyerTabs";
+import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 
 export default async function DashboardPage() {
-  const session = await requireSession();
+  const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const sales = await db.sale.findMany({
+  const orders = await db.order.findMany({
     where: { buyerId: userId },
     include: {
       items: { include: { book: { select: { title: true } } } },
@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     orderBy: { soldAt: "desc" },
   });
 
-  const dto: SaleDTO[] = sales.map((s) => ({
+  const dto: OrderDTO[] = orders.map((s) => ({
     id: s.id,
     invoiceNumber: s.invoiceNumber,
     source: s.source,
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">My Orders</h2>
-      <BuyerTabs sales={dto} />
+      <BuyerTabs orders={dto} />
     </div>
   );
 }

@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 
 export default async function AdminOverviewPage() {
-  const [sales, buyers] = await Promise.all([
-    db.sale.findMany({
+  const [orders, buyers] = await Promise.all([
+    db.order.findMany({
       include: {
         buyer: { select: { name: true } },
         items: { include: { book: { select: { title: true } } } },
@@ -15,7 +15,7 @@ export default async function AdminOverviewPage() {
   ]);
 
   const soldByBook = new Map<string, { title: string; qty: number }>();
-  for (const s of sales) {
+  for (const s of orders) {
     for (const it of s.items) {
       const cur = soldByBook.get(it.book.title) ?? { title: it.book.title, qty: 0 };
       cur.qty += it.quantity;
@@ -27,7 +27,7 @@ export default async function AdminOverviewPage() {
     .slice(0, 5);
 
   const bySource = new Map<string, number>();
-  for (const s of sales) {
+  for (const s of orders) {
     bySource.set(s.source, (bySource.get(s.source) ?? 0) + 1);
   }
 
@@ -44,9 +44,9 @@ export default async function AdminOverviewPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total sales</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Total orders</CardTitle>
           </CardHeader>
-          <CardContent className="text-lg font-bold">{sales.length}</CardContent>
+          <CardContent className="text-lg font-bold">{orders.length}</CardContent>
         </Card>
       </div>
 
@@ -62,14 +62,14 @@ export default async function AdminOverviewPage() {
                 <span className="font-medium">{b.qty} sold</span>
               </li>
             ))}
-            {bestSellers.length === 0 && <li className="text-muted-foreground">No sales yet.</li>}
+            {bestSellers.length === 0 && <li className="text-muted-foreground">No orders yet.</li>}
           </ul>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Sales by source</CardTitle>
+          <CardTitle>Orders by source</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-1 text-sm">
@@ -79,7 +79,7 @@ export default async function AdminOverviewPage() {
                 <span className="font-medium">{n}</span>
               </li>
             ))}
-            {bySource.size === 0 && <li className="text-muted-foreground">No sales yet.</li>}
+            {bySource.size === 0 && <li className="text-muted-foreground">No orders yet.</li>}
           </ul>
         </CardContent>
       </Card>

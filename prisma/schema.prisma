@@ -18,7 +18,7 @@ enum Source {
   OTHER
 }
 
-enum SaleStatus {
+enum OrderStatus {
   ORDER_PLACED
   SHIPPING_TO_INDONESIA
   ARRIVED_IN_INDONESIA
@@ -57,7 +57,8 @@ enum Format {
 }
 
 enum Batch {
-  NONE
+  BATCH1
+  BATCH2
 }
 
 model User {
@@ -69,7 +70,7 @@ model User {
   role         Role     @default(USER)
   contact      String?
   createdAt    DateTime @default(now())
-  sales        Sale[]
+  orders       Order[]
 }
 
 model Book {
@@ -78,32 +79,32 @@ model Book {
   price     Int
   stock     Int       @default(0)
   createdAt DateTime  @default(now())
-  items     SaleItem[]
+  items     OrderItem[]
 }
 
-model Sale {
+model Order {
   id            String        @id @default(cuid())
   invoiceNumber String        @unique
   buyerId       String
   buyer         User          @relation(fields: [buyerId], references: [id])
   source        Source
-  status        SaleStatus    @default(ORDER_PLACED)
+  status        OrderStatus   @default(ORDER_PLACED)
   total         Int
   soldAt        DateTime      @default(now())
-  batch         Batch?
-  eta           Eta?
+  batch         Batch
+  eta           Eta
   format        Format?
   dp            Int?
   remaining     Int?
   paymentStatus PaymentStatus @default(NO_PAYMENT)
   createdAt     DateTime      @default(now())
-  items         SaleItem[]
+  items         OrderItem[]
 }
 
-model SaleItem {
+model OrderItem {
   id        String @id @default(cuid())
-  saleId    String
-  sale      Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   bookId    String
   book      Book   @relation(fields: [bookId], references: [id])
   quantity  Int

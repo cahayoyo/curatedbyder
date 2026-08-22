@@ -1,13 +1,13 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/session";
-import { SalesForm } from "@/components/SalesForm";
+import { OrderForm } from "@/components/OrderForm";
 
-export default async function EditSalePage({ params }: { params: { id: string } }) {
+export default async function EditOrderPage({ params }: { params: { id: string } }) {
   await requireRole("SUPER_ADMIN");
 
-  const [sale, buyers, books] = await Promise.all([
-    db.sale.findUnique({
+  const [order, buyers, books] = await Promise.all([
+    db.order.findUnique({
       where: { id: params.id },
       include: { items: { select: { bookId: true, quantity: true } } },
     }),
@@ -15,12 +15,12 @@ export default async function EditSalePage({ params }: { params: { id: string } 
     db.book.findMany({ orderBy: { title: "asc" } }),
   ]);
 
-  if (!sale) notFound();
+  if (!order) notFound();
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Ubah Order: {sale.invoiceNumber}</h2>
-      <SalesForm
+      <h2 className="text-2xl font-bold">Ubah Order: {order.invoiceNumber}</h2>
+      <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({
           id: b.id,
@@ -29,16 +29,17 @@ export default async function EditSalePage({ params }: { params: { id: string } 
           stock: b.stock,
         }))}
         initial={{
-          id: sale.id,
-          invoiceNumber: sale.invoiceNumber,
-          buyerId: sale.buyerId,
-          source: sale.source,
-          status: sale.status,
-          eta: sale.eta,
-          format: sale.format,
-          dp: sale.dp,
-          paymentStatus: sale.paymentStatus,
-          items: sale.items.map((it) => ({
+          id: order.id,
+          invoiceNumber: order.invoiceNumber,
+          buyerId: order.buyerId,
+          source: order.source,
+          batch: order.batch,
+          status: order.status,
+          eta: order.eta,
+          format: order.format,
+          dp: order.dp,
+          paymentStatus: order.paymentStatus,
+          items: order.items.map((it) => ({
             bookId: it.bookId,
             quantity: it.quantity,
           })),

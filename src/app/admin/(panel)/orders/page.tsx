@@ -1,12 +1,12 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { requireRole } from "@/lib/session";
-import { StatusSelect, PaymentStatusSelect } from "@/components/SaleRow";
+import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
-import { DeleteSaleButton } from "@/components/DeleteSaleButton";
-import { SaleSearch } from "@/components/SaleSearch";
+import { DeleteOrderButton } from "@/components/DeleteOrderButton";
+import { OrderSearch } from "@/components/OrderSearch";
 import { Pagination } from "@/components/Pagination";
-import { ETAS } from "@/lib/saleOptions";
+import { ETAS, BATCHES } from "@/lib/orderOptions";
 import { Plus, Pencil } from "lucide-react";
 import {
   Table,
@@ -33,7 +33,12 @@ function etaLabel(v: string | null | undefined) {
   return ETAS.find((e) => e.value === v)?.label ?? v;
 }
 
-export default async function AdminSalesPage({
+function batchLabel(v: string | null | undefined) {
+  if (v == null) return "—";
+  return BATCHES.find((b) => b.value === v)?.label ?? v;
+}
+
+export default async function AdminOrdersPage({
   searchParams,
 }: {
   searchParams: { q?: string; page?: string };
@@ -44,7 +49,7 @@ export default async function AdminSalesPage({
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
 
-  const where: Prisma.SaleWhereInput | undefined = q
+  const where: Prisma.OrderWhereInput | undefined = q
     ? {
         OR: [
           { invoiceNumber: { contains: q, mode: "insensitive" as const } },
@@ -54,10 +59,10 @@ export default async function AdminSalesPage({
       }
     : undefined;
 
-  const [totalSales, totalFiltered, sales] = await Promise.all([
-    db.sale.count(),
-    db.sale.count({ where }),
-    db.sale.findMany({
+  const [totalOrders, totalFiltered, orders] = await Promise.all([
+    db.order.count(),
+    db.order.count({ where }),
+    db.order.findMany({
       where,
       include: {
         buyer: { select: { name: true } },
@@ -74,7 +79,7 @@ export default async function AdminSalesPage({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">List Order</h2>
         <NavActionButton
-          href="/admin/sales/new"
+          href="/admin/orders/new"
           icon={<Plus className="h-4 w-4" />}
           className="border border-input shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
         >
@@ -85,13 +90,13 @@ export default async function AdminSalesPage({
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Total Order</p>
-          <p className="text-2xl font-bold">{totalSales}</p>
+          <p className="text-2xl font-bold">{totalOrders}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Total DP</p>
           <p className="text-xl font-bold">
             {fmt(
-              sales.reduce((acc, s) => acc + (s.dp ?? 0), 0)
+              orders.reduce((acc, s) => acc + (s.dp ?? 0), 0)
             )}
           </p>
         </div>
@@ -99,14 +104,14 @@ export default async function AdminSalesPage({
           <p className="text-sm text-muted-foreground">Total Sisa</p>
           <p className="text-xl font-bold">
             {fmt(
-              sales.reduce((acc, s) => acc + (s.remaining ?? 0), 0)
+              orders.reduce((acc, s) => acc + (s.remaining ?? 0), 0)
             )}
           </p>
         </div>
       </div>
 
       <div className="w-full md:max-w-md">
-        <SaleSearch />
+        <OrderSearch />
       </div>
 
       <div className="overflow-x-auto rounded-lg border">
@@ -130,10 +135,10 @@ export default async function AdminSalesPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sales.map((s) => (
+            {orders.map((s) => (
               <TableRow key={s.id} className="border-b border-input last:border-0">
                 <TableCell className="font-mono text-xs font-medium">{s.invoiceNumber}</TableCell>
-                <TableCell>{s.batch ?? "—"}</TableCell>
+                <TableCell>{batchLabel(s.batch)}</TableCell>
                 <TableCell>{etaLabel(s.eta)}</TableCell>
                 <TableCell>{s.buyer.name}</TableCell>
                 <TableCell>
@@ -163,7 +168,7 @@ export default async function AdminSalesPage({
                 <TableCell>{fmt(s.remaining)}</TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <PaymentStatusSelect saleId={s.id} current={s.paymentStatus} />
+                    <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
                     {s.dp != null && (
                       <p className="text-xs text-muted-foreground">
                         DP {fmt(s.dp)} / sisa {fmt(s.remaining)}
@@ -172,23 +177,23 @@ export default async function AdminSalesPage({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <StatusSelect saleId={s.id} current={s.status} />
+                  <StatusSelect orderId={s.id} current={s.status} />
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <NavActionButton
-                      href={`/admin/sales/${s.id}/edit`}
+                      href={`/admin/orders/${s.id}/edit`}
                       icon={<Pencil className="h-3.5 w-3.5" />}
-                      className="h-9 border border-input bg-transparent px-3 text-xs shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+                      className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
                     >
                       Ubah
                     </NavActionButton>
-                    <DeleteSaleButton id={s.id} invoiceNumber={s.invoiceNumber} />
+                    <DeleteOrderButton id={s.id} invoiceNumber={s.invoiceNumber} />
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-            {sales.length === 0 && (
+            {orders.length === 0 && (
               <TableRow>
                 <TableCell colSpan={14} className="text-center text-muted-foreground">
                   No orders yet.
@@ -203,7 +208,7 @@ export default async function AdminSalesPage({
         total={totalFiltered}
         page={page}
         pageSize={PAGE_SIZE}
-        basePath="/admin/sales"
+        basePath="/admin/orders"
         query={{ q: qRaw }}
       />
     </div>

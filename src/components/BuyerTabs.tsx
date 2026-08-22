@@ -11,15 +11,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUSES, STATUS_LABEL, PAYMENT_LABEL } from "@/lib/saleOptions";
+import { STATUSES, STATUS_LABEL, PAYMENT_LABEL } from "@/lib/orderOptions";
 
-type SaleItemDTO = {
+type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   book: { title: string };
 };
 
-export type SaleDTO = {
+export type OrderDTO = {
   id: string;
   invoiceNumber: string;
   source: string;
@@ -31,7 +31,7 @@ export type SaleDTO = {
   remaining: number | null;
   eta: string | null;
   format: string | null;
-  items: SaleItemDTO[];
+  items: OrderItemDTO[];
 };
 
 const statusColor: Record<string, string> = {
@@ -56,7 +56,7 @@ function statusBadge(status: string) {
   return <Badge className={statusColor[status] ?? ""}>{STATUS_LABEL[status] ?? status}</Badge>;
 }
 
-export function BuyerTabs({ sales }: { sales: SaleDTO[] }) {
+export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
   return (
     <Tabs defaultValue="invoice">
       <TabsList className="w-full">
@@ -71,11 +71,11 @@ export function BuyerTabs({ sales }: { sales: SaleDTO[] }) {
             <CardTitle>My Invoices</CardTitle>
           </CardHeader>
           <CardContent>
-            {sales.length === 0 ? (
+            {orders.length === 0 ? (
               <p className="text-sm text-muted-foreground">No orders yet.</p>
             ) : (
               <div className="space-y-4">
-                {sales.map((s) => (
+                {orders.map((s) => (
                   <div key={s.id} className="rounded-lg border p-4">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">{s.invoiceNumber}</span>
@@ -117,7 +117,7 @@ export function BuyerTabs({ sales }: { sales: SaleDTO[] }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sales.map((s) => (
+                {orders.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.invoiceNumber}</TableCell>
                     <TableCell>{formatIDR(s.total)}</TableCell>
@@ -142,11 +142,11 @@ export function BuyerTabs({ sales }: { sales: SaleDTO[] }) {
             <CardTitle>Shipment Tracking</CardTitle>
           </CardHeader>
           <CardContent>
-            {sales.length === 0 ? (
+            {orders.length === 0 ? (
               <p className="text-sm text-muted-foreground">No shipments yet.</p>
             ) : (
               <div className="space-y-4">
-                {sales.map((s) => (
+                {orders.map((s) => (
                   <div key={s.id} className="rounded-lg border p-4">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">{s.invoiceNumber}</span>
