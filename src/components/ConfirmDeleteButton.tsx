@@ -18,6 +18,8 @@ export function ConfirmDeleteButton({
   title,
   description,
   label = "Hapus",
+  triggerLabel,
+  size = "sm",
   pendingLabel = "Menghapus...",
   successMessage = "Berhasil dihapus",
   onConfirm,
@@ -25,6 +27,8 @@ export function ConfirmDeleteButton({
   title: string;
   description: string;
   label?: string;
+  triggerLabel?: string;
+  size?: "sm" | "icon";
   pendingLabel?: string;
   successMessage?: string;
   onConfirm: () => Promise<void>;
@@ -50,12 +54,12 @@ export function ConfirmDeleteButton({
     <>
       <Button
         variant="ghost"
-        size="sm"
+        size={size}
         onClick={() => setOpen(true)}
-        className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
+        className="h-8 w-8 border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
       >
         <Trash2 className="h-3.5 w-3.5" />
-        {label}
+        {triggerLabel ?? label}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
