@@ -49,7 +49,7 @@ export default async function AdminBooksPage({
         <NavActionButton
           href="/admin/books/new"
           icon={<BookPlus className="h-4 w-4" />}
-          className="border border-input shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
+          className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
         >
           Tambah Buku
         </NavActionButton>

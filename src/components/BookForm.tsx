@@ -78,7 +78,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
   }
 
   const footerBtn =
-    "border border-input bg-transparent text-black transition transition-colors hover:bg-[#FED6D6] hover:text-black";
+    "border border-input bg-transparent text-black transition transition-colors hover:bg-white hover:text-black";
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -200,7 +200,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             type="button"
             variant="outline"
             onClick={addRow}
-            className={cn("flex-1 border border-input", footerBtn)}
+            className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
           >
             <Plus className="h-4 w-4" />
             Tambah
@@ -209,7 +209,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
         <Button
           type="submit"
           disabled={pending}
-          className={cn("flex-1 border border-input", footerBtn)}
+          className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
           {pending ? "Talepan..." : initial?.id ? "Ubah Buku" : "Buat Buku"}
         </Button>

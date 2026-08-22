@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, AtSign } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { generateUsername } from "@/lib/username";
 
 type InitialBuyer = {
@@ -25,8 +24,10 @@ type BuyerRow = {
   contact: string;
 };
 
-const btn =
-  "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#FED6D6] hover:text-black";
+const addBtn =
+  "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white";
+const cancelBtn =
+  "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-white hover:text-black";
 
 export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
   const router = useRouter();
@@ -154,20 +155,24 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             type="button"
             variant="outline"
             onClick={addRow}
-            className={cn("flex-1 border border-input", btn)}
+            className={addBtn}
           >
             <Plus className="h-4 w-4" />
             Tambah
           </Button>
         )}
-        <Button type="submit" disabled={pending} className={cn("flex-1 border border-input", btn)}>
+        <Button
+          type="submit"
+          disabled={pending}
+          className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+        >
           {pending ? "Menyimpan..." : initial?.id ? "Simpan" : "Buat Pembeli"}
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          className={cn("flex-1 border border-input", btn)}
+          className={cancelBtn}
         >
           Batal
         </Button>

@@ -67,7 +67,7 @@ export function CreateBatchDialog() {
         <Button
           type="button"
           variant="default"
-          className="h-8 border border-input px-3 text-xs font-medium shadow-sm transition-colors hover:bg-black/90 hover:text-white"
+          className="h-8 border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
         >
           <Layers2 className="h-4 w-4" />
           Tambah Batch
@@ -131,7 +131,7 @@ export function CreateBatchDialog() {
             }}
             className="flex-1 border border-input bg-transparent"
           >
-            Cancel
+            Batal
           </Button>
           <Button
             onClick={handleCreate}

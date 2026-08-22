@@ -88,7 +88,7 @@ export default async function AdminOrdersPage({
           <NavActionButton
             href="/admin/orders/new"
             icon={<Plus className="h-4 w-4" />}
-            className="h-8 border border-input px-3 text-xs font-medium shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
+            className="h-8 border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
           >
             Tambah Order
           </NavActionButton>

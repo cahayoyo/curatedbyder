@@ -284,7 +284,13 @@ export function OrderForm({
             )}
           </div>
         ))}
-        <Button type="button" variant="outline" size="sm" onClick={addItem} className={btn}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addItem}
+          className="border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+        >
           <Plus className="h-4 w-4" /> Tambah Buku
         </Button>
       </div>
@@ -349,7 +355,11 @@ export function OrderForm({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending} className={cn("flex-1 border border-input", btn)}>
+        <Button
+          type="submit"
+          disabled={pending}
+          className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+        >
           {pending ? "Menyimpan..." : initial?.id ? "Ubah Order" : "Buat Order"}
         </Button>
         <Button
