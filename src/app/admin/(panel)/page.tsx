@@ -35,7 +35,7 @@ export default async function AdminOverviewPage() {
     .filter((b) => b.qty > 0);
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h2 className="flex items-center gap-2 text-2xl font-bold">
         <LayoutDashboard className="h-6 w-6" />
         Overview

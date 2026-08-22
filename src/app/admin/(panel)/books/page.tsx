@@ -98,6 +98,7 @@ export default async function AdminBooksPage({
 
   return (
     <div className="space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <BookOpen className="h-6 w-6" />
@@ -167,6 +168,7 @@ export default async function AdminBooksPage({
             No books yet.
           </div>
         )}
+      </div>
       </div>
 
       {/* Desktop: table layout */}
@@ -319,6 +321,7 @@ export default async function AdminBooksPage({
         </Table>
       </div>
 
+      <div className="mx-auto max-w-5xl">
       <Pagination
         total={totalFiltered}
         page={page}
@@ -331,6 +334,7 @@ export default async function AdminBooksPage({
           max: max != null ? String(max) : "",
         }}
       />
+      </div>
     </div>
   );
 }

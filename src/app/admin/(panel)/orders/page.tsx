@@ -119,6 +119,7 @@ export default async function AdminOrdersPage({
 
   return (
     <div className="space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <ShoppingCart className="h-6 w-6" />
@@ -205,6 +206,7 @@ export default async function AdminOrdersPage({
             Belum ada pesanan.
           </div>
         )}
+      </div>
       </div>
 
       {/* Desktop: table layout */}
@@ -362,6 +364,7 @@ export default async function AdminOrdersPage({
         </Table>
       </div>
 
+      <div className="mx-auto max-w-5xl">
       <Pagination
         total={totalFiltered}
         page={page}
@@ -378,6 +381,7 @@ export default async function AdminOrdersPage({
           dateTo: searchParams?.dateTo ?? "",
         }}
       />
+      </div>
     </div>
   );
 }
