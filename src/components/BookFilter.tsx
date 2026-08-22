@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { formatRp } from "@/lib/format";
+import { BOOK_STATUSES } from "@/lib/orderOptions";
 
 export function BookFilter({ basePath }: { basePath: string }) {
   const router = useRouter();
@@ -39,12 +41,6 @@ export function BookFilter({ basePath }: { basePath: string }) {
       : [...status, v];
     setStatus(next);
     push(next, min.replace(/\D/g, ""), max.replace(/\D/g, ""));
-  }
-
-  function formatRp(digits: string): string {
-    const clean = digits.replace(/\D/g, "");
-    if (!clean) return "";
-    return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
   function push(
@@ -103,12 +99,7 @@ export function BookFilter({ basePath }: { basePath: string }) {
           >
             <p className="mb-2 text-sm font-semibold">Status Stok</p>
             <div className="flex flex-row gap-4 text-sm">
-              {(
-                [
-                  { value: "READY_STOCK", label: "Ready Stok" },
-                  { value: "PRE_ORDER", label: "Pre Order" },
-                ] as const
-              ).map((opt) => (
+              {BOOK_STATUSES.map((opt) => (
                 <label
                   key={opt.value}
                   className="flex cursor-pointer items-center gap-1.5"

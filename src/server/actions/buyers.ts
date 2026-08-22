@@ -1,21 +1,10 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/session";
 import { generateUsername } from "@/lib/username";
-
-function isAdmin(session: { user?: {
-  id?: string;
-  role?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-} } | null): boolean {
-  return session?.user?.role === "SUPER_ADMIN";
-}
 
 const buyerSchema = z.object({
   name: z.string().min(2),
@@ -24,21 +13,23 @@ const buyerSchema = z.object({
 });
 
 export async function createBuyer(input: z.infer<typeof buyerSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const data = buyerSchema.parse(input);
-  const existing = await db.user.findFirst({ where: { phone: data.phone } });
-  if (existing) throw new Error("A buyer with this phone already exists");
-
-  const username = generateUsername(data.name, data.phone);
-  const usernameExist = await db.user.findFirst({ where: { username } });
-  if (usernameExist) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+  const [existingByPhone, existingByUsername] = await Promise.all([
+    db.user.findUnique({ where: { phone: data.phone } }),
+    (async () => {
+      const username = generateUsername(data.name, data.phone);
+      return db.user.findUnique({ where: { username } });
+    })(),
+  ]);
+  if (existingByPhone) throw new Error("A buyer with this phone already exists");
+  if (existingByUsername) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
 
   const buyer = await db.user.create({
     data: {
       name: data.name,
-      username,
+      username: generateUsername(data.name, data.phone),
       phone: data.phone,
       contact: data.contact,
       role: "USER",
@@ -51,20 +42,16 @@ export async function createBuyer(input: z.infer<typeof buyerSchema>) {
 }
 
 export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const data = buyerSchema.parse(input);
-  const existing = await db.user.findFirst({
-    where: { phone: data.phone, NOT: { id } },
-  });
-  if (existing) throw new Error("A buyer with this phone already exists");
-
   const username = generateUsername(data.name, data.phone);
-  const usernameExist = await db.user.findFirst({
-    where: { username, NOT: { id } },
-  });
-  if (usernameExist) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+  const [existingByPhone, existingByUsername] = await Promise.all([
+    db.user.findFirst({ where: { phone: data.phone, NOT: { id } } }),
+    db.user.findFirst({ where: { username, NOT: { id } } }),
+  ]);
+  if (existingByPhone) throw new Error("A buyer with this phone already exists");
+  if (existingByUsername) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
 
   const buyer = await db.user.update({
     where: { id },
@@ -77,8 +64,7 @@ export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>
 }
 
 export async function deleteBuyer(id: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const sold = await db.order.count({ where: { buyerId: id } });
   if (sold > 0) {

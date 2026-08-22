@@ -1,21 +1,11 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-
-function isAdmin(session: { user?: {
-  id?: string;
-  role?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-} } | null): boolean {
-  return session?.user?.role === "SUPER_ADMIN";
-}
+import { requireAdmin } from "@/lib/session";
+import { FORMAT_TYPE, BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
 const bookSchema = z.object({
   title: z.string().trim().min(1),
@@ -24,8 +14,8 @@ const bookSchema = z.object({
   image: z.string().trim().max(2000).optional(),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
-  status: z.enum(["READY_STOCK", "PRE_ORDER"]).default("READY_STOCK"),
-  formats: z.array(z.enum(["HC", "PB", "BB", "SET", "SB"])).default([]),
+  status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
+  formats: z.array(z.enum(FORMAT_TYPE)).default([]),
 });
 
 function orNull(v: string | undefined | null): string | null {
@@ -41,8 +31,8 @@ async function ensureUniqueTitle(title: string, excludeId?: string) {
 }
 
 export async function createBook(input: z.infer<typeof bookSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
+
 
   const data = bookSchema.parse(input);
   await ensureUniqueTitle(data.title);
@@ -71,8 +61,8 @@ export async function createBook(input: z.infer<typeof bookSchema>) {
 }
 
 export async function updateBook(id: string, input: z.infer<typeof bookSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
+
 
   const data = bookSchema.parse(input);
   await ensureUniqueTitle(data.title, id);
@@ -102,8 +92,8 @@ export async function updateBook(id: string, input: z.infer<typeof bookSchema>) 
 }
 
 export async function deleteBook(id: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
+
 
   const sold = await db.orderItem.count({ where: { bookId: id } });
   if (sold > 0) {

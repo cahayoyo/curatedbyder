@@ -17,7 +17,7 @@ import { SOURCES, ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { formatIDR } from "@/lib/format";
+import { formatIDR, formatRp } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number };
@@ -148,12 +148,6 @@ export function OrderForm({
         toast.error(err instanceof Error ? err.message : "Failed to record order");
       }
     });
-  }
-
-  function formatRp(digits: string): string {
-    const clean = digits.replace(/\D/g, "");
-    if (!clean) return "";
-    return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
   return (

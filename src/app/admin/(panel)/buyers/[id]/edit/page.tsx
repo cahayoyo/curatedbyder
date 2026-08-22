@@ -7,7 +7,10 @@ export default async function EditBuyerPage({
 }: {
   params: { id: string };
 }) {
-  const buyer = await db.user.findUnique({ where: { id: params.id } });
+  const buyer = await db.user.findUnique({
+    where: { id: params.id },
+    select: { id: true, name: true, phone: true, contact: true },
+  });
   if (!buyer) notFound();
 
   return (

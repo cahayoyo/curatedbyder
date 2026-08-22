@@ -1,46 +1,55 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-
-function isAdmin(session: { user?: {
-  id?: string;
-  role?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-} } | null): boolean {
-  return session?.user?.role === "SUPER_ADMIN";
-}
-
-const statusEnum = z.enum([
-  "ORDER_PLACED",
-  "SHIPPING_TO_INDONESIA",
-  "ARRIVED_IN_INDONESIA",
-  "ARRIVED_AT_WAREHOUSE",
-  "SHIPPED_TO_CUSTOMER",
-  "ORDER_DELIVERED",
-]);
+import { requireAdmin } from "@/lib/session";
+import {
+  SOURCE_TYPE,
+  STATUS_TYPE,
+  ETA_TYPE,
+  PAYMENT_TYPE,
+} from "@/lib/orderOptions";
 
 const orderSchema = z.object({
   buyerId: z.string().min(1),
-  source: z.enum(["INSTAGRAM", "SHOPEE", "OTHER"]),
+  source: z.enum(SOURCE_TYPE),
   batchId: z.string().min(1),
-  eta: z.enum(["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]),
+  eta: z.enum(ETA_TYPE),
   dp: z.number().int().min(0).optional().nullable(),
-  paymentStatus: z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]),
-  status: statusEnum,
+  paymentStatus: z.enum(PAYMENT_TYPE),
+  status: z.enum(STATUS_TYPE),
   items: z
     .array(z.object({ bookId: z.string(), quantity: z.number().int().min(1) }))
     .min(1),
 });
 
+async function applyStock(
+  tx: Prisma.TransactionClient,
+  entries: { bookId: string; amount: number }[]
+) {
+  const byAmount = new Map<number, string[]>();
+  for (const e of entries) {
+    const list = byAmount.get(e.amount) ?? [];
+    list.push(e.bookId);
+    byAmount.set(e.amount, list);
+  }
+  for (const [amount, ids] of Array.from(byAmount.entries())) {
+    await tx.book.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        stock:
+          amount >= 0
+            ? { increment: amount }
+            : { decrement: -amount },
+      },
+    });
+  }
+}
+
 export async function createBatch(name: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const batchName = name.trim().toUpperCase();
   if (!batchName) throw new Error("Nama batch tidak boleh kosong");
@@ -58,24 +67,36 @@ export async function createBatch(name: string) {
 }
 
 export async function createOrder(input: z.infer<typeof orderSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const data = orderSchema.parse(input);
 
   const order = await db.$transaction(async (tx) => {
-    const books = await tx.book.findMany({
-      where: { id: { in: data.items.map((i) => i.bookId) } },
-    });
+    const [books, countToday] = await Promise.all([
+      tx.book.findMany({
+        where: { id: { in: data.items.map((i) => i.bookId) } },
+        select: { id: true, title: true, price: true, stock: true },
+      }),
+      (() => {
+        const now = new Date();
+        return tx.order.count({
+          where: {
+            soldAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
+          },
+        });
+      })(),
+    ]);
     const map = new Map(books.map((b) => [b.id, b]));
 
     let total = 0;
+    const entries: { bookId: string; amount: number }[] = [];
     const items = data.items.map((i) => {
       const book = map.get(i.bookId);
       if (!book || book.stock < i.quantity) {
         throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
       }
       total += book.price * i.quantity;
+      entries.push({ bookId: i.bookId, amount: -i.quantity });
       return {
         bookId: i.bookId,
         quantity: i.quantity,
@@ -88,10 +109,6 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
     const day = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
       now.getDate()
     ).padStart(2, "0")}`;
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const countToday = await tx.order.count({
-      where: { soldAt: { gte: startOfDay } },
-    });
     const invoiceNumber = `INVDER-${day}-${String(countToday + 1).padStart(4, "0")}`;
 
     const remaining =
@@ -103,7 +120,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         buyerId: data.buyerId,
         source: data.source,
         batchId: data.batchId,
-        status: "ORDER_PLACED",
+        status: data.status,
         total,
         eta: data.eta,
         dp: data.dp,
@@ -113,12 +130,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
       },
     });
 
-    for (const i of items) {
-      await tx.book.update({
-        where: { id: i.bookId },
-        data: { stock: { decrement: i.quantity } },
-      });
-    }
+    await applyStock(tx, entries);
 
     return order;
   });
@@ -130,27 +142,36 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
 }
 
 export async function updateOrder(id: string, input: z.infer<typeof orderSchema>) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   const data = orderSchema.parse(input);
 
   await db.$transaction(async (tx) => {
-    const existing = await tx.order.findUnique({
-      where: { id },
-      include: { items: true },
-    });
+    const [existing, books] = await Promise.all([
+      tx.order.findUnique({
+        where: { id },
+        include: { items: { select: { bookId: true, quantity: true } } },
+      }),
+      tx.book.findMany({
+        where: { id: { in: data.items.map((i) => i.bookId) } },
+        select: { id: true, title: true, price: true, stock: true },
+      }),
+    ]);
     if (!existing) throw new Error("Order not found");
 
     const oldMap = new Map(existing.items.map((it) => [it.bookId, it.quantity]));
-
-    const books = await tx.book.findMany({
-      where: { id: { in: data.items.map((i) => i.bookId) } },
-    });
     const bookMap = new Map(books.map((b) => [b.id, b]));
 
     let total = 0;
-    const items = data.items.map((i) => {
+    const createItems: {
+      bookId: string;
+      quantity: number;
+      unitPrice: number;
+      subtotal: number;
+    }[] = [];
+    const stockChanges: { bookId: string; amount: number }[] = [];
+
+    for (const i of data.items) {
       const book = bookMap.get(i.bookId);
       if (!book) throw new Error(`Book not found for ${i.bookId}`);
       const oldQty = oldMap.get(i.bookId) ?? 0;
@@ -159,33 +180,19 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         throw new Error(`Not enough stock for ${book.title}`);
       }
       total += book.price * i.quantity;
-      return {
+      createItems.push({
         bookId: i.bookId,
         quantity: i.quantity,
         unitPrice: book.price,
         subtotal: book.price * i.quantity,
-        diff,
-      };
-    });
-
-    const removedBooks = Array.from(oldMap.keys()).filter(
-      (bid) => !data.items.some((i) => i.bookId === bid)
-    );
-    for (const bid of removedBooks) {
-      await tx.book.update({
-        where: { id: bid },
-        data: { stock: { increment: oldMap.get(bid) ?? 0 } },
       });
+      if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
     }
 
-    for (const it of items) {
-      if (it.diff === 0) continue;
-      await tx.book.update({
-        where: { id: it.bookId },
-        data: {
-          stock: it.diff > 0 ? { decrement: it.diff } : { increment: -it.diff },
-        },
-      });
+    for (const [bid, oldQty] of Array.from(oldMap.entries())) {
+      if (!data.items.some((i) => i.bookId === bid)) {
+        stockChanges.push({ bookId: bid, amount: oldQty });
+      }
     }
 
     const remaining =
@@ -205,15 +212,12 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         status: data.status,
         items: {
           deleteMany: {},
-          create: items.map((it) => ({
-            bookId: it.bookId,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            subtotal: it.subtotal,
-          })),
+          create: createItems,
         },
       },
     });
+
+    await applyStock(tx, stockChanges);
   });
 
   revalidatePath("/admin");
@@ -222,10 +226,9 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
 }
 
 export async function updateOrderStatus(id: string, status: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
-  const valid = statusEnum.parse(status);
+  const valid = z.enum(STATUS_TYPE).parse(status);
   const order = await db.order.update({ where: { id }, data: { status: valid } });
 
   revalidatePath("/admin/orders");
@@ -235,10 +238,9 @@ export async function updateOrderStatus(id: string, status: string) {
 }
 
 export async function updatePaymentStatus(id: string, paymentStatus: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
-  const valid = z.enum(["NO_PAYMENT", "LUNAS", "DONE_DP"]).parse(paymentStatus);
+  const valid = z.enum(PAYMENT_TYPE).parse(paymentStatus);
   const order = await db.order.update({ where: { id }, data: { paymentStatus: valid } });
 
   revalidatePath("/admin/orders");
@@ -247,22 +249,19 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
 }
 
 export async function deleteOrder(id: string) {
-  const session = await getServerSession(authOptions);
-  if (!isAdmin(session)) throw new Error("Forbidden");
+  await requireAdmin();
 
   await db.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id },
-      include: { items: true },
+      include: { items: { select: { bookId: true, quantity: true } } },
     });
     if (!order) throw new Error("Order not found");
 
-    for (const item of order.items) {
-      await tx.book.update({
-        where: { id: item.bookId },
-        data: { stock: { increment: item.quantity } },
-      });
-    }
+    await applyStock(
+      tx,
+      order.items.map((it) => ({ bookId: it.bookId, amount: it.quantity }))
+    );
     await tx.order.delete({ where: { id } });
   });
 

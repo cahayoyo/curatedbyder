@@ -7,9 +7,10 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
-import { ETAS, STATUSES, PAYMENT_STATUSES, SOURCES } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES, SOURCES, etaLabel } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
+import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
 import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
 import {
@@ -22,11 +23,6 @@ import {
 } from "@/components/ui/table";
 
 const PAGE_SIZE = 20;
-
-function etaLabel(v: string | null | undefined) {
-  if (v == null) return "—";
-  return ETAS.find((e) => e.value === v)?.label ?? v;
-}
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -103,14 +99,14 @@ export default async function AdminOrdersPage({
     if (dateTo) where.soldAt.lte = dateTo;
   }
 
-  const [totalOrders, totalFiltered, orders, batches] = await Promise.all([
+  const [totalOrders, totalFiltered, orders, batches, sums] = await Promise.all([
     db.order.count(),
     db.order.count({ where }),
     db.order.findMany({
       where,
       include: {
         buyer: { select: { id: true, name: true, phone: true, contact: true } },
-        batch: true,
+        batch: { select: { id: true, name: true } },
         items: { include: { book: { select: { title: true, formats: true, status: true } } } },
       },
       orderBy: { soldAt: "desc" },
@@ -118,6 +114,7 @@ export default async function AdminOrdersPage({
       take: PAGE_SIZE,
     }),
     db.batch.findMany({ orderBy: { name: "asc" } }),
+    db.order.aggregate({ _sum: { dp: true, remaining: true } }),
   ]);
 
   return (
@@ -153,9 +150,7 @@ export default async function AdminOrdersPage({
             Total DP
           </p>
           <p className="text-xl font-bold">
-            {formatIDR(
-              orders.reduce((acc, s) => acc + (s.dp ?? 0), 0)
-            )}
+            {formatIDR(sums._sum.dp ?? 0)}
           </p>
         </div>
         <div className="rounded-lg border p-4">
@@ -164,9 +159,7 @@ export default async function AdminOrdersPage({
             Total Sisa
           </p>
           <p className="text-xl font-bold">
-            {formatIDR(
-              orders.reduce((acc, s) => acc + (s.remaining ?? 0), 0)
-            )}
+            {formatIDR(sums._sum.remaining ?? 0)}
           </p>
         </div>
       </div>
@@ -318,6 +311,29 @@ export default async function AdminOrdersPage({
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
+                    <OrderViewButton
+                      order={{
+                        id: s.id,
+                        invoiceNumber: s.invoiceNumber,
+                        eta: s.eta,
+                        soldAt: s.soldAt,
+                        source: s.source,
+                        total: s.total,
+                        dp: s.dp,
+                        remaining: s.remaining,
+                        paymentStatus: s.paymentStatus,
+                        status: s.status,
+                        batch: s.batch,
+                        buyer: s.buyer,
+                        items: s.items.map((it) => ({
+                          id: it.id,
+                          quantity: it.quantity,
+                          unitPrice: it.unitPrice,
+                          subtotal: it.subtotal,
+                          book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
+                        })),
+                      }}
+                    />
                     <NavActionButton
                       href={`/admin/orders/${s.id}/edit`}
                       icon={<Pencil className="h-3.5 w-3.5" />}

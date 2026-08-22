@@ -42,6 +42,7 @@ export default async function AdminBuyersPage({
     db.user.count({ where }),
     db.user.findMany({
       where,
+      select: { id: true, username: true, name: true, phone: true, contact: true },
       orderBy: { name: "asc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,

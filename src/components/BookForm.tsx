@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FORMATS } from "@/lib/orderOptions";
+import { FORMATS, BOOK_STATUSES } from "@/lib/orderOptions";
+import { formatRp } from "@/lib/format";
 import { BookImagePicker } from "@/components/BookImagePicker";
 
 type InitialBook = {
@@ -68,12 +69,6 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
         ]
       : [emptyRow()]
   );
-
-  function formatRp(digits: string): string {
-    const clean = digits.replace(/\D/g, "");
-    if (!clean) return "";
-    return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  }
 
   function upRow(index: number, key: keyof BookRow, value: string) {
     setRows((rs) => rs.map((r, i) => (i === index ? { ...r, [key]: value } : r)));
@@ -263,12 +258,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
           <div className="space-y-1.5">
             <Label>Status Stok</Label>
             <div className="flex flex-wrap gap-4 pt-1">
-              {(
-                [
-                  { value: "READY_STOCK", label: "Ready Stok" },
-                  { value: "PRE_ORDER", label: "Pre Order" },
-                ] as const
-              ).map((opt) => (
+              {BOOK_STATUSES.map((opt) => (
                 <label
                   key={opt.value}
                   className="flex cursor-pointer items-center gap-1.5 text-sm"

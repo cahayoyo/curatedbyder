@@ -8,9 +8,19 @@ export default async function EditOrderPage({ params }: { params: { id: string }
       where: { id: params.id },
       include: { items: { select: { bookId: true, quantity: true } } },
     }),
-    db.user.findMany({ where: { role: "USER" }, orderBy: { name: "asc" } }),
-    db.book.findMany({ orderBy: { title: "asc" } }),
-    db.batch.findMany({ orderBy: { name: "asc" } }),
+    db.user.findMany({
+      where: { role: "USER" },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    db.book.findMany({
+      select: { id: true, title: true, price: true, stock: true },
+      orderBy: { title: "asc" },
+    }),
+    db.batch.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   if (!order) notFound();

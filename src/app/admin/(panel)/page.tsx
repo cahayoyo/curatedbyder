@@ -1,36 +1,38 @@
 import { db } from "@/lib/db";
 import { LayoutDashboard, Users, PackageSearch, TrendingUp, ShoppingCart, BookOpen } from "lucide-react";
+import { SOURCE_LABEL } from "@/lib/orderOptions";
 
 export default async function AdminOverviewPage() {
-  const [orders, buyers, totalBooks] = await Promise.all([
-    db.order.findMany({
-      include: {
-        buyer: { select: { name: true } },
-        items: { include: { book: { select: { title: true } } } },
-      },
-      orderBy: { soldAt: "desc" },
-      take: 200,
-    }),
-    db.user.count({ where: { role: "USER" } }),
-    db.book.count(),
-  ]);
+  const [totalOrders, buyers, totalBooks, bestSellerRows, sourceRows] =
+    await Promise.all([
+      db.order.count(),
+      db.user.count({ where: { role: "USER" } }),
+      db.book.count(),
+      db.orderItem.groupBy({
+        by: ["bookId"],
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 5,
+      }),
+      db.order.groupBy({ by: ["source"], _count: { _all: true } }),
+    ]);
 
-  const soldByBook = new Map<string, { title: string; qty: number }>();
-  for (const s of orders) {
-    for (const it of s.items) {
-      const cur = soldByBook.get(it.book.title) ?? { title: it.book.title, qty: 0 };
-      cur.qty += it.quantity;
-      soldByBook.set(it.book.title, cur);
-    }
+  const bestSellerTitles: Record<string, string> = {};
+  if (bestSellerRows.length > 0) {
+    const books = await db.book.findMany({
+      where: { id: { in: bestSellerRows.map((b) => b.bookId) } },
+      select: { id: true, title: true },
+    });
+    for (const b of books) bestSellerTitles[b.id] = b.title;
   }
-  const bestSellers = Array.from(soldByBook.values())
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 5);
 
-  const bySource = new Map<string, number>();
-  for (const s of orders) {
-    bySource.set(s.source, (bySource.get(s.source) ?? 0) + 1);
-  }
+  const bestSellers = bestSellerRows
+    .map((b) => ({
+      id: b.bookId,
+      title: bestSellerTitles[b.bookId] ?? "Unknown",
+      qty: b._sum.quantity ?? 0,
+    }))
+    .filter((b) => b.qty > 0);
 
   return (
     <div className="space-y-4">
@@ -52,7 +54,7 @@ Total Pembeli
             <ShoppingCart className="h-4 w-4" />
             Total Pesanan
           </p>
-          <p className="text-2xl font-bold">{orders.length}</p>
+          <p className="text-2xl font-bold">{totalOrders}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -70,7 +72,7 @@ Total Pembeli
         </p>
         <ul className="space-y-1 text-sm">
           {bestSellers.map((b) => (
-            <li key={b.title} className="flex justify-between">
+            <li key={b.id} className="flex justify-between">
               <span>{b.title}</span>
               <span className="font-medium">{b.qty} sold</span>
             </li>
@@ -85,13 +87,15 @@ Total Pembeli
           Pesanan by Source
         </p>
         <ul className="space-y-1 text-sm">
-          {Array.from(bySource.entries()).map(([c, n]) => (
-            <li key={c} className="flex justify-between">
-              <span>{c}</span>
-              <span className="font-medium">{n}</span>
+          {sourceRows.map((c) => (
+            <li key={c.source} className="flex justify-between">
+              <span>{SOURCE_LABEL[c.source] ?? c.source}</span>
+              <span className="font-medium">{c._count._all}</span>
             </li>
           ))}
-          {bySource.size === 0 && <li className="text-muted-foreground">No orders yet.</li>}
+          {sourceRows.length === 0 && (
+            <li className="text-muted-foreground">No orders yet.</li>
+          )}
         </ul>
       </div>
     </div>

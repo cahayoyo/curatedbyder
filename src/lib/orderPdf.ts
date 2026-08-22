@@ -1,9 +1,9 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { formatIDR } from "@/lib/format";
-import { STATUSES, PAYMENT_STATUSES, SOURCES, ETAS } from "@/lib/orderOptions";
+import { formatIDR, dateLabel } from "@/lib/format";
+import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
 
-export type OrderPdfDTO = {
+type OrderPdfDTO = {
   invoiceNumber: string;
   soldAt: Date;
   buyer: { name: string; phone: string | null; contact: string | null };
@@ -22,29 +22,6 @@ export type OrderPdfDTO = {
   paymentStatus: string;
   status: string;
 };
-
-const SOURCE_LABEL: Record<string, string> = Object.fromEntries(
-  SOURCES.map((s) => [s.value, s.label])
-);
-const STATUS_LABEL: Record<string, string> = Object.fromEntries(
-  STATUSES.map((s) => [s.value, s.label])
-);
-const PAYMENT_LABEL: Record<string, string> = Object.fromEntries(
-  PAYMENT_STATUSES.map((p) => [p.value, p.label])
-);
-
-function etaLabel(v: string | null | undefined) {
-  if (v == null) return "—";
-  return ETAS.find((e) => e.value === v)?.label ?? v;
-}
-
-function dateLabel(v: Date) {
-  return new Date(v).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export function buildOrderPdf(order: OrderPdfDTO) {
   const doc = new jsPDF();

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { buildOrderPdf } from "@/lib/orderPdf";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,62 +12,31 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/format";
-import { waLink } from "@/lib/wa";
-import { STATUSES, PAYMENT_STATUSES, SOURCES, ETAS } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
+import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog";
 import {
   BookOpen,
   Calculator,
   CalendarClock,
-  Download,
   Eye,
   Layers,
-  ListOrdered,
-  MapPin,
-  MessageCircle,
   MoreVertical,
-  PackageCheck,
   Pencil,
   PiggyBank,
-  Phone,
   ReceiptText,
-  ShieldCheck,
   Store,
   Trash2,
   UserRound,
   Wallet,
 } from "lucide-react";
-
-type OrderItemDTO = {
-  id: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
-};
-
-type OrderDTO = {
-  id: string;
-  invoiceNumber: string;
-  eta: string | null;
-  soldAt: Date;
-  source: string;
-  total: number;
-  dp: number | null;
-  remaining: number | null;
-  paymentStatus: string;
-  status: string;
-  batch: { id: string; name: string } | null;
-  buyer: { id: string; name: string; phone: string | null; contact: string | null };
-  items: OrderItemDTO[];
-};
 
 function HintIcon({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
   const [open, setOpen] = useState(false);
@@ -106,66 +74,6 @@ function Row({ icon, title, detail, label, children }: { icon: React.ReactNode; 
       <span className="line-clamp-1 min-w-0 flex-1 text-black/80">{children}</span>
     </div>
   );
-}
-
-const SOURCE_LABEL: Record<string, string> = Object.fromEntries(
-  SOURCES.map((s) => [s.value, s.label])
-);
-const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
-const PAYMENT_LABEL: Record<string, string> = Object.fromEntries(PAYMENT_STATUSES.map((p) => [p.value, p.label]));
-
-function etaLabel(v: string | null | undefined) {
-  if (v == null) return "—";
-  return ETAS.find((e) => e.value === v)?.label ?? v;
-}
-
-function dateLabel(v: Date) {
-  return new Date(v).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-}
-
-function buildWaText(order: OrderDTO, pdfUrl: string): string {
-  const lines: string[] = [
-    `Halo kak ${order.buyer.name},`,
-    "",
-    "*Terimakasih untuk pembelian buku anda*",
-    "",
-    "*Detail Pembelian*",
-    `Invoice : ${order.invoiceNumber}`,
-    `Total Harga Buku: ${formatIDR(order.total)}`,
-    `Alamat : ${order.buyer.contact || "—"}`,
-    "",
-    "*Detail Buku*",
-  ];
-  if (order.items.length === 1) {
-    const it = order.items[0];
-    lines.push(
-      `Nama Buku : ${it.book.title}`,
-      `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
-    );
-  } else {
-    order.items.forEach((it, i) => {
-      if (i > 0) lines.push("");
-      lines.push(`Buku ${i + 1}`);
-      lines.push(
-        `Nama Buku : ${it.book.title}`,
-        `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
-      );
-    });
-  }
-  lines.push("", `Link Invoice Order PDF :`, `${pdfUrl}`);
-  return lines.join("\n");
-}
-
-function downloadPdf(order: OrderDTO) {
-  const doc = buildOrderPdf(order);
-  doc.save(`pesanan-${order.invoiceNumber}.pdf`);
-}
-
-function openWa(order: OrderDTO) {
-  if (!order.buyer.phone) return;
-  const pdfUrl = `${window.location.origin}/api/download/orders/${order.id}`;
-  const link = waLink(order.buyer.phone, buildWaText(order, pdfUrl));
-  if (link) window.open(link, "_blank");
 }
 
 export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () => void }) {
@@ -316,147 +224,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
       </div>
 
       {/* Detail dialog */}
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-h-[80vh] w-[92%] max-w-md overflow-y-auto" style={{ backgroundColor: "#F6F1E7" }}>
-          <DialogHeader>
-            <DialogTitle>Detail Pesanan</DialogTitle>
-            <DialogDescription className="font-mono text-xs">{order.invoiceNumber}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2.5 text-sm">
-            <div className="flex items-center gap-1.5">
-              <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Tanggal</span>
-              <span className="ml-auto font-medium">{dateLabel(order.soldAt)}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Pembeli</span>
-              <span className="ml-auto text-right font-medium">{order.buyer.name}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">No. HP</span>
-              <span className="ml-auto text-right font-medium">{order.buyer.phone || "—"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Alamat</span>
-              <span className="ml-auto text-right font-medium">{order.buyer.contact || "—"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Store className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Sumber</span>
-              <span className="ml-auto font-medium">{SOURCE_LABEL[order.source] || order.source}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Batch</span>
-              <span className="ml-auto font-medium">{order.batch?.name || "—"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">ETA</span>
-              <span className="ml-auto font-medium">{etaLabel(order.eta)}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Status Pesanan</span>
-              <span className="ml-auto font-medium">{STATUS_LABEL[order.status] || order.status}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Status Pembayaran</span>
-              <span className="ml-auto font-medium">{PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}</span>
-            </div>
-          </div>
-
-          <div className="my-1 h-px w-full bg-black/15" />
-
-          <p className="flex items-center gap-1.5 text-sm font-semibold">
-            <ListOrdered className="h-4 w-4" />
-            Item
-          </p>
-          <div className="space-y-2 text-sm">
-            {order.items.map((it, i) => (
-              <div key={it.id || i} className={cn("rounded-lg border p-2", i > 0 && "border-black/10")}>
-                <p className="font-medium">{it.book.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Format: {it.book.formats.length ? it.book.formats.join(", ") : "—"}
-                </p>
-                <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
-                  <span>Qty: {it.quantity}</span>
-                  <span>Harga: {formatIDR(it.unitPrice)}</span>
-                  <span className="text-right font-medium">{formatIDR(it.subtotal)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="my-1 h-px bg-black/15" />
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <Calculator className="h-3.5 w-3.5" />
-                Total
-              </span>
-              <span className="font-semibold">{formatIDR(order.total)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <Wallet className="h-3.5 w-3.5" />
-                DP
-              </span>
-              <span className="font-medium">{formatIDR(order.dp ?? 0)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <PiggyBank className="h-3.5 w-3.5" />
-                Sisa
-              </span>
-              <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
-            </div>
-          </div>
-
-          <DialogFooter className="flex-row gap-2">
-            <Button
-              onClick={() => {
-                setDetailOpen(false);
-                router.push(`/admin/orders/${order.id}/edit`);
-              }}
-              className="flex-1"
-            >
-              Ubah
-            </Button>
-            <Button
-              onClick={() => downloadPdf(order)}
-              className="flex-1"
-            >
-              <Download className="h-4 w-4" />
-              Download PDF
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setDetailOpen(false)}
-              className="flex-1 border border-input bg-transparent"
-            >
-              Tutup
-            </Button>
-          </DialogFooter>
-
-          {order.buyer.phone && (
-            <button
-              type="button"
-              onClick={() => openWa(order)}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Hubungi Pembeli
-            </button>
-          )}
-        </DialogContent>
-      </Dialog>
+      <OrderDetailDialog order={order} open={detailOpen} onOpenChange={setDetailOpen} />
 
       {/* Delete confirm dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
