@@ -46,6 +46,6 @@ export const FORMATS = [
   { value: "HC", label: "HC" },
   { value: "PB", label: "PB" },
   { value: "BB", label: "BB" },
-  { value: "BS", label: "BS" },
+  { value: "SET", label: "SET" },
   { value: "SB", label: "SB" },
 ] as const;

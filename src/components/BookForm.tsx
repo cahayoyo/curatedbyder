@@ -90,7 +90,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             title: r.title,
             price: Number(r.price),
             stock: Number(r.stock),
-            formats: r.formats as ("HC" | "PB" | "BB" | "BS" | "SB")[],
+            formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
           });
           toast.success("Buku diubah");
         } else {
@@ -99,7 +99,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
               title: r.title,
               price: Number(r.price),
               stock: Number(r.stock),
-              formats: r.formats as ("HC" | "PB" | "BB" | "BS" | "SB")[],
+              formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
             });
           }
           toast.success(`${rows.length} buku berhasil terbuat`);

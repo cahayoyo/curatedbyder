@@ -127,7 +127,7 @@ export default async function AdminBuyersPage({
                 <TableCell className="text-muted-foreground">
                   {(page - 1) * PAGE_SIZE + i + 1}
                 </TableCell>
-                <TableCell className="font-mono text-xs">{b.username ?? "-"}</TableCell>
+                <TableCell>{b.username ?? "-"}</TableCell>
                 <TableCell className="font-medium">{b.name}</TableCell>
                 <TableCell>{b.phone ?? "-"}</TableCell>
                 <TableCell>{b.contact || "-"}</TableCell>

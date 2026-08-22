@@ -21,7 +21,7 @@ const bookSchema = z.object({
   title: z.string().trim().min(1),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
-  formats: z.array(z.enum(["HC", "PB", "BB", "BS", "SB"])).default([]),
+  formats: z.array(z.enum(["HC", "PB", "BB", "SET", "SB"])).default([]),
 });
 
 async function ensureUniqueTitle(title: string, excludeId?: string) {

@@ -52,7 +52,7 @@ enum Format {
   HC
   PB
   BB
-  BS
+  SET
   SB
 }
 
