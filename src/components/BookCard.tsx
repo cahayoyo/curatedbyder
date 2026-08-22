@@ -166,7 +166,7 @@ export function BookCard({ book, onDelete }: { book: BookDTO; onDelete: () => vo
         <Tag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <div className="flex flex-wrap gap-1">
           {book.formats.length > 0 ? (
-            book.formats.map((f, i) => <FormatBadge key={f} value={f} index={i} />)
+            book.formats.map((f) => <FormatBadge key={f} value={f} />)
           ) : (
             <span className="text-muted-foreground">—</span>
           )}

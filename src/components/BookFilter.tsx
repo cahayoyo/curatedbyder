@@ -119,7 +119,7 @@ export function BookFilter({ basePath }: { basePath: string }) {
 
             <div className="my-3 h-px w-full bg-black/15" />
 
-            <p className="mb-2 text-sm font-semibold">Harga</p>
+            <p className="mb-1 text-sm font-semibold">Harga</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 space-y-1">
                 <Label className="text-xs text-muted-foreground">Min</Label>
@@ -153,6 +153,8 @@ export function BookFilter({ basePath }: { basePath: string }) {
                 </div>
               </div>
             </div>
+
+            <div className="mt-3 h-px w-full bg-black/15" />
 
             <div className="mt-3 flex gap-2">
               <Button

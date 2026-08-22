@@ -253,7 +253,7 @@ export default async function AdminBooksPage({
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {b.formats.length > 0 ? (
-                      b.formats.map((f, i) => <FormatBadge key={f} value={f} index={i} />)
+                      b.formats.map((f) => <FormatBadge key={f} value={f} />)
                     ) : (
                       <span>—</span>
                     )}
