@@ -234,17 +234,17 @@ export default async function AdminOrdersPage({
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />Nama</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />Judul Buku</span>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />Judul Buku</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" />Harga</span>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><Banknote className="h-3.5 w-3.5" />Harga</span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" />Total</span>
@@ -280,9 +280,9 @@ export default async function AdminOrdersPage({
                   <TableCell rowSpan={s.items.length}>{s.batch?.name || "—"}</TableCell>
                   <TableCell rowSpan={s.items.length}>{etaLabel(s.eta)}</TableCell>
                   <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
-                  <TableCell className="align-top text-xs">{s.items[0].book.title}</TableCell>
-                  <TableCell className="align-top">
-                    <div className="flex flex-wrap items-center gap-1">
+                  <TableCell className="text-center text-xs">{s.items[0].book.title}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex flex-wrap items-center justify-center gap-1">
                       {s.items[0].book.formats.length > 0
                         ? s.items[0].book.formats.map((f) => (
                             <span
@@ -295,9 +295,9 @@ export default async function AdminOrdersPage({
                         : "—"}
                     </div>
                   </TableCell>
-                  <TableCell className="align-top text-xs">{s.items[0].quantity}</TableCell>
-                  <TableCell className="align-top text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
+                  <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
+                  <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.remaining)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
@@ -359,9 +359,9 @@ export default async function AdminOrdersPage({
                 </TableRow>
                 {s.items.slice(1).map((it, i) => (
                   <TableRow key={`${s.id}-item-${i}`} className="border-b border-input last:border-0">
-                    <TableCell className="align-top text-xs">{it.book.title}</TableCell>
-                    <TableCell className="align-top">
-                      <div className="flex flex-wrap items-center gap-1">
+                    <TableCell className="text-center text-xs">{it.book.title}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-wrap items-center justify-center gap-1">
                         {it.book.formats.length > 0
                           ? it.book.formats.map((f) => (
                               <span
@@ -374,8 +374,8 @@ export default async function AdminOrdersPage({
                           : "—"}
                       </div>
                     </TableCell>
-                    <TableCell className="align-top text-xs">{it.quantity}</TableCell>
-                    <TableCell className="align-top text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell className="text-center text-xs">{it.quantity}</TableCell>
+                    <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
                   </TableRow>
                 ))}
               </Fragment>
