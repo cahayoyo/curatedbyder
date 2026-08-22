@@ -233,6 +233,7 @@ export function OrderFilter({
                 <input
                   type="date"
                   value={dateFrom}
+                  max={dateTo || undefined}
                   onChange={(e) => pushDate("dateFrom", e.target.value)}
                   className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
                 />
@@ -242,11 +243,17 @@ export function OrderFilter({
                 <input
                   type="date"
                   value={dateTo}
+                  min={dateFrom || undefined}
                   onChange={(e) => pushDate("dateTo", e.target.value)}
                   className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
                 />
               </div>
             </div>
+            {dateFrom && dateTo && dateFrom > dateTo && (
+              <p className="mt-1 text-xs font-medium text-red-600">
+                Tanggal &quot;Dari&quot; tidak boleh lebih baru dari tanggal &quot;Sampai&quot;.
+              </p>
+            )}
 
             <div className="my-3 h-px w-full bg-black/15" />
 

@@ -26,7 +26,7 @@ export default async function EditOrderPage({ params }: { params: { id: string }
   if (!order) notFound();
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h2 className="text-2xl font-bold">Ubah Pesanan: {order.invoiceNumber}</h2>
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}

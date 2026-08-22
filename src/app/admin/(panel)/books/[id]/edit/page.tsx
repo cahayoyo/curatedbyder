@@ -7,7 +7,7 @@ export default async function EditBookPage({ params }: { params: { id: string } 
   if (!book) notFound();
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h2 className="text-2xl font-bold">Ubah Buku: {book.title}</h2>
       <BookForm
         initial={{

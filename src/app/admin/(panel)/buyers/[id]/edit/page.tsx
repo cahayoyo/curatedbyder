@@ -14,7 +14,7 @@ export default async function EditBuyerPage({
   if (!buyer) notFound();
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h2 className="text-2xl font-bold">Ubah Pembeli: {buyer.name}</h2>
       <BuyerForm
         initial={{
