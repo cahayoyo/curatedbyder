@@ -30,6 +30,7 @@ import {
   Layers,
   MoreVertical,
   Pencil,
+  Phone,
   PiggyBank,
   ReceiptText,
   Trash2,
@@ -145,6 +146,9 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
         </Row>
         <Row icon={<Layers className="h-3.5 w-3.5 shrink-0" />} title="Batch" detail={order.batch?.name || "—"} label="Batch:">
           {order.batch?.name || "—"}
+        </Row>
+        <Row icon={<Phone className="h-3.5 w-3.5 shrink-0" />} title="No. HP" detail={order.buyer.phone || "—"} label="HP:">
+          {order.buyer.phone || "—"}
         </Row>
         <Row icon={<CalendarClock className="h-3.5 w-3.5 shrink-0" />} title="Eta" detail={etaLabel(order.eta)} label="ETA:">
           {etaLabel(order.eta)}

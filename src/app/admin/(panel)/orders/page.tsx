@@ -212,7 +212,7 @@ export default async function AdminOrdersPage({
                   <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />Batch</span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />Eta</span>
+                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />ETA</span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />Nama</span>
@@ -259,14 +259,16 @@ export default async function AdminOrdersPage({
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (
-                      <li key={i}>{it.book.title}</li>
+                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
+                        {it.book.title}
+                      </li>
                     ))}
                   </ul>
                 </TableCell>
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (
-                      <li key={i}>
+                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
                         {it.book.formats.length > 0 ? it.book.formats.join(", ") : "—"}
                       </li>
                     ))}
@@ -275,14 +277,18 @@ export default async function AdminOrdersPage({
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (
-                      <li key={i}>{it.quantity}</li>
+                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
+                        {it.quantity}
+                      </li>
                     ))}
                   </ul>
                 </TableCell>
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (
-                      <li key={i}>{formatIDR(it.unitPrice)}</li>
+                      <li key={i} className={s.items.length > 1 ? "border-t border-black/40 py-1 first:border-t-0 first:pt-0 last:pb-0" : undefined}>
+                        {formatIDR(it.unitPrice)}
+                      </li>
                     ))}
                   </ul>
                 </TableCell>

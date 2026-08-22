@@ -56,10 +56,14 @@ export function ConfirmDeleteButton({
         variant="ghost"
         size={size}
         onClick={() => setOpen(true)}
-        className="h-8 w-8 border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
+        className={
+          size === "icon"
+            ? "h-8 w-8 border border-input bg-transparent text-destructive transition-colors hover:bg-red-500 hover:text-white"
+            : "h-9 border border-input bg-transparent px-3 text-xs text-destructive transition-colors hover:bg-red-500 hover:text-white"
+        }
       >
         <Trash2 className="h-3.5 w-3.5" />
-        {triggerLabel ?? label}
+        {size === "icon" ? null : (triggerLabel ?? label)}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
