@@ -17,7 +17,6 @@ export default async function DashboardPage() {
   const dto: OrderDTO[] = orders.map((s) => ({
     id: s.id,
     invoiceNumber: s.invoiceNumber,
-    source: s.source,
     status: s.status,
     paymentStatus: s.paymentStatus,
     total: s.total,

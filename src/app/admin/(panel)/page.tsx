@@ -1,9 +1,8 @@
 import { db } from "@/lib/db";
-import { LayoutDashboard, Users, PackageSearch, TrendingUp, ShoppingCart, BookOpen } from "lucide-react";
-import { SOURCE_LABEL } from "@/lib/orderOptions";
+import { LayoutDashboard, Users, TrendingUp, ShoppingCart, BookOpen } from "lucide-react";
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, buyers, totalBooks, bestSellerRows, sourceRows] =
+  const [totalOrders, buyers, totalBooks, bestSellerRows] =
     await Promise.all([
       db.order.count(),
       db.user.count({ where: { role: "USER" } }),
@@ -14,7 +13,6 @@ export default async function AdminOverviewPage() {
         orderBy: { _sum: { quantity: "desc" } },
         take: 5,
       }),
-      db.order.groupBy({ by: ["source"], _count: { _all: true } }),
     ]);
 
   const bestSellerTitles: Record<string, string> = {};
@@ -78,24 +76,6 @@ Total Pembeli
             </li>
           ))}
           {bestSellers.length === 0 && <li className="text-muted-foreground">No orders yet.</li>}
-        </ul>
-      </div>
-
-      <div className="rounded-lg border p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-          <PackageSearch className="h-4 w-4" />
-          Pesanan by Source
-        </p>
-        <ul className="space-y-1 text-sm">
-          {sourceRows.map((c) => (
-            <li key={c.source} className="flex justify-between">
-              <span>{SOURCE_LABEL[c.source] ?? c.source}</span>
-              <span className="font-medium">{c._count._all}</span>
-            </li>
-          ))}
-          {sourceRows.length === 0 && (
-            <li className="text-muted-foreground">No orders yet.</li>
-          )}
         </ul>
       </div>
     </div>

@@ -1,13 +1,13 @@
 import { db } from "@/lib/db";
-import { Prisma, PaymentStatus, OrderStatus, Eta, Source } from "@prisma/client";
+import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
-import { CreateBatchDialog } from "@/components/CreateBatchDialog";
+import { ManageBatchDialog } from "@/components/ManageBatchDialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
-import { ETAS, STATUSES, PAYMENT_STATUSES, SOURCES, etaLabel } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
 import { OrderViewButton } from "@/components/OrderViewButton";
@@ -34,7 +34,6 @@ export default async function AdminOrdersPage({
     status?: string;
     batch?: string;
     eta?: string;
-    source?: string;
     dateFrom?: string;
     dateTo?: string;
   };
@@ -52,10 +51,6 @@ export default async function AdminOrdersPage({
   const batchId = searchParams?.batch?.trim();
   const eta = searchParams?.eta?.trim();
   const etaValid = ETAS.some((e) => e.value === eta) ? eta : undefined;
-  const sources = (searchParams?.source ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => SOURCES.some((x) => x.value === s));
 
   const dateFrom = (() => {
     const v = searchParams?.dateFrom?.trim();
@@ -90,9 +85,6 @@ export default async function AdminOrdersPage({
   if (etaValid) {
     where.eta = etaValid as Eta;
   }
-  if (sources.length > 0) {
-    where.source = { in: sources as Source[] };
-  }
   if (dateFrom || dateTo) {
     where.soldAt = {};
     if (dateFrom) where.soldAt.gte = dateFrom;
@@ -126,7 +118,7 @@ export default async function AdminOrdersPage({
           List Pesanan
         </h2>
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <CreateBatchDialog />
+          <ManageBatchDialog batches={batches} />
           <NavActionButton
             href="/admin/orders/new"
             icon={<Plus className="h-4 w-4" />}
@@ -182,7 +174,6 @@ export default async function AdminOrdersPage({
               invoiceNumber: s.invoiceNumber,
               eta: s.eta,
               soldAt: s.soldAt,
-              source: s.source,
               total: s.total,
               dp: s.dp,
               remaining: s.remaining,
@@ -319,7 +310,6 @@ export default async function AdminOrdersPage({
                         invoiceNumber: s.invoiceNumber,
                         eta: s.eta,
                         soldAt: s.soldAt,
-                        source: s.source,
                         total: s.total,
                         dp: s.dp,
                         remaining: s.remaining,
@@ -376,7 +366,6 @@ export default async function AdminOrdersPage({
           status: searchParams?.status ?? "",
           batch: searchParams?.batch ?? "",
           eta: searchParams?.eta ?? "",
-          source: searchParams?.source ?? "",
           dateFrom: searchParams?.dateFrom ?? "",
           dateTo: searchParams?.dateTo ?? "",
         }}

@@ -12,12 +12,6 @@ enum Role {
   USER
 }
 
-enum Source {
-  INSTAGRAM
-  SHOPEE
-  OTHER
-}
-
 enum OrderStatus {
   ORDER_PLACED
   SHIPPING_TO_INDONESIA
@@ -99,7 +93,6 @@ model Order {
   invoiceNumber String        @unique
   buyerId       String
   buyer         User          @relation(fields: [buyerId], references: [id])
-  source        Source
   status        OrderStatus   @default(ORDER_PLACED)
   total         Int
   soldAt        DateTime      @default(now())

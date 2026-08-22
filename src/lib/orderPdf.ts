@@ -1,13 +1,12 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatIDR, dateLabel } from "@/lib/format";
-import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
 
 type OrderPdfDTO = {
   invoiceNumber: string;
   soldAt: Date;
   buyer: { name: string; phone: string | null; contact: string | null };
-  source: string;
   batch: { name: string } | null;
   eta: string | null;
   items: {
@@ -41,9 +40,8 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.text(`Pembeli   : ${order.buyer.name}`, margin, 42);
   doc.text(`Phone     : ${order.buyer.phone || "—"}`, margin, 47);
   doc.text(`Alamat    : ${order.buyer.contact || "—"}`, margin, 52);
-  doc.text(`Sumber    : ${SOURCE_LABEL[order.source] || order.source}`, margin, 57);
-  doc.text(`Batch     : ${order.batch?.name || "—"}`, margin, 62);
-  doc.text(`ETA       : ${etaLabel(order.eta)}`, margin, 66);
+  doc.text(`Batch     : ${order.batch?.name || "—"}`, margin, 57);
+  doc.text(`ETA       : ${etaLabel(order.eta)}`, margin, 61);
 
   autoTable(doc, {
     startY: 74,

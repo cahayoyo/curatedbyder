@@ -1,13 +1,3 @@
-export const SOURCES = [
-  { value: "INSTAGRAM", label: "Instagram" },
-  { value: "SHOPEE", label: "Shopee" },
-  { value: "OTHER", label: "Other" },
-] as const;
-
-export const SOURCE_LABEL: Record<string, string> = Object.fromEntries(
-  SOURCES.map((s) => [s.value, s.label])
-);
-
 export const STATUSES = [
   { value: "ORDER_PLACED", label: "Order Placed" },
   { value: "SHIPPING_TO_INDONESIA", label: "Shipping to Indonesia" },
@@ -41,7 +31,6 @@ export function etaLabel(v: string | null | undefined) {
   return ETAS.find((e) => e.value === v)?.label ?? v;
 }
 
-export const SOURCE_TYPE = ["INSTAGRAM", "SHOPEE", "OTHER"] as const;
 export const STATUS_TYPE = [
   "ORDER_PLACED",
   "SHIPPING_TO_INDONESIA",

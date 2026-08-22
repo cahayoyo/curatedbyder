@@ -6,7 +6,6 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import {
-  SOURCE_TYPE,
   STATUS_TYPE,
   ETA_TYPE,
   PAYMENT_TYPE,
@@ -14,7 +13,6 @@ import {
 
 const orderSchema = z.object({
   buyerId: z.string().min(1),
-  source: z.enum(SOURCE_TYPE),
   batchId: z.string().min(1),
   eta: z.enum(ETA_TYPE),
   dp: z.number().int().min(0).optional().nullable(),
@@ -64,6 +62,40 @@ export async function createBatch(name: string) {
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
   return { ok: true as const };
+}
+
+export async function updateBatch(id: string, name: string) {
+  await requireAdmin();
+
+  const batchName = name.trim().toUpperCase();
+  if (!batchName) throw new Error("Nama batch tidak boleh kosong");
+  if (!/^[A-Z0-9]+$/.test(batchName)) {
+    throw new Error("Nama batch hanya boleh huruf/angka (mis. BATCH3)");
+  }
+
+  const existing = await db.batch.findFirst({
+    where: { name: batchName, id: { not: id } },
+  });
+  if (existing) return { ok: false, error: "Batch sudah ada" };
+
+  await db.batch.update({ where: { id }, data: { name: batchName } });
+  revalidatePath("/admin/orders");
+  return { ok: true as const };
+}
+
+export async function deleteBatch(id: string) {
+  await requireAdmin();
+
+  const batch = await db.batch.findUnique({ where: { id } });
+  if (!batch) throw new Error("Batch tidak ditemukan");
+
+  const orderCount = await db.order.count({ where: { batchId: id } });
+  if (orderCount > 0) {
+    throw new Error(`Batch "${batch.name}" masih dipakai ${orderCount} pesanan`);
+  }
+
+  await db.batch.delete({ where: { id } });
+  revalidatePath("/admin/orders");
 }
 
 export async function createOrder(input: z.infer<typeof orderSchema>) {
@@ -118,7 +150,6 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
       data: {
         invoiceNumber,
         buyerId: data.buyerId,
-        source: data.source,
         batchId: data.batchId,
         status: data.status,
         total,
@@ -202,7 +233,6 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       where: { id },
       data: {
         buyerId: data.buyerId,
-        source: data.source,
         batchId: data.batchId,
         eta: data.eta,
         dp: data.dp,

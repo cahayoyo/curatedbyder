@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/format";
-import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog";
 import {
@@ -32,7 +32,6 @@ import {
   Pencil,
   PiggyBank,
   ReceiptText,
-  Store,
   Trash2,
   UserRound,
   Wallet,
@@ -146,9 +145,6 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
         </Row>
         <Row icon={<Layers className="h-3.5 w-3.5 shrink-0" />} title="Batch" detail={order.batch?.name || "—"} label="Batch:">
           {order.batch?.name || "—"}
-        </Row>
-        <Row icon={<Store className="h-3.5 w-3.5 shrink-0" />} title="Sumber" detail={SOURCE_LABEL[order.source] || order.source} label="Source:">
-          {SOURCE_LABEL[order.source] || order.source}
         </Row>
         <Row icon={<CalendarClock className="h-3.5 w-3.5 shrink-0" />} title="Eta" detail={etaLabel(order.eta)} label="ETA:">
           {etaLabel(order.eta)}

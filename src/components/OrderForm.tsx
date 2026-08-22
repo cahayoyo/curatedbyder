@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SOURCES, ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ type OrderInitial = {
   id: string;
   invoiceNumber: string;
   buyerId: string;
-  source: "INSTAGRAM" | "SHOPEE" | "OTHER";
   batchId: string;
   status: string;
   eta: string;
@@ -54,7 +53,6 @@ export function OrderForm({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
-  const [source, setSource] = useState<string>(initial?.source ?? "INSTAGRAM");
   const [batchId, setBatchId] = useState<string>(initial?.batchId ?? "");
   const [eta, setEta] = useState(initial?.eta ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
@@ -98,7 +96,6 @@ export function OrderForm({
     if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
     if (!batchId) return toast.error("Batch wajib dipilih");
     if (!eta) return toast.error("ETA wajib dipilih");
-    if (!source) return toast.error("Source wajib dipilih");
     if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
     if (!status) return toast.error("Status order wajib dipilih");
     if (itemPayload.length === 0) return toast.error("Pilih minimal satu buku");
@@ -109,7 +106,6 @@ export function OrderForm({
       try {
         const payload = {
           buyerId,
-          source: source as "INSTAGRAM" | "SHOPEE" | "OTHER",
           batchId,
           eta: eta as
             | "JAN"
@@ -152,7 +148,7 @@ export function OrderForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label>Batch</Label>
           <Select value={batchId} onValueChange={setBatchId}>
@@ -193,21 +189,6 @@ export function OrderForm({
               {buyers.map((b) => (
                 <SelectItem key={b.id} value={b.id}>
                   {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Source</Label>
-          <Select value={source} onValueChange={setSource}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SOURCES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
                 </SelectItem>
               ))}
             </SelectContent>

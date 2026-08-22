@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SlidersHorizontal } from "lucide-react";
-import { SOURCES, STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
+import { STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
 
 type Batch = { id: string; name: string };
 
@@ -24,7 +24,6 @@ export function OrderFilter({
   const [status, setStatus] = useState("");
   const [batch, setBatch] = useState("");
   const [eta, setEta] = useState("");
-  const [source, setSource] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -36,7 +35,6 @@ export function OrderFilter({
     (searchParams.get("status") ? 1 : 0) +
     (searchParams.get("batch") ? 1 : 0) +
     (searchParams.get("eta") ? 1 : 0) +
-    urlList("source").length +
     (searchParams.get("dateFrom") ? 1 : 0) +
     (searchParams.get("dateTo") ? 1 : 0);
 
@@ -47,7 +45,6 @@ export function OrderFilter({
       setStatus(searchParams.get("status") ?? "");
       setBatch(searchParams.get("batch") ?? "");
       setEta(searchParams.get("eta") ?? "");
-      setSource(urlList("source"));
       setDateFrom(searchParams.get("dateFrom") ?? "");
       setDateTo(searchParams.get("dateTo") ?? "");
     }
@@ -58,14 +55,14 @@ export function OrderFilter({
     list: string[],
     set: (v: string[]) => void,
     v: string,
-    key: "paymentStatus" | "source"
+    key: "paymentStatus"
   ) {
     const next = list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
     set(next);
     pushList(key, next);
   }
 
-  function pushList(key: "paymentStatus" | "source", next: string[]) {
+  function pushList(key: "paymentStatus", next: string[]) {
     const params = new URLSearchParams(searchParams.toString());
     if (next.length) params.set(key, next.join(","));
     else params.delete(key);
@@ -96,11 +93,10 @@ export function OrderFilter({
     setStatus("");
     setBatch("");
     setEta("");
-    setSource([]);
     setDateFrom("");
     setDateTo("");
     const params = new URLSearchParams(searchParams.toString());
-    ["paymentStatus", "status", "batch", "eta", "source", "dateFrom", "dateTo"].forEach((k) =>
+    ["paymentStatus", "status", "batch", "eta", "dateFrom", "dateTo"].forEach((k) =>
       params.delete(k)
     );
     params.delete("page");
@@ -119,7 +115,7 @@ export function OrderFilter({
     set: (v: string[]) => void;
     value: string;
     label: string;
-    paramKey: "paymentStatus" | "source";
+    paramKey: "paymentStatus";
   }) {
     return (
       <label className="flex cursor-pointer items-center gap-1.5">
@@ -253,22 +249,6 @@ export function OrderFilter({
             </div>
 
             <div className="my-3 h-px w-full bg-black/15" />
-
-            <p className="mb-2 text-sm font-semibold">Source</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-              {SOURCES.map((opt) => (
-                <CheckRow
-                  key={opt.value}
-                  list={source}
-                  set={setSource}
-                  value={opt.value}
-                  label={opt.label}
-                  paramKey="source"
-                />
-              ))}
-            </div>
-
-            <div className="mt-3 h-px w-full bg-black/15" />
 
             <Button
               type="button"

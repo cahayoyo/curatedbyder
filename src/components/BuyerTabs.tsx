@@ -23,7 +23,6 @@ type OrderItemDTO = {
 export type OrderDTO = {
   id: string;
   invoiceNumber: string;
-  source: string;
   status: string;
   paymentStatus: string;
   total: number;
@@ -73,7 +72,7 @@ export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
                       {statusBadge(s.status)}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {new Date(s.soldAt).toLocaleDateString("id-ID")} · {s.source}
+                      {new Date(s.soldAt).toLocaleDateString("id-ID")}
                     </p>
                     <ul className="mt-2 space-y-1 text-sm">
                       {s.items.map((it, i) => (

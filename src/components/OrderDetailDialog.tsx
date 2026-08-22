@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
-import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
 import {
   Calculator,
   CalendarClock,
@@ -26,7 +26,6 @@ import {
   Phone,
   PiggyBank,
   ShieldCheck,
-  Store,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -44,7 +43,6 @@ export type OrderDTO = {
   invoiceNumber: string;
   eta: string | null;
   soldAt: Date;
-  source: string;
   total: number;
   dp: number | null;
   remaining: number | null;
@@ -143,11 +141,6 @@ export function OrderDetailDialog({
             <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Alamat</span>
             <span className="ml-auto text-right font-medium">{order.buyer.contact || "—"}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Store className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Sumber</span>
-            <span className="ml-auto font-medium">{SOURCE_LABEL[order.source] || order.source}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
