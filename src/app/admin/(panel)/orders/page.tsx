@@ -78,17 +78,17 @@ export default async function AdminOrdersPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <ShoppingCart className="h-6 w-6" />
           List Order
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
           <CreateBatchDialog />
           <NavActionButton
             href="/admin/orders/new"
             icon={<Plus className="h-4 w-4" />}
-            className="border border-input shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
+            className="h-8 border border-input px-3 text-xs font-medium shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-black"
           >
             Tambah Order
           </NavActionButton>

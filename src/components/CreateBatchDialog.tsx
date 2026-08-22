@@ -21,39 +21,36 @@ import { toast } from "sonner";
 export function CreateBatchDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [pendingList, setPendingList] = useState<string[]>([]);
+  const [fields, setFields] = useState<string[]>([""]);
   const [pending, startTransition] = useTransition();
 
-  function addToPending() {
-    const n = name.trim();
-    if (!n) return;
-    if (pendingList.some((p) => p === n)) {
-      toast.error("Nama sudah ada di daftar");
-      return;
-    }
-    setPendingList((l) => [...l, n]);
-    setName("");
+  function addField() {
+    setFields((f) => [...f, ""]);
   }
 
-  function removePending(idx: number) {
-    setPendingList((l) => l.filter((_, i) => i !== idx));
+  function updateField(idx: number, value: string) {
+    setFields((f) => f.map((v, i) => (i === idx ? value : v)));
+  }
+
+  function removeField(idx: number) {
+    setFields((f) => f.filter((_, i) => i !== idx));
   }
 
   function handleCreate() {
-    if (pendingList.length === 0) return toast.error("Tambahkan minimal satu nama batch");
+    const names = fields.map((f) => f.trim()).filter(Boolean);
+    if (names.length === 0) return toast.error("Masukkan minimal satu nama batch");
 
     startTransition(async () => {
       try {
         let created = 0;
-        for (const n of pendingList) {
+        for (const n of names) {
           const res = await createBatch(n);
           if (res.ok) created++;
         }
         if (created > 0) {
           toast.success(`${created} batch berhasil dibuat`);
           setOpen(false);
-          setPendingList([]);
+          setFields([""]);
           router.refresh();
         } else {
           toast.error("Tidak ada batch baru yang dibuat (mungkin sudah ada)");
@@ -69,8 +66,8 @@ export function CreateBatchDialog() {
       <DialogTrigger asChild>
         <Button
           type="button"
-          variant="outline"
-          className="border border-input bg-transparent text-black shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+          variant="default"
+          className="h-8 border border-input px-3 text-xs font-medium shadow-sm transition-colors hover:bg-black/90 hover:text-white"
         >
           <Layers2 className="h-4 w-4" />
           Tambah Batch
@@ -83,65 +80,54 @@ export function CreateBatchDialog() {
         <DialogHeader>
           <DialogTitle>Buat Batch Baru</DialogTitle>
           <DialogDescription className="text-black/80">
-            Masukkan nama batch lalu tekan Tambah untuk menambahkan ke daftar.
+            Masukkan nama batch (satu per baris), lalu tekan Buat Batch.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2">
-          <div className="flex-1 space-y-1.5">
-            <Label>Nama Batch</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addToPending();
-                }
-              }}
-              placeholder="Contoh: BATCH3"
-              className="bg-white placeholder:text-black/30"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addToPending}
-            className="mt-6 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
-          >
-            <Plus className="h-4 w-4" />
-            Tambah
-          </Button>
+        <div className="space-y-2">
+          {fields.map((val, i) => (
+            <div key={i} className="flex items-end gap-2">
+              <div className="flex-1 space-y-1.5">
+                <Label>Nama Batch {fields.length > 1 ? i + 1 : ""}</Label>
+                <Input
+                  value={val}
+                  onChange={(e) => updateField(i, e.target.value)}
+                  placeholder="Contoh: BATCH3"
+                  className="bg-white placeholder:text-black/30"
+                />
+              </div>
+              {i > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => removeField(i)}
+                  className="mb-0.5 border border-transparent bg-transparent text-destructive transition-colors hover:bg-red-500 hover:text-white"
+                  aria-label={`Hapus batch ${i + 1}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
         </div>
 
-        {pendingList.length > 0 && (
-          <ul className="space-y-1">
-            {pendingList.map((n, i) => (
-              <li
-                key={i}
-                className="flex items-center justify-between rounded-md border border-input bg-white/70 px-3 py-1.5 text-sm"
-              >
-                <span className="font-mono font-medium">{n}</span>
-                <button
-                  type="button"
-                  onClick={() => removePending(i)}
-                  className="text-destructive transition-colors hover:text-red-700"
-                  aria-label={`Hapus ${n}`}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addField}
+          className="border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+        >
+          <Plus className="h-4 w-4" />
+          Tambah
+        </Button>
 
         <DialogFooter className="flex-row gap-2">
           <Button
             variant="outline"
             onClick={() => {
               setOpen(false);
-              setPendingList([]);
-              setName("");
+              setFields([""]);
             }}
             className="flex-1 border border-input bg-transparent"
           >
