@@ -34,7 +34,11 @@ export function BookFilter({ basePath }: { basePath: string }) {
   }
 
   function toggleStatus(v: string) {
-    setStatus((s) => (s.includes(v) ? s.filter((x) => x !== v) : [...s, v]));
+    const next = status.includes(v)
+      ? status.filter((x) => x !== v)
+      : [...status, v];
+    setStatus(next);
+    push(next, min.replace(/\D/g, ""), max.replace(/\D/g, ""));
   }
 
   function formatRp(digits: string): string {
@@ -43,19 +47,22 @@ export function BookFilter({ basePath }: { basePath: string }) {
     return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
-  function apply() {
+  function push(
+    statuses: string[],
+    minV: string,
+    maxV: string,
+    close = false
+  ) {
     const params = new URLSearchParams(searchParams.toString());
-    if (status.length) params.set("status", status.join(","));
+    if (statuses.length) params.set("status", statuses.join(","));
     else params.delete("status");
-    const minV = min.replace(/\D/g, "");
-    const maxV = max.replace(/\D/g, "");
     if (minV) params.set("min", minV);
     else params.delete("min");
     if (maxV) params.set("max", maxV);
     else params.delete("max");
     params.delete("page");
     router.push(`${basePath}?${params.toString()}`);
-    setOpen(false);
+    if (close) setOpen(false);
   }
 
   function reset() {
@@ -131,6 +138,9 @@ export function BookFilter({ basePath }: { basePath: string }) {
                     inputMode="numeric"
                     value={min ? formatRp(min) : ""}
                     onChange={(e) => setMin(e.target.value.replace(/\D/g, ""))}
+                    onBlur={() =>
+                      push(status, min.replace(/\D/g, ""), max.replace(/\D/g, ""))
+                    }
                     placeholder="0"
                     className="h-9 pl-8 text-xs placeholder:text-black/30"
                   />
@@ -147,6 +157,9 @@ export function BookFilter({ basePath }: { basePath: string }) {
                     inputMode="numeric"
                     value={max ? formatRp(max) : ""}
                     onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))}
+                    onBlur={() =>
+                      push(status, min.replace(/\D/g, ""), max.replace(/\D/g, ""))
+                    }
                     placeholder="0"
                     className="h-9 pl-8 text-xs placeholder:text-black/30"
                   />
@@ -156,23 +169,14 @@ export function BookFilter({ basePath }: { basePath: string }) {
 
             <div className="mt-3 h-px w-full bg-black/15" />
 
-            <div className="mt-3 flex gap-2">
-              <Button
+            <Button
                 type="button"
                 variant="outline"
                 onClick={reset}
-                className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-white hover:text-black"
+                className="mt-3 h-9 w-full border border-input bg-transparent text-black transition-colors hover:bg-white hover:text-black"
               >
-                Reset
+                Reset Filter
               </Button>
-              <Button
-                type="button"
-                onClick={apply}
-                className="flex-1 border border-input bg-black text-white transition-colors hover:bg-[#D97A7A] hover:text-white"
-              >
-                Terapkan
-              </Button>
-            </div>
           </div>
         </>
       )}

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, PaymentStatus, OrderStatus, Eta, Source } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
 import { CreateBatchDialog } from "@/components/CreateBatchDialog";
@@ -7,9 +7,10 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
-import { ETAS } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES, SOURCES } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
+import { OrderFilter } from "@/components/OrderFilter";
 import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
 import {
   Table,
@@ -30,23 +31,59 @@ function etaLabel(v: string | null | undefined) {
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string };
+  searchParams: {
+    q?: string;
+    page?: string;
+    paymentStatus?: string;
+    status?: string;
+    batch?: string;
+    eta?: string;
+    source?: string;
+  };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
 
-  const where: Prisma.OrderWhereInput | undefined = q
-    ? {
-        OR: [
-          { invoiceNumber: { contains: q, mode: "insensitive" as const } },
-          { buyer: { name: { contains: q, mode: "insensitive" as const } } },
-          { items: { some: { book: { title: { contains: q, mode: "insensitive" as const } } } } },
-        ],
-      }
-    : undefined;
+  const paymentStatuses = (searchParams?.paymentStatus ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => PAYMENT_STATUSES.some((p) => p.value === s));
+  const status = searchParams?.status?.trim();
+  const statusValid = STATUSES.some((p) => p.value === status) ? status : undefined;
+  const batchId = searchParams?.batch?.trim();
+  const eta = searchParams?.eta?.trim();
+  const etaValid = ETAS.some((e) => e.value === eta) ? eta : undefined;
+  const sources = (searchParams?.source ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => SOURCES.some((x) => x.value === s));
 
-  const [totalOrders, totalFiltered, orders] = await Promise.all([
+  const where: Prisma.OrderWhereInput = {};
+  if (q) {
+    where.OR = [
+      { invoiceNumber: { contains: q, mode: "insensitive" as const } },
+      { buyer: { name: { contains: q, mode: "insensitive" as const } } },
+      { items: { some: { book: { title: { contains: q, mode: "insensitive" as const } } } } },
+    ];
+  }
+  if (paymentStatuses.length > 0) {
+    where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
+  }
+  if (statusValid) {
+    where.status = statusValid as OrderStatus;
+  }
+  if (batchId) {
+    where.batchId = batchId;
+  }
+  if (etaValid) {
+    where.eta = etaValid as Eta;
+  }
+  if (sources.length > 0) {
+    where.source = { in: sources as Source[] };
+  }
+
+  const [totalOrders, totalFiltered, orders, batches] = await Promise.all([
     db.order.count(),
     db.order.count({ where }),
     db.order.findMany({
@@ -60,6 +97,7 @@ export default async function AdminOrdersPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
+    db.batch.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -113,8 +151,11 @@ export default async function AdminOrdersPage({
         </div>
       </div>
 
-      <div className="w-full md:max-w-md">
-        <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+      <div className="flex items-start gap-2">
+        <OrderFilter basePath="/admin/orders" batches={batches} />
+        <div className="w-[70%] md:w-[80%]">
+          <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+        </div>
       </div>
 
       {/* Mobile: card layout */}
@@ -290,7 +331,14 @@ export default async function AdminOrdersPage({
         page={page}
         pageSize={PAGE_SIZE}
         basePath="/admin/orders"
-        query={{ q: qRaw }}
+        query={{
+          q: qRaw,
+          paymentStatus: searchParams?.paymentStatus ?? "",
+          status: searchParams?.status ?? "",
+          batch: searchParams?.batch ?? "",
+          eta: searchParams?.eta ?? "",
+          source: searchParams?.source ?? "",
+        }}
       />
     </div>
   );

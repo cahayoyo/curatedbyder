@@ -8,9 +8,11 @@ import { Search } from "lucide-react";
 export function SearchInput({
   basePath,
   placeholder,
+  placeholderClassName = "",
 }: {
   basePath: string;
   placeholder: string;
+  placeholderClassName?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,7 +49,7 @@ export function SearchInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="pl-10 placeholder:text-black/30"
+        className={`pl-10 placeholder:text-xs placeholder:text-black/30 ${placeholderClassName}`}
       />
     </div>
   );
