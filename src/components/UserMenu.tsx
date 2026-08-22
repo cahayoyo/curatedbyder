@@ -38,8 +38,7 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => signOut({ callbackUrl: signOutUrl })}
-          style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
-          className="cursor-pointer font-semibold transition-colors hover:bg-[#c96666] focus:bg-[#c96666] focus:text-white"
+          className="cursor-pointer bg-[#FED6D6] font-semibold text-black transition-colors hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
         >
           <LogOut className="h-4 w-4" />
           Sign out
