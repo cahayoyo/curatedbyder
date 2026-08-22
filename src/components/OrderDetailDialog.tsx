@@ -14,7 +14,6 @@ import {
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
 import { STATUS_LABEL, PAYMENT_LABEL, SOURCE_LABEL, etaLabel } from "@/lib/orderOptions";
-import { cn } from "@/lib/utils";
 import {
   Calculator,
   CalendarClock,
@@ -114,7 +113,11 @@ export function OrderDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] w-[92%] max-w-md overflow-y-auto" style={{ backgroundColor: "#F6F1E7" }}>
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="max-h-[80vh] w-[92%] max-w-md overflow-y-auto"
+        style={{ backgroundColor: "#F6F1E7" }}
+      >
         <DialogHeader>
           <DialogTitle>Detail Pesanan</DialogTitle>
           <DialogDescription className="font-mono text-xs">{order.invoiceNumber}</DialogDescription>
@@ -176,7 +179,7 @@ export function OrderDetailDialog({
         </p>
         <div className="space-y-2 text-sm">
           {order.items.map((it, i) => (
-            <div key={it.id || i} className={cn("rounded-lg border p-2", i > 0 && "border-black/10")}>
+            <div key={it.id || i} className="rounded-lg border p-2">
               <p className="font-medium">{it.book.title}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Format: {it.book.formats.length ? it.book.formats.join(", ") : "—"}
