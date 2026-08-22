@@ -60,7 +60,7 @@ export function AdminLoginForm() {
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="admin@mail.com"
+                placeholder="curatedbyderadmin@mail.com"
                 className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.email}
