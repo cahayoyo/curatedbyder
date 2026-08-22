@@ -182,7 +182,18 @@ export default async function AdminBooksPage({
                   }).format(b.price)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={b.stock <= 5 ? "destructive" : "default"}>{b.stock}</Badge>
+                  <Badge
+                  variant="outline"
+                  className={
+                    b.stock <= 0
+                      ? "border-red-300 bg-red-500 text-white"
+                      : b.stock <= 10
+                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                        : "border-transparent bg-primary text-primary-foreground"
+                  }
+                >
+                  {b.stock}
+                </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
