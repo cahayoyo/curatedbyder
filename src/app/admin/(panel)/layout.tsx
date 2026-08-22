@@ -21,17 +21,23 @@ export default async function AdminLayout({
         className="border-b"
         style={{ backgroundColor: "#FED6D6" }}
       >
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-2">
+        <div className="relative mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+          <div className="flex items-center md:hidden">
+            <AdminNav />
+          </div>
+
+          <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 md:static md:translate-x-0 md:translate-y-0">
             <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
             <div className="flex flex-col leading-tight">
               <span className="font-semibold">CuratedByDer</span>
-              <span className="text-[11px] font-medium opacity-70">ADMIN PANEL</span>
+              <span className="hidden text-[11px] font-medium opacity-70 md:inline">ADMIN PANEL</span>
             </div>
           </div>
-          <div className="flex flex-1 justify-center">
+
+          <div className="hidden flex-1 justify-center md:flex">
             <AdminNav />
           </div>
+
           <div className="flex items-center gap-3">
             <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
           </div>
