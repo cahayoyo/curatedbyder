@@ -22,36 +22,65 @@ import {
   Info,
   ImageIcon,
   CircleCheckBig,
+  PackageCheck,
+  Clock,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
+import { BookFilter } from "@/components/BookFilter";
 import { formatIDR } from "@/lib/format";
 import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
 import { BookCard } from "@/components/BookCard";
+import { FormatBadge } from "@/components/FormatBadge";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
 export default async function AdminBooksPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string };
+  searchParams: { q?: string; page?: string; status?: string; min?: string; max?: string };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
-  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
-  const where = q
-    ? {
-        OR: [
-          { title: { contains: q, mode: "insensitive" as const } },
-          { publisher: { contains: q, mode: "insensitive" as const } },
-        ],
-      }
-    : undefined;
 
-  const [totalFiltered, books, totalStock] = await Promise.all([
+  const statuses = (searchParams?.status ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s === "READY_STOCK" || s === "PRE_ORDER");
+
+  const minRaw = Number(searchParams?.min);
+  const maxRaw = Number(searchParams?.max);
+  const min = Number.isFinite(minRaw) && minRaw >= 0 ? Math.floor(minRaw) : null;
+  const max = Number.isFinite(maxRaw) && maxRaw >= 0 ? Math.floor(maxRaw) : null;
+
+  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+
+  const where: {
+    OR?: { title?: { contains: string; mode: "insensitive" }; publisher?: { contains: string; mode: "insensitive" } }[];
+    status?: { in: ("READY_STOCK" | "PRE_ORDER")[] };
+    price?: { gte?: number; lte?: number };
+  } = {};
+
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" as const } },
+      { publisher: { contains: q, mode: "insensitive" as const } },
+    ];
+  }
+  if (statuses.length > 0) {
+    where.status = { in: statuses as ("READY_STOCK" | "PRE_ORDER")[] };
+  }
+  if (min != null || max != null) {
+    where.price = {};
+    if (min != null) where.price.gte = min;
+    if (max != null) where.price.lte = max;
+  }
+
+  const [totalFiltered, books, statusCounts] = await Promise.all([
     db.book.count({ where }),
     db.book.findMany({
       where,
@@ -59,8 +88,13 @@ export default async function AdminBooksPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    db.book.aggregate({ where, _sum: { stock: true } }),
+    db.book.groupBy({ by: ["status"], where, _count: { _all: true } }),
   ]);
+
+  const readyCount =
+    statusCounts.find((s) => s.status === "READY_STOCK")?._count._all ?? 0;
+  const preOrderCount =
+    statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
 
   return (
     <div className="space-y-4">
@@ -78,8 +112,8 @@ export default async function AdminBooksPage({
         </NavActionButton>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Package className="h-4 w-4" />
             Total Buku
@@ -88,15 +122,25 @@ export default async function AdminBooksPage({
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Boxes className="h-4 w-4" />
-            Total Stok
+            <PackageCheck className="h-4 w-4" />
+            Total Buku Ready Stok
           </p>
-          <p className="text-2xl font-bold">{totalStock._sum.stock ?? 0}</p>
+          <p className="text-2xl font-bold">{readyCount}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            Total Buku Pre Order
+          </p>
+          <p className="text-2xl font-bold">{preOrderCount}</p>
         </div>
       </div>
 
-      <div className="w-full md:max-w-md">
-        <SearchInput basePath="/admin/books" placeholder="Cari judul buku..." />
+      <div className="flex items-start gap-2">
+        <BookFilter basePath="/admin/books" />
+        <div className="w-[70%] md:w-[80%]">
+          <SearchInput basePath="/admin/books" placeholder="Cari judul buku..." />
+        </div>
       </div>
 
       {/* Mobile: card layout */}
@@ -207,7 +251,13 @@ export default async function AdminBooksPage({
                   <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
                 </TableCell>
                 <TableCell>
-                  {b.formats.length > 0 ? b.formats.join(", ") : "—"}
+                  <div className="flex flex-wrap gap-1">
+                    {b.formats.length > 0 ? (
+                      b.formats.map((f, i) => <FormatBadge key={f} value={f} index={i} />)
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {formatIDR(b.price)}
@@ -215,13 +265,14 @@ export default async function AdminBooksPage({
                 <TableCell>
                   <Badge
                   variant="outline"
-                  className={
+                  className={cn(
                     b.stock <= 0
                       ? "border-red-300 bg-red-500 text-white"
                       : b.stock <= 10
                         ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                        : "border-transparent bg-primary text-primary-foreground"
-                  }
+                        : "border-transparent bg-primary text-primary-foreground",
+                    "h-6 w-9 justify-center px-0 text-xs"
+                  )}
                 >
                   {b.stock}
                 </Badge>
@@ -273,7 +324,12 @@ export default async function AdminBooksPage({
         page={page}
         pageSize={PAGE_SIZE}
         basePath="/admin/books"
-        query={{ q: qRaw }}
+        query={{
+          q: qRaw,
+          status: searchParams?.status ?? "",
+          min: min != null ? String(min) : "",
+          max: max != null ? String(max) : "",
+        }}
       />
     </div>
   );

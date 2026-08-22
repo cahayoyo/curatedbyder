@@ -20,7 +20,9 @@ export function Pagination({
 
   function href(p: number) {
     const params = new URLSearchParams();
-    if (query.q) params.set("q", query.q);
+    Object.entries(query).forEach(([k, v]) => {
+      if (v && v !== "") params.set(k, v);
+    });
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
     return qs ? `${basePath}?${qs}` : basePath;

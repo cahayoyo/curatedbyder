@@ -13,6 +13,7 @@ import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
 import { deleteBuyer } from "@/server/actions/buyers";
 import { Pagination } from "@/components/Pagination";
+import { BuyerCard } from "@/components/BuyerCard";
 
 const PAGE_SIZE = 20;
 
@@ -77,7 +78,30 @@ export default async function AdminBuyersPage({
         <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
       </div>
 
-      <div className="rounded-lg border">
+      {/* Mobile: card layout */}
+      <div className="space-y-3 md:hidden">
+        {buyers.map((b) => (
+          <BuyerCard
+            key={b.id}
+            buyer={{
+              id: b.id,
+              username: b.username,
+              name: b.name,
+              phone: b.phone,
+              contact: b.contact,
+            }}
+            onDelete={deleteBuyer.bind(null, b.id)}
+          />
+        ))}
+        {buyers.length === 0 && (
+          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+            Belum ada pembeli.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: table layout */}
+      <div className="hidden rounded-lg border md:block">
         <Table className="border-collapse">
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>

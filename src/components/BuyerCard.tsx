@@ -1,0 +1,153 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MapPin, MoreVertical, Pencil, Phone, Trash2, Users } from "lucide-react";
+
+type BuyerDTO = {
+  id: string;
+  username: string | null;
+  name: string;
+  phone: string | null;
+  contact: string | null;
+};
+
+function HintIcon({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        aria-label={title}
+        className="flex items-center justify-center rounded text-muted-foreground transition-colors hover:text-black"
+      >
+        {icon}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full z-50 mt-1 w-40 rounded-md border border-black/10 bg-white p-1.5 text-[11px] leading-snug shadow-md">
+            <p className="font-semibold">{title}</p>
+            <p className="break-words text-black/70">{detail || "—"}</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function BuyerCard({ buyer, onDelete }: { buyer: BuyerDTO; onDelete: () => void }) {
+  const router = useRouter();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
+      {/* Header: name + 3-dot menu */}
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1.5 font-semibold leading-snug">
+          <Users className="h-4 w-4 shrink-0 text-[#D97A7A]" />
+          <span className="line-clamp-2">{buyer.username || buyer.name}</span>
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Aksi pembeli"
+              className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-black/20 hover:text-black"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+            <DropdownMenuItem
+              onSelect={() => router.push(`/admin/buyers/${buyer.id}/edit`)}
+              className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+            >
+              <Pencil className="h-4 w-4" />
+              Ubah
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setDeleteOpen(true)}
+              className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+            >
+              <Trash2 className="h-4 w-4" />
+              Hapus
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Divider under title */}
+      <div className="mb-2 h-px w-full bg-black/15" />
+
+      {/* Body: name, phone, address */}
+      <div className="space-y-2.5 pt-1 text-sm">
+        <div className="flex items-center gap-1.5">
+          <HintIcon icon={<Users className="h-3.5 w-3.5 shrink-0" />} title="Nama Lengkap" detail={buyer.name} />
+          <span className="line-clamp-1 text-muted-foreground">{buyer.name}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <HintIcon icon={<Phone className="h-3.5 w-3.5 shrink-0" />} title="Nomor Telepon" detail={buyer.phone || "—"} />
+          <span className="line-clamp-1 text-muted-foreground">{buyer.phone || "—"}</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <HintIcon icon={<MapPin className="h-3.5 w-3.5 shrink-0" />} title="Alamat" detail={buyer.contact || "—"} />
+          <span className="line-clamp-2 text-black/80">{buyer.contact ? buyer.contact : "—"}</span>
+        </div>
+      </div>
+
+      {/* Divider under body */}
+      <div className="mt-2 h-px w-full bg-black/15" />
+
+      {/* Delete confirm dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="w-[90%] max-w-sm" style={{ backgroundColor: "#FED6D6" }}>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Hapus</DialogTitle>
+            <DialogDescription className="text-black/80">
+              Apakah anda benar ingin menghapus pembeli &quot;{buyer.name}&quot;?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              className="flex-1 border border-input bg-transparent"
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={() => {
+                setDeleteOpen(false);
+                onDelete();
+              }}
+              className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
+            >
+              Hapus
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

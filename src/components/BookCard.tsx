@@ -19,9 +19,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Building2, Info, MoreVertical, Pencil, Tag, Trash2, ImageIcon, BookOpen } from "lucide-react";
+import { Building2, Info, MoreVertical, Pencil, Tag, Trash2, ImageIcon, BookOpen, Banknote, Boxes } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { FormatBadge } from "@/components/FormatBadge";
 
 type BookDTO = {
   id: string;
@@ -162,8 +163,14 @@ export function BookCard({ book, onDelete }: { book: BookDTO; onDelete: () => vo
 
       {/* Format */}
       <div className="mt-2 flex items-center gap-1.5 text-sm">
-        <HintIcon icon={<Tag className="h-3.5 w-3.5" />} title="Format" detail={book.formats.length > 0 ? book.formats.join(", ") : "—"} />
-        <span className="font-medium">{book.formats.length > 0 ? book.formats.join(", ") : "—"}</span>
+        <Tag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <div className="flex flex-wrap gap-1">
+          {book.formats.length > 0 ? (
+            book.formats.map((f, i) => <FormatBadge key={f} value={f} index={i} />)
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
       </div>
 
       {/* Divider under format */}
@@ -171,15 +178,20 @@ export function BookCard({ book, onDelete }: { book: BookDTO; onDelete: () => vo
 
       {/* Price + stock */}
       <div className="mt-2 flex items-center justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Harga</p>
-          <p className="font-semibold">{formatIDR(book.price)}</p>
+        <div className="flex items-center gap-1.5">
+          <Banknote className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="font-semibold">{formatIDR(book.price)}</span>
         </div>
-        <div className="text-right">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Stok</p>
-          <Badge variant="outline" className={stockBadgeClass(book.stock)}>
+        <div className="flex items-center gap-1.5">
+          <Boxes className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span
+            className={cn(
+              "inline-flex h-6 w-9 items-center justify-center whitespace-nowrap rounded-full border text-xs",
+              stockBadgeClass(book.stock)
+            )}
+          >
             {book.stock}
-          </Badge>
+          </span>
         </div>
       </div>
 
