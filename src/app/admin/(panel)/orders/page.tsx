@@ -54,7 +54,7 @@ export default async function AdminOrdersPage({
       include: {
         buyer: { select: { id: true, name: true, phone: true, contact: true } },
         batch: true,
-        items: { include: { book: { select: { title: true, formats: true } } } },
+        items: { include: { book: { select: { title: true, formats: true, status: true } } } },
       },
       orderBy: { soldAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
@@ -140,7 +140,7 @@ export default async function AdminOrdersPage({
                 quantity: it.quantity,
                 unitPrice: it.unitPrice,
                 subtotal: it.subtotal,
-                book: { title: it.book.title, formats: it.book.formats },
+                book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
               })),
             }}
             onDelete={deleteOrder.bind(null, s.id)}

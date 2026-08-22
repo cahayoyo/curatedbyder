@@ -51,7 +51,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
-  book: { title: string; formats: string[] };
+  book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
 };
 
 type OrderDTO = {
@@ -136,13 +136,21 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     "",
     "*Detail Buku*",
   ];
-  order.items.forEach((it, i) => {
-    if (i > 0) lines.push("", "");
+  if (order.items.length === 1) {
+    const it = order.items[0];
     lines.push(
       `Nama Buku : ${it.book.title}`,
       `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
     );
-  });
+  } else {
+    order.items.forEach((it, i) => {
+      lines.push("", `Buku ${i + 1}`);
+      lines.push(
+        `Nama Buku : ${it.book.title}`,
+        `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
+      );
+    });
+  }
   lines.push("", `Link Invoice Order PDF :`, `${pdfUrl}`);
   return lines.join("\n");
 }
@@ -255,6 +263,16 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
                 <span className="line-clamp-1">{it.book.title}</span>
                 <span className="block text-[11px] text-muted-foreground">
                   {it.book.formats.length ? it.book.formats.join(", ") : "—"} · {it.quantity} × {formatIDR(it.unitPrice)}
+                </span>
+                <span
+                  className={cn(
+                    "mt-0.5 inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium",
+                    it.book.status === "PRE_ORDER"
+                      ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                      : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                  )}
+                >
+                  {it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
                 </span>
               </span>
             </div>

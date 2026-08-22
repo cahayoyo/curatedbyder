@@ -17,7 +17,7 @@ export async function GET(
       buyer: { select: { name: true, phone: true, contact: true } },
       batch: { select: { name: true } },
       items: {
-        include: { book: { select: { title: true, formats: true } } },
+        include: { book: { select: { title: true, formats: true, status: true } } },
       },
     },
   });

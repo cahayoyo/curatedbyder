@@ -11,7 +11,7 @@ export type OrderPdfDTO = {
   batch: { name: string } | null;
   eta: string | null;
   items: {
-    book: { title: string; formats: string[] };
+    book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
     quantity: number;
     unitPrice: number;
     subtotal: number;
@@ -70,11 +70,12 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   autoTable(doc, {
     startY: 74,
-    head: [["#", "Judul Buku", "Format", "Qty", "Harga", "Subtotal"]],
+    head: [["#", "Judul Buku", "Format", "Status", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
       it.book.title,
       it.book.formats.length ? it.book.formats.join(", ") : "—",
+      it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok",
       String(it.quantity),
       formatIDR(it.unitPrice),
       formatIDR(it.subtotal),
@@ -83,9 +84,9 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     headStyles: { fillColor: [217, 122, 122] },
     columnStyles: {
       0: { cellWidth: 8 },
-      3: { cellWidth: 12, halign: "center" },
-      4: { cellWidth: 30, halign: "right" },
-      5: { cellWidth: 32, halign: "right" },
+      4: { cellWidth: 12, halign: "center" },
+      5: { cellWidth: 30, halign: "right" },
+      6: { cellWidth: 32, halign: "right" },
     },
     theme: "grid",
   });
