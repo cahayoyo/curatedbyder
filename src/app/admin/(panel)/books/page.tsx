@@ -88,14 +88,14 @@ export default async function AdminBooksPage({
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
-                    <Banknote className="h-3.5 w-3.5" />
-                    Harga
+                    <Tag className="h-3.5 w-3.5" />
+                    Format
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
-                    <Tag className="h-3.5 w-3.5" />
-                    Format
+                    <Banknote className="h-3.5 w-3.5" />
+                    Harga
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
@@ -117,14 +117,14 @@ export default async function AdminBooksPage({
               <TableRow key={b.id} className="border-b border-input last:border-0">
                 <TableCell className="font-medium">{b.title}</TableCell>
                 <TableCell>
+                  {b.formats.length > 0 ? b.formats.join(", ") : "—"}
+                </TableCell>
+                <TableCell>
                   {new Intl.NumberFormat("id-ID", {
                     style: "currency",
                     currency: "IDR",
                     maximumFractionDigits: 0,
                   }).format(b.price)}
-                </TableCell>
-                <TableCell>
-                  {b.formats.length > 0 ? b.formats.join(", ") : "—"}
                 </TableCell>
                 <TableCell>
                   <Badge variant={b.stock <= 5 ? "destructive" : "default"}>{b.stock}</Badge>

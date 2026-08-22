@@ -102,7 +102,7 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
               formats: r.formats as ("HC" | "PB" | "BB" | "BS" | "SB")[],
             });
           }
-          toast.success(`${rows.length} buku(i) buat`);
+          toast.success(`${rows.length} buku berhasil terbuat`);
         }
         router.push("/admin/books");
         router.refresh();
