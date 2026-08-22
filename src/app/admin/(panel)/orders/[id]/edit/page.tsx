@@ -1,11 +1,8 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { requireRole } from "@/lib/session";
 import { OrderForm } from "@/components/OrderForm";
 
 export default async function EditOrderPage({ params }: { params: { id: string } }) {
-  await requireRole("SUPER_ADMIN");
-
   const [order, buyers, books, batches] = await Promise.all([
     db.order.findUnique({
       where: { id: params.id },
@@ -20,7 +17,7 @@ export default async function EditOrderPage({ params }: { params: { id: string }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Ubah Order: {order.invoiceNumber}</h2>
+      <h2 className="text-2xl font-bold">Ubah Pesanan: {order.invoiceNumber}</h2>
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({

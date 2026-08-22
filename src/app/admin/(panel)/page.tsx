@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
-import { LayoutDashboard, Users, PackageSearch, TrendingUp, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Users, PackageSearch, TrendingUp, ShoppingCart, BookOpen } from "lucide-react";
 
 export default async function AdminOverviewPage() {
-  const [orders, buyers] = await Promise.all([
+  const [orders, buyers, totalBooks] = await Promise.all([
     db.order.findMany({
       include: {
         buyer: { select: { name: true } },
@@ -12,6 +12,7 @@ export default async function AdminOverviewPage() {
       take: 200,
     }),
     db.user.count({ where: { role: "USER" } }),
+    db.book.count(),
   ]);
 
   const soldByBook = new Map<string, { title: string; qty: number }>();
@@ -42,23 +43,30 @@ export default async function AdminOverviewPage() {
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
-            Total buyer
-          </p>
+Total Pembeli
+            </p>
           <p className="text-2xl font-bold">{buyers}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <ShoppingCart className="h-4 w-4" />
-            Total orders
+            Total Pesanan
           </p>
           <p className="text-2xl font-bold">{orders.length}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <BookOpen className="h-4 w-4" />
+            Total Buku
+          </p>
+          <p className="text-2xl font-bold">{totalBooks}</p>
         </div>
       </div>
 
       <div className="rounded-lg border p-4">
         <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
           <TrendingUp className="h-4 w-4" />
-          Best-selling books
+          Buku Best Seller
         </p>
         <ul className="space-y-1 text-sm">
           {bestSellers.map((b) => (
@@ -74,7 +82,7 @@ export default async function AdminOverviewPage() {
       <div className="rounded-lg border p-4">
         <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
           <PackageSearch className="h-4 w-4" />
-          Orders by source
+          Pesanan by Source
         </p>
         <ul className="space-y-1 text-sm">
           {Array.from(bySource.entries()).map(([c, n]) => (

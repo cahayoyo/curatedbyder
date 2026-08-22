@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUSES, STATUS_LABEL, PAYMENT_LABEL } from "@/lib/orderOptions";
+import { formatIDR } from "@/lib/format";
 
 type OrderItemDTO = {
   quantity: number;
@@ -41,15 +42,6 @@ const statusColor: Record<string, string> = {
   SHIPPED_TO_CUSTOMER: "bg-cyan-100 text-cyan-800",
   ORDER_DELIVERED: "bg-green-100 text-green-800",
 };
-
-export function formatIDR(rupiah: number | null | undefined) {
-  if (rupiah == null) return "—";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(rupiah);
-}
 
 function statusBadge(status: string) {
   return <Badge className={statusColor[status] ?? ""}>{STATUS_LABEL[status] ?? status}</Badge>;

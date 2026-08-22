@@ -22,9 +22,11 @@ import {
   Info,
   ImageIcon,
 } from "lucide-react";
-import { DeleteBookButton } from "@/components/DeleteBookButton";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
-import { BookSearch } from "@/components/BookSearch";
+import { SearchInput } from "@/components/SearchInput";
+import { formatIDR } from "@/lib/format";
+import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
 
@@ -92,7 +94,7 @@ export default async function AdminBooksPage({
       </div>
 
       <div className="w-full md:max-w-md">
-        <BookSearch />
+        <SearchInput basePath="/admin/books" placeholder="Cari judul buku..." />
       </div>
 
       <div className="overflow-x-auto rounded-lg border">
@@ -173,11 +175,7 @@ export default async function AdminBooksPage({
                   {b.formats.length > 0 ? b.formats.join(", ") : "—"}
                 </TableCell>
                 <TableCell>
-                  {new Intl.NumberFormat("id-ID", {
-                    style: "currency",
-                    currency: "IDR",
-                    maximumFractionDigits: 0,
-                  }).format(b.price)}
+                  {formatIDR(b.price)}
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -202,7 +200,12 @@ export default async function AdminBooksPage({
                     >
                       Ubah
                     </NavActionButton>
-                    <DeleteBookButton id={b.id} title={b.title} />
+                    <ConfirmDeleteButton
+                      title="Konfirmasi Hapus"
+                      description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
+                      successMessage="Buku dihapus"
+                      onConfirm={() => deleteBook(b.id)}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

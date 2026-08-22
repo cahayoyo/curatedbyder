@@ -16,7 +16,7 @@ const slides = [
   { src: img3, alt: "Book 3" },
   { src: img4, alt: "Book 4" },
   { src: img5, alt: "Book 5" },
-];
+] as const;
 
 const SWIPE_THRESHOLD = 50;
 
@@ -117,9 +117,11 @@ export function PhotoCarousel() {
                 src={s.src}
                 alt={s.alt}
                 fill
+                sizes="100vw"
                 className="object-contain"
                 onLoad={() => setLoaded(true)}
                 priority={i === 0}
+                loading={i === 0 ? "eager" : "lazy"}
                 draggable={false}
               />
             </div>

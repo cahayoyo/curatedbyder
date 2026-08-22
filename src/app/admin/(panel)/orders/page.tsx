@@ -1,13 +1,14 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { requireRole } from "@/lib/session";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
 import { CreateBatchDialog } from "@/components/CreateBatchDialog";
-import { DeleteOrderButton } from "@/components/DeleteOrderButton";
-import { OrderSearch } from "@/components/OrderSearch";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { SearchInput } from "@/components/SearchInput";
+import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
 import { ETAS } from "@/lib/orderOptions";
+import { formatIDR } from "@/lib/format";
 import { Plus, Pencil, ShoppingCart, FileText, Coins, HandCoins, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand } from "lucide-react";
 import {
   Table,
@@ -20,23 +21,9 @@ import {
 
 const PAGE_SIZE = 20;
 
-function fmt(rupiah: number | null | undefined) {
-  if (rupiah == null) return "—";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(rupiah);
-}
-
 function etaLabel(v: string | null | undefined) {
   if (v == null) return "—";
   return ETAS.find((e) => e.value === v)?.label ?? v;
-}
-
-function batchLabel(v: string | null | undefined) {
-  if (v == null) return "—";
-  return v;
 }
 
 export default async function AdminOrdersPage({
@@ -44,8 +31,6 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: { q?: string; page?: string };
 }) {
-  await requireRole("SUPER_ADMIN");
-
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
@@ -81,16 +66,16 @@ export default async function AdminOrdersPage({
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <ShoppingCart className="h-6 w-6" />
-          List Order
+          List Pesanan
         </h2>
-        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
           <CreateBatchDialog />
           <NavActionButton
             href="/admin/orders/new"
             icon={<Plus className="h-4 w-4" />}
-            className="h-8 border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+            className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
           >
-            Tambah Order
+            Tambah Pesanan
           </NavActionButton>
         </div>
       </div>
@@ -109,7 +94,7 @@ export default async function AdminOrdersPage({
             Total DP
           </p>
           <p className="text-xl font-bold">
-            {fmt(
+            {formatIDR(
               orders.reduce((acc, s) => acc + (s.dp ?? 0), 0)
             )}
           </p>
@@ -120,7 +105,7 @@ export default async function AdminOrdersPage({
             Total Sisa
           </p>
           <p className="text-xl font-bold">
-            {fmt(
+            {formatIDR(
               orders.reduce((acc, s) => acc + (s.remaining ?? 0), 0)
             )}
           </p>
@@ -128,7 +113,7 @@ export default async function AdminOrdersPage({
       </div>
 
       <div className="w-full md:max-w-md">
-        <OrderSearch />
+        <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
       </div>
 
       <div className="overflow-x-auto rounded-lg border">
@@ -172,7 +157,7 @@ export default async function AdminOrdersPage({
                   <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Order</span>
+                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Pesanan</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
@@ -183,7 +168,7 @@ export default async function AdminOrdersPage({
             {orders.map((s) => (
               <TableRow key={s.id} className="border-b border-input last:border-0">
                 <TableCell className="font-mono text-xs font-medium">{s.invoiceNumber}</TableCell>
-                <TableCell>{batchLabel(s.batch?.name)}</TableCell>
+                <TableCell>{s.batch?.name || "—"}</TableCell>
                 <TableCell>{etaLabel(s.eta)}</TableCell>
                 <TableCell>{s.buyer.name}</TableCell>
                 <TableCell>
@@ -212,19 +197,19 @@ export default async function AdminOrdersPage({
                 <TableCell>
                   <ul className="text-xs">
                     {s.items.map((it, i) => (
-                      <li key={i}>{fmt(it.unitPrice)}</li>
+                      <li key={i}>{formatIDR(it.unitPrice)}</li>
                     ))}
                   </ul>
                 </TableCell>
-                <TableCell>{fmt(s.total)}</TableCell>
-                <TableCell>{fmt(s.dp)}</TableCell>
-                <TableCell>{fmt(s.remaining)}</TableCell>
+                <TableCell>{formatIDR(s.total)}</TableCell>
+                <TableCell>{formatIDR(s.dp)}</TableCell>
+                <TableCell>{formatIDR(s.remaining)}</TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
                     {s.dp != null && (
                       <p className="text-xs text-muted-foreground">
-                        DP {fmt(s.dp)} / sisa {fmt(s.remaining)}
+                        DP {formatIDR(s.dp)} / sisa {formatIDR(s.remaining)}
                       </p>
                     )}
                   </div>
@@ -241,7 +226,12 @@ export default async function AdminOrdersPage({
                     >
                       Ubah
                     </NavActionButton>
-                    <DeleteOrderButton id={s.id} invoiceNumber={s.invoiceNumber} />
+                    <ConfirmDeleteButton
+                      title="Konfirmasi Hapus"
+                      description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
+                      successMessage="Order dihapus"
+                      onConfirm={() => deleteOrder(s.id)}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

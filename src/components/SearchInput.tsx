@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-export function OrderSearch() {
+export function SearchInput({
+  basePath,
+  placeholder,
+}: {
+  basePath: string;
+  placeholder: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setValue(searchParams.get("q") ?? "");
@@ -17,12 +24,21 @@ export function OrderSearch() {
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
     setValue(v);
-    const params = new URLSearchParams(searchParams.toString());
-    if (v) params.set("q", v);
-    else params.delete("q");
-    params.delete("page");
-    router.replace(`/admin/orders?${params.toString()}`);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (v) params.set("q", v);
+      else params.delete("q");
+      params.delete("page");
+      router.replace(`${basePath}?${params.toString()}`);
+    }, 350);
   }
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <div className="relative">
@@ -30,7 +46,7 @@ export function OrderSearch() {
       <Input
         value={value}
         onChange={onChange}
-        placeholder="Cari invoice / pembeli / judul buku..."
+        placeholder={placeholder}
         className="pl-10 placeholder:text-black/30"
       />
     </div>

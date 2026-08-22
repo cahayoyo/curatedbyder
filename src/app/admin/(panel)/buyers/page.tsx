@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/session";
 import {
   Table,
   TableBody,
@@ -9,9 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard, AtSign, ListOrdered } from "lucide-react";
-import { DeleteBuyerButton } from "@/components/DeleteBuyerButton";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
-import { BuyerSearch } from "@/components/BuyerSearch";
+import { SearchInput } from "@/components/SearchInput";
+import { deleteBuyer } from "@/server/actions/buyers";
 import { Pagination } from "@/components/Pagination";
 
 const PAGE_SIZE = 20;
@@ -21,8 +21,6 @@ export default async function AdminBuyersPage({
 }: {
   searchParams: { q?: string; page?: string };
 }) {
-  await requireRole("SUPER_ADMIN");
-
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
@@ -76,7 +74,7 @@ export default async function AdminBuyersPage({
       </div>
 
       <div className="w-full md:max-w-md">
-        <BuyerSearch />
+        <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
       </div>
 
       <div className="rounded-lg border">
@@ -140,7 +138,12 @@ export default async function AdminBuyersPage({
                     >
                       Ubah
                     </NavActionButton>
-                    <DeleteBuyerButton id={b.id} name={b.name} />
+                    <ConfirmDeleteButton
+                      title="Konfirmasi Hapus"
+                      description={`Apakah anda benar ingin menghapus pembeli "${b.name}"?`}
+                      successMessage="Pembeli dihapus"
+                      onConfirm={() => deleteBuyer(b.id)}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

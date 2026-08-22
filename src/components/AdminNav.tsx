@@ -17,7 +17,7 @@ const links = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/books", label: "Buku", icon: BookOpen },
   { href: "/admin/buyers", label: "Pembeli", icon: Users },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/admin/orders", label: "Pesanan", icon: ShoppingCart },
 ];
 
 function isActive(pathname: string, href: string) {

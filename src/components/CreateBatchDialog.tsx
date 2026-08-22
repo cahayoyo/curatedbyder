@@ -67,7 +67,7 @@ export function CreateBatchDialog() {
         <Button
           type="button"
           variant="default"
-          className="h-8 border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+          className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
         >
           <Layers2 className="h-4 w-4" />
           Tambah Batch

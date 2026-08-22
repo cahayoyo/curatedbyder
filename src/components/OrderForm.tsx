@@ -17,6 +17,7 @@ import { SOURCES, ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { formatIDR } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number };
@@ -149,14 +150,6 @@ export function OrderForm({
     });
   }
 
-  function fmtRupiah(n: number) {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(n);
-  }
-
   function formatRp(digits: string): string {
     const clean = digits.replace(/\D/g, "");
     if (!clean) return "";
@@ -264,7 +257,7 @@ export function OrderForm({
                 <span className="text-xs text-muted-foreground">Harga</span>
                 <Input
                   readOnly
-                  value={item.bookId ? fmtRupiah(bookPrice(item.bookId)) : "—"}
+                  value={item.bookId ? formatIDR(bookPrice(item.bookId)) : "—"}
                   className="bg-black/5 text-sm"
                 />
               </div>
@@ -298,7 +291,7 @@ export function OrderForm({
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label>Total</Label>
-          <Input readOnly value={fmtRupiah(total)} className="bg-black/5" />
+          <Input readOnly value={formatIDR(total)} className="bg-black/5" />
         </div>
         <div className="space-y-1.5">
           <Label>DP</Label>
@@ -317,7 +310,7 @@ export function OrderForm({
         </div>
         <div className="space-y-1.5">
           <Label>Remaining</Label>
-          <Input readOnly value={remaining != null ? fmtRupiah(remaining) : "—"} className="bg-black/5" />
+          <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
         </div>
       </div>
 
@@ -338,7 +331,7 @@ export function OrderForm({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Status Order</Label>
+          <Label>Status Pesanan</Label>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger>
               <SelectValue />
@@ -360,7 +353,7 @@ export function OrderForm({
           disabled={pending}
           className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
-          {pending ? "Menyimpan..." : initial?.id ? "Ubah Order" : "Buat Order"}
+          {pending ? "Menyimpan..." : initial?.id ? "Ubah Pesanan" : "Buat Pesanan"}
         </Button>
         <Button
           type="button"

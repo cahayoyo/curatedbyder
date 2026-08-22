@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteBook } from "@/server/actions/books";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +14,21 @@ import {
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function DeleteBookButton({ id, title }: { id: string; title: string }) {
+export function ConfirmDeleteButton({
+  title,
+  description,
+  label = "Hapus",
+  pendingLabel = "Menghapus...",
+  successMessage = "Berhasil dihapus",
+  onConfirm,
+}: {
+  title: string;
+  description: string;
+  label?: string;
+  pendingLabel?: string;
+  successMessage?: string;
+  onConfirm: () => Promise<void>;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -23,9 +36,9 @@ export function DeleteBookButton({ id, title }: { id: string; title: string }) {
   function handleDelete() {
     startTransition(async () => {
       try {
-        await deleteBook(id);
+        await onConfirm();
         setOpen(false);
-        toast.success("Buku dihapus");
+        toast.success(successMessage);
         router.refresh();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Gagal menghapus");
@@ -42,19 +55,14 @@ export function DeleteBookButton({ id, title }: { id: string; title: string }) {
         className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
       >
         <Trash2 className="h-3.5 w-3.5" />
-        Hapus
+        {label}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          className="w-[90%] max-w-sm"
-          style={{ backgroundColor: "#FED6D6" }}
-        >
+        <DialogContent className="w-[90%] max-w-sm" style={{ backgroundColor: "#FED6D6" }}>
           <DialogHeader>
-            <DialogTitle>Konfirmasi Hapus</DialogTitle>
-            <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus buku &quot;{title}&quot;?
-            </DialogDescription>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription className="text-black/80">{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2">
             <Button
@@ -69,7 +77,7 @@ export function DeleteBookButton({ id, title }: { id: string; title: string }) {
               disabled={pending}
               className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
             >
-              {pending ? "Menghapus..." : "Hapus"}
+              {pending ? pendingLabel : label}
             </Button>
           </DialogFooter>
         </DialogContent>
