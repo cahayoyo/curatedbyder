@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
+import { ShoppingCart } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await requireRole("USER");
@@ -38,7 +39,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">My Orders</h2>
+      <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <ShoppingCart className="h-6 w-6 text-[#D97A7A]" />
+        Pesanan Saya
+      </h2>
       <BuyerTabs orders={dto} />
     </div>
   );
