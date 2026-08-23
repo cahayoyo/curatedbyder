@@ -376,7 +376,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
         </Table>
       </div>
 
-      <div className="mx-auto max-w-5xl">
+      <div>
         <Pagination
           total={totalFiltered}
           page={page}
@@ -428,11 +428,11 @@ export default function AdminBooksPage({
             <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
           </div>
         </div>
-
-        <Suspense fallback={<ListLoader />}>
-          <BooksList searchParams={searchParams} />
-        </Suspense>
       </div>
+
+      <Suspense fallback={<ListLoader />}>
+        <BooksList searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

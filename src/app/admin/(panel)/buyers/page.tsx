@@ -160,7 +160,7 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
         </Table>
       </div>
 
-      <div className="mx-auto max-w-5xl">
+      <div>
         <Pagination
           total={totalFiltered}
           page={page}
@@ -181,7 +181,7 @@ export default async function AdminBuyersPage({
   const totalBuyers = await db.user.count({ where: { role: "USER" } });
 
   return (
-    <div className="space-y-4">
+<div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -210,11 +210,11 @@ export default async function AdminBuyersPage({
         <div className="w-full md:max-w-md">
           <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
         </div>
-
-        <Suspense fallback={<ListLoader />}>
-          <BuyersList searchParams={searchParams} />
-        </Suspense>
       </div>
+
+      <Suspense fallback={<ListLoader />}>
+        <BuyersList searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

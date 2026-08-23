@@ -481,7 +481,7 @@ async function OrdersList({
         </Table>
       </div>
 
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto">
         <Pagination
           total={totalFiltered}
           page={page}
@@ -576,11 +576,11 @@ export default async function AdminOrdersPage({
             <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
           </div>
         </div>
-
-        <Suspense fallback={<ListLoader />}>
-          <OrdersList searchParams={searchParams} />
-        </Suspense>
       </div>
+
+      <Suspense fallback={<ListLoader />}>
+        <OrdersList searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

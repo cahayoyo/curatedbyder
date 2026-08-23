@@ -350,7 +350,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
         </Table>
       </div>
 
-      <div className="mx-auto max-w-5xl">
+      <div>
         <Pagination
           total={totalFiltered}
           page={page}
@@ -376,7 +376,7 @@ export default function AdminToysPage({
   searchParams: ToySearchParams;
 }) {
   return (
-    <div className="space-y-4">
+<div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -402,11 +402,11 @@ export default function AdminToysPage({
             <SearchInput basePath="/admin/toys" placeholder="Cari judul / publisher..." />
           </div>
         </div>
-
-        <Suspense fallback={<ListLoader />}>
-          <ToysList searchParams={searchParams} />
-        </Suspense>
       </div>
+
+      <Suspense fallback={<ListLoader />}>
+        <ToysList searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
