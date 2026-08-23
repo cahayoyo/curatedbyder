@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Fragment } from "react";
 import {
   Table,
   TableBody,
@@ -102,6 +103,9 @@ export default async function AdminBooksPage({
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
+      include: {
+        batchPrices: { include: { batch: { select: { name: true } } } },
+      },
     }),
     db.book.groupBy({ by: ["status"], where, _count: { _all: true } }),
   ]);
@@ -248,83 +252,126 @@ export default async function AdminBooksPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {books.map((b) => (
-              <TableRow key={b.id} className="border-b border-input last:border-0">
-                <TableCell className="font-medium">{b.title}</TableCell>
-                <TableCell>
-                  {b.image ? (
-                    <BookThumbnail src={b.image} alt={b.title} />
-                  ) : (
-                    <div className="flex h-32 w-28 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-xs font-medium text-[#D97A7A]/70">
-                      <span className="flex flex-col items-center gap-1">
-                        <ImageIcon className="h-7 w-7" />
-                        empty
-                      </span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>{b.publisher || "—"}</TableCell>
-                <TableCell className="max-w-[200px]">
-                  <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {b.formats.length > 0 ? (
-                      b.formats.map((f) => <FormatBadge key={f} value={f} />)
-                    ) : (
-                      <span>—</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {formatIDR(b.price)}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                  variant="outline"
-                  className={cn(
-                    b.stock <= 0
-                      ? "border-red-300 bg-red-500 text-white"
-                      : b.stock <= 10
-                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                        : "border-transparent bg-primary text-primary-foreground",
-                    "h-6 w-9 justify-center px-0 text-xs"
-                  )}
-                >
-                  {b.stock}
-                </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={
-                      b.status === "PRE_ORDER"
-                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                        : "border-emerald-300 bg-emerald-100 text-emerald-800"
-                    }
-                  >
-                    {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <NavActionButton
-                      href={`/admin/books/${b.id}/edit`}
-                      icon={<Pencil className="h-3.5 w-3.5" />}
-                      className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+            {books.map((b) => {
+              const variants: {
+                key: string;
+                label: string;
+                formats: string[];
+                price: number;
+              }[] = [
+                {
+                  key: `${b.id}-main`,
+                  label: "Utama",
+                  formats: (b.formats ?? []) as string[],
+                  price: b.price,
+                },
+                ...b.batchPrices.map((bp) => ({
+                  key: bp.id,
+                  label: bp.batch.name,
+                  formats: (bp.formats ?? []) as string[],
+                  price: bp.price,
+                })),
+              ];
+              return (
+                <Fragment key={b.id}>
+                  {variants.map((v, vi) => (
+                    <TableRow
+                      key={v.key}
+                      className={`border-b border-input last:border-0 ${vi > 0 ? "border-t-2 border-t-black/30" : ""}`}
                     >
-                      Ubah
-                    </NavActionButton>
-                    <ConfirmDeleteButton
-                      title="Konfirmasi Hapus"
-                      description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
-                      successMessage="Buku dihapus"
-                      onConfirm={deleteBook.bind(null, b.id)}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                      {vi === 0 && (
+                        <>
+                          <TableCell className="font-medium" rowSpan={variants.length}>
+                            {b.title}
+                          </TableCell>
+                          <TableCell rowSpan={variants.length}>
+                            {b.image ? (
+                              <BookThumbnail src={b.image} alt={b.title} />
+                            ) : (
+                              <div className="flex h-32 w-28 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-xs font-medium text-[#D97A7A]/70">
+                                <span className="flex flex-col items-center gap-1">
+                                  <ImageIcon className="h-7 w-7" />
+                                  empty
+                                </span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell rowSpan={variants.length}>{b.publisher || "—"}</TableCell>
+                          <TableCell className="max-w-[200px]" rowSpan={variants.length}>
+                            <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell>
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="flex flex-wrap gap-1">
+                            {v.formats.length > 0 ? (
+                              v.formats.map((f) => <FormatBadge key={f} value={f} />)
+                            ) : (
+                              <span>—</span>
+                            )}
+                          </span>
+                          <span className="text-[10px] font-medium text-muted-foreground">
+                            {v.label}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatIDR(v.price)}
+                      </TableCell>
+                      {vi === 0 && (
+                        <>
+                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                b.stock <= 0
+                                  ? "border-red-300 bg-red-500 text-white"
+                                  : b.stock <= 10
+                                    ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                                    : "border-transparent bg-primary text-primary-foreground",
+                                "h-6 w-9 justify-center px-0 text-xs"
+                              )}
+                            >
+                              {b.stock}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="border-l border-input" rowSpan={variants.length}>
+                            <Badge
+                              variant="outline"
+                              className={
+                                b.status === "PRE_ORDER"
+                                  ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                                  : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                              }
+                            >
+                              {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
+                            <div className="flex justify-center gap-2">
+                              <NavActionButton
+                                href={`/admin/books/${b.id}/edit`}
+                                icon={<Pencil className="h-3.5 w-3.5" />}
+                                className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+                              >
+                                Ubah
+                              </NavActionButton>
+                              <ConfirmDeleteButton
+                                title="Konfirmasi Hapus"
+                                description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
+                                successMessage="Buku dihapus"
+                                onConfirm={deleteBook.bind(null, b.id)}
+                              />
+                            </div>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))}
+                </Fragment>
+              );
+            })}
             {books.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground">

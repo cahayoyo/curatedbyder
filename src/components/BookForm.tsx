@@ -2,11 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createBook, updateBook } from "@/server/actions/books";
+import { createBook, updateBook, setBookBatchPrices } from "@/server/actions/books";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,7 +31,10 @@ type InitialBook = {
   stock: number;
   status: "READY_STOCK" | "PRE_ORDER";
   formats: string[];
+  batchPrices?: { batchId: string; price: number; formats: string[] }[];
 };
+
+type Batch = { id: string; name: string };
 
 type BookRow = {
   id?: string;
@@ -36,6 +46,7 @@ type BookRow = {
   stock: string;
   status: "READY_STOCK" | "PRE_ORDER";
   formats: string[];
+  batchPrices: { batchId: string; price: string; formats: string[] }[];
 };
 
 const emptyRow = (): BookRow => ({
@@ -47,9 +58,16 @@ const emptyRow = (): BookRow => ({
   stock: "0",
   status: "READY_STOCK",
   formats: [],
+  batchPrices: [],
 });
 
-export function BookForm({ initial }: { initial?: InitialBook }) {
+export function BookForm({
+  initial,
+  batches = [],
+}: {
+  initial?: InitialBook;
+  batches?: Batch[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [rows, setRows] = useState<BookRow[]>(() =>
@@ -65,6 +83,11 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
             stock: initial.stock != null ? String(initial.stock) : "0",
             status: initial.status ?? "READY_STOCK",
             formats: initial.formats ?? [],
+            batchPrices: (initial.batchPrices ?? []).map((b) => ({
+              batchId: b.batchId,
+              price: String(b.price),
+              formats: b.formats ?? [],
+            })),
           },
         ]
       : [emptyRow()]
@@ -76,6 +99,59 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
 
   function addRow() {
     setRows((rs) => [...rs, emptyRow()]);
+  }
+
+  function upBatchPrice(index: number, bi: number, patch: { batchId?: string; price?: string; formats?: string[] }) {
+    setRows((rs) =>
+      rs.map((r, i) =>
+        i === index
+          ? {
+              ...r,
+              batchPrices: r.batchPrices.map((bp, n) =>
+                n === bi ? { ...bp, ...patch } : bp
+              ),
+            }
+          : r
+      )
+    );
+  }
+
+  function addBatchPriceRow(index: number) {
+    setRows((rs) =>
+      rs.map((r, i) =>
+        i === index ? { ...r, batchPrices: [...r.batchPrices, { batchId: "", price: "", formats: [] }] } : r
+      )
+    );
+  }
+
+  function toggleBatchFormat(index: number, bi: number, value: string) {
+    setRows((rs) =>
+      rs.map((r, i) =>
+        i === index
+          ? {
+              ...r,
+              batchPrices: r.batchPrices.map((bp, n) =>
+                n === bi
+                  ? {
+                      ...bp,
+                      formats: bp.formats.includes(value)
+                        ? bp.formats.filter((f) => f !== value)
+                        : [...bp.formats, value],
+                    }
+                  : bp
+              ),
+            }
+          : r
+      )
+    );
+  }
+
+  function removeBatchPriceRow(index: number, bi: number) {
+    setRows((rs) =>
+      rs.map((r, i) =>
+        i === index ? { ...r, batchPrices: r.batchPrices.filter((_, n) => n !== bi) } : r
+      )
+    );
   }
 
   function toggleFormat(index: number, value: string) {
@@ -104,31 +180,37 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
     e.preventDefault();
     startTransition(async () => {
       try {
+        const bookPayload = (r: BookRow) => ({
+          title: r.title,
+          publisher: r.publisher,
+          info: r.info,
+          image: r.image,
+          price: Number(r.price),
+          stock: Number(r.stock),
+          status: r.status,
+          formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
+        });
+        const entriesFor = (r: BookRow) =>
+          r.batchPrices
+            .filter((b) => b.batchId && b.price !== "")
+            .map((b) => ({
+              batchId: b.batchId,
+              price: Number(b.price),
+              formats: b.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
+            }));
+
         if (initial?.id) {
           const r = rows[0];
-          await updateBook(initial.id, {
-            title: r.title,
-            publisher: r.publisher,
-            info: r.info,
-            image: r.image,
-            price: Number(r.price),
-            stock: Number(r.stock),
-            status: r.status,
-            formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
-          });
+          await updateBook(initial.id, bookPayload(r));
+          await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
           toast.success("Buku diubah");
         } else {
           for (const r of rows) {
-            await createBook({
-              title: r.title,
-              publisher: r.publisher,
-              info: r.info,
-              image: r.image,
-              price: Number(r.price),
-              stock: Number(r.stock),
-              status: r.status,
-              formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
-            });
+            const book = await createBook(bookPayload(r));
+            const entries = entriesFor(r);
+            if (entries.length > 0) {
+              await setBookBatchPrices({ bookId: book.id, entries });
+            }
           }
           toast.success(`${rows.length} buku berhasil terbuat`);
         }
@@ -276,6 +358,100 @@ export function BookForm({ initial }: { initial?: InitialBook }) {
               ))}
             </div>
           </div>
+
+          {batches.length > 0 && (
+            <div className="space-y-2">
+              <Label>
+                Harga per Batch{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  (opsional — dipakai di pesanan sesuai batch, jika kosong pakai Harga di atas)
+                </span>
+              </Label>
+              <Button
+                type="button"
+                onClick={() => addBatchPriceRow(i)}
+                className="flex h-10 items-center gap-1.5 rounded-lg border border-[#D97A7A] bg-[#FED6D6] px-4 text-sm font-semibold text-[#D97A7A] transition-colors hover:bg-[#D97A7A] hover:text-white"
+              >
+                <Plus className="h-4 w-4" /> Tambah Harga Batch
+              </Button>
+              {r.batchPrices.map((br, bi) => (
+                <div key={bi} className="space-y-2">
+                <div className="flex items-end gap-2">
+                  <div className="space-y-1 flex-[1.4] min-w-0">
+                    <Select
+                      value={br.batchId}
+                      onValueChange={(v) =>
+                        upBatchPrice(i, bi, { batchId: v })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih batch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {batches.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="relative flex-[1] min-w-[160px]">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+                      Rp
+                    </span>
+                    <Input
+                      inputMode="numeric"
+                      className="pl-10"
+                      value={br.price ? formatRp(br.price) : ""}
+                      onChange={(e) =>
+                        upBatchPrice(i, bi, { price: e.target.value.replace(/\D/g, "") })
+                      }
+                      placeholder="Harga"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeBatchPriceRow(i, bi)}
+                    className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pl-1">
+                  <span className="text-xs text-muted-foreground">Format:</span>
+                  {FORMATS.map((f) => (
+                    <label
+                      key={f.value}
+                      className="flex cursor-pointer items-center gap-1.5 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={br.formats.includes(f.value)}
+                        onChange={() => toggleBatchFormat(i, bi, f.value)}
+                        className="h-4 w-4 accent-[#D97A7A]"
+                      />
+                      {f.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              ))}
+              {r.batchPrices.length > 0 && (
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={() => addBatchPriceRow(i)}
+                  aria-label="Tambah harga batch"
+                  className="h-10 w-10 rounded-lg border border-[#D97A7A] bg-[#FED6D6] text-[#D97A7A] transition-colors hover:bg-[#D97A7A] hover:text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       ))}
       <div className="flex flex-wrap gap-2">

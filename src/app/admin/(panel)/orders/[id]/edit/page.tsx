@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { OrderForm } from "@/components/OrderForm";
 
 export default async function EditOrderPage({ params }: { params: { id: string } }) {
-  const [order, buyers, books, batches] = await Promise.all([
+  const [order, buyers, books, batches, batchPrices] = await Promise.all([
     db.order.findUnique({
       where: { id: params.id },
       include: { items: { select: { bookId: true, quantity: true } } },
@@ -14,12 +14,15 @@ export default async function EditOrderPage({ params }: { params: { id: string }
       orderBy: { name: "asc" },
     }),
     db.book.findMany({
-      select: { id: true, title: true, price: true, stock: true },
+      select: { id: true, title: true, price: true, stock: true, formats: true },
       orderBy: { title: "asc" },
     }),
     db.batch.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
+    }),
+    db.bookBatchPrice.findMany({
+      select: { batchId: true, bookId: true, price: true, formats: true },
     }),
   ]);
 
@@ -35,8 +38,10 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           title: b.title,
           price: b.price,
           stock: b.stock,
+          formats: b.formats,
         }))}
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
+        batchPrices={batchPrices.map((bp) => ({ batchId: bp.batchId, bookId: bp.bookId, price: bp.price, formats: bp.formats }))}
         initial={{
           id: order.id,
           invoiceNumber: order.invoiceNumber,

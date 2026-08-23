@@ -56,9 +56,10 @@ enum StockStatus {
 }
 
 model Batch {
-  id     String  @id @default(cuid())
-  name   String  @unique
-  orders Order[]
+  id         String          @id @default(cuid())
+  name       String          @unique
+  orders     Order[]
+  bookPrices BookBatchPrice[]
 }
 
 model User {
@@ -86,6 +87,21 @@ model Book {
   formats   Format[]   @default([])
   createdAt DateTime   @default(now())
   items     OrderItem[]
+  batchPrices BookBatchPrice[]
+}
+
+model BookBatchPrice {
+  id        String   @id @default(cuid())
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  batchId   String
+  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  price     Int
+  formats   Format[] @default([])
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, batchId])
+  @@index([batchId])
 }
 
 model Order {

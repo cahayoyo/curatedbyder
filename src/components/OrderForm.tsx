@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createOrder, updateOrder } from "@/server/actions/orders";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ETAS, STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { ETAS, STATUSES, PAYMENT_STATUSES, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
-type Book = { id: string; title: string; price: number; stock: number };
+type Book = { id: string; title: string; price: number; stock: number; formats?: string[] };
 type Batch = { id: string; name: string };
-type LineItem = { bookId: string; quantity: string };
+type BatchPrice = { batchId: string; bookId: string; price: number; formats?: string[] };
+type LineItem = { bookId: string; quantity: string; unitPrice?: number };
 
 type OrderInitial = {
   id: string;
@@ -99,11 +100,13 @@ export function OrderForm({
   books,
   batches,
   initial,
+  batchPrices = [],
 }: {
   buyers: Buyer[];
   books: Book[];
   batches: Batch[];
   initial?: OrderInitial;
+  batchPrices?: BatchPrice[];
 }) {
   const router = useRouter();
   const isEdit = Boolean(initial?.id);
@@ -124,7 +127,12 @@ export function OrderForm({
   const [status, setStatus] = useState<string>(initial?.status ?? "ORDER_PLACED");
   const [items, setItems] = useState<LineItem[]>(
     initial?.items?.length
-      ? initial.items.map((it) => ({ bookId: it.bookId, quantity: String(it.quantity) }))
+      ? initial.items.map((it) => ({
+          bookId: it.bookId,
+          quantity: String(it.quantity),
+          unitPrice: batchPrices.find((bp) => bp.batchId === initial.batchId && bp.bookId === it.bookId)?.price ??
+            books.find((b) => b.id === it.bookId)?.price,
+        }))
       : [{ bookId: "", quantity: "1" }]
   );
 
@@ -138,13 +146,55 @@ export function OrderForm({
     setItems((i) => i.map((it, n) => (n === idx ? { ...it, ...patch } : it)));
   }
 
-  function bookPrice(bookId: string) {
-    return books.find((b) => b.id === bookId)?.price ?? 0;
+  const bookVariants = useMemo(() => {
+    const batchNameMap2 = new Map(batches.map((b) => [b.id, b.name]));
+    const out: {
+      value: string;
+      bookId: string;
+      unitPrice: number;
+      label: string;
+      formats: string[];
+    }[] = [];
+    for (const book of books) {
+      out.push({
+        value: `${book.id}::${book.price}`,
+        bookId: book.id,
+        unitPrice: book.price,
+        label: `${book.title} (stok ${book.stock})`,
+        formats: book.formats ?? [],
+      });
+      for (const bp of batchPrices.filter((x) => x.bookId === book.id)) {
+        const batchName = batchNameMap2.get(bp.batchId) ?? "Batch";
+        out.push({
+          value: `${book.id}::${bp.price}`,
+          bookId: book.id,
+          unitPrice: bp.price,
+          label: `${book.title} · ${batchName} (stok ${book.stock})`,
+          formats: bp.formats ?? [],
+        });
+      }
+    }
+    return out;
+  }, [books, batchPrices, batches]);
+
+  const bookVariantMap = new Map(bookVariants.map((v) => [v.value, v]));
+  const bookOptionForItem = (item: LineItem) =>
+    bookVariants.find(
+      (v) =>
+        v.bookId === item.bookId &&
+        (item.unitPrice == null || v.unitPrice === item.unitPrice)
+    );
+
+  function bookPrice(item: LineItem) {
+    if (item.unitPrice != null) return item.unitPrice;
+    const batchPrice = batchPrices.find((bp) => bp.batchId === batchId && bp.bookId === item.bookId);
+    if (batchPrice) return batchPrice.price;
+    return books.find((b) => b.id === item.bookId)?.price ?? 0;
   }
 
   const bookTotal = items.reduce((acc, it) => {
     const qty = Number(it.quantity) || 0;
-    return acc + bookPrice(it.bookId) * qty;
+    return acc + bookPrice(it) * qty;
   }, 0);
   const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
   const total = bookTotal + shippingCostNum;
@@ -156,7 +206,7 @@ export function OrderForm({
     e.preventDefault();
     const itemPayload = items
       .filter((i) => i.bookId)
-      .map((i) => ({ bookId: i.bookId, quantity: Number(i.quantity) }));
+      .map((i) => ({ bookId: i.bookId, quantity: Number(i.quantity), unitPrice: bookPrice(i) }));
 
     if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
     if (!batchId) return toast.error("Batch wajib dipilih");
@@ -262,39 +312,59 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[1fr_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[1fr_110px_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
           >
             <div className="min-w-0 space-y-1">
               <span className="text-xs text-muted-foreground">Judul Buku</span>
               <SearchSelect
-                options={books.map((b) => ({
-                  value: b.id,
-                  label: `${b.title} (stok ${b.stock})`,
-                }))}
-                value={item.bookId}
-                onValueChange={(v) => updateItem(idx, { bookId: v })}
+                options={bookVariants.map((v) => ({ value: v.value, label: v.label }))}
+                value={bookOptionForItem(item)?.value ?? ""}
+                onValueChange={(v) => {
+                  const variant = bookVariantMap.get(v);
+                  if (variant) {
+                    updateItem(idx, {
+                      bookId: variant.bookId,
+                      unitPrice: variant.unitPrice,
+                    });
+                  }
+                }}
                 placeholder="Select book"
                 triggerClassName="w-full min-w-0 truncate"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:contents">
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Quantity</span>
-                <Input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(idx, { quantity: e.target.value })}
-                />
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Format</span>
+              <div className="flex h-9 min-w-0 items-center gap-1 overflow-x-auto rounded-md border border-input bg-black/5 px-2">
+                {(bookOptionForItem(item)?.formats ?? []).length > 0 ? (
+                  (bookOptionForItem(item)?.formats ?? []).map((f) => (
+                    <span
+                      key={f}
+                      className={`inline-flex h-4 shrink-0 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                    >
+                      {f}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
               </div>
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Harga</span>
-                <Input
-                  readOnly
-                  value={item.bookId ? formatIDR(bookPrice(item.bookId)) : "—"}
-                  className="bg-black/5 text-sm"
-                />
-              </div>
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Quantity</span>
+              <Input
+                type="number"
+                min="1"
+                value={item.quantity}
+                onChange={(e) => updateItem(idx, { quantity: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Harga</span>
+              <Input
+                readOnly
+                value={item.bookId ? formatIDR(bookPrice(item)) : "—"}
+                className="bg-black/5 text-sm"
+              />
             </div>
             {items.length > 1 ? (
               <Button
