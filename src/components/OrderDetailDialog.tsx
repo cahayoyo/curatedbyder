@@ -211,7 +211,7 @@ export function OrderDetailDialog({
                 <ProductTag kind={it.kind} />
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Format: {it.book.formats.length ? it.book.formats.join(", ") : "—"}
+                {it.book.formats.length ? `Format: ${it.book.formats.join(", ")}` : ""}
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
                 <span>Qty: {it.quantity}</span>

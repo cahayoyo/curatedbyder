@@ -453,7 +453,7 @@ const orderInclude = {
                               {f}
                             </span>
                           ))
-                        : "—"}
+                        : ""}
                     </div>
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
@@ -531,7 +531,7 @@ const orderInclude = {
                                 {f}
                               </span>
                             ))
-                          : "—"}
+                          : ""}
                       </div>
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>

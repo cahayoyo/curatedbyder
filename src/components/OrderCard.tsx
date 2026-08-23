@@ -174,28 +174,26 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <span className="line-clamp-1 min-w-0 flex-1">{it.book.title}</span>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  {it.kind === "BUKU" && (
-                    <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">Buku</span>
-                  )}
-                  {it.kind === "MAINAN" && (
-                    <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">Mainan</span>
-                  )}
-                  <span className="font-bold">{formatIDR(it.subtotal)}</span>
-                </div>
+                <span className="shrink-0 font-bold">{formatIDR(it.subtotal)}</span>
               </div>
               <p className="flex flex-wrap items-center gap-1">
-                  {it.book.formats.length
-                    ? it.book.formats.map((f) => (
-                        <span
-                          key={f}
-                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                        >
-                          {f}
-                        </span>
-                      ))
-                    : "—"}
-                </p>
+                {it.kind === "BUKU" && (
+                  <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">Buku</span>
+                )}
+                {it.kind === "MAINAN" && (
+                  <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">Mainan</span>
+                )}
+                {it.book.formats.length
+                  ? it.book.formats.map((f) => (
+                      <span
+                        key={f}
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                      >
+                        {f}
+                      </span>
+                    ))
+                  : ""}
+              </p>
               <p className="text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)}
               </p>
