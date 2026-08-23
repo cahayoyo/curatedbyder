@@ -12,6 +12,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         mode: { label: "Mode", type: "text" },
         username: { label: "Username", type: "text" },
+        phone: { label: "Phone", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
@@ -29,13 +30,19 @@ export const authOptions: NextAuthOptions = {
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
-        // Buyer: username only (auto-generated: firstName + last 4 digits of phone)
+        // Buyer: username + phone (auto-generated: firstName + last 4 digits of phone)
         if (credentials?.mode === "buyer") {
           const username = (credentials.username || "").trim().toLowerCase();
-          if (!username) return null;
+          const phoneInput = (credentials.phone || "").replace(/\D/g, "");
+          if (!username || !phoneInput) return null;
 
           const user = await db.user.findFirst({ where: { username, role: "USER" } });
-          if (!user) throw new Error("Username not found");
+          if (!user) throw new Error("Username tidak ditemukan");
+
+          const storedPhone = (user.phone || "").replace(/\D/g, "");
+          if (!storedPhone || storedPhone !== phoneInput) {
+            throw new Error("Nomor telepon tidak cocok");
+          }
 
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }

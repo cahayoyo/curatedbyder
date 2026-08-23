@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, BookOpen, ShoppingBag, UserRound } from "lucide-react";
+import { AtSign, BookOpen, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
-  { label: "Instagram", href: "https://www.instagram.com", icon: AtSign },
-  { label: "Shopee", href: "https://shopee.com", icon: ShoppingBag },
+  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: AtSign },
+  { label: "Shopee", href: "https://shopee.co.id/projectbyder", icon: ShoppingBag },
 ];
 
 const BOOK_ACCENTS = [
@@ -23,7 +23,12 @@ const BOOK_ACCENTS = [
 export function HomeLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [fieldError, setFieldError] = useState(false);
+  const [fieldError, setFieldError] = useState<{ username?: boolean; phone?: boolean }>({});
+
+  function onFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const name = e.target.name as "username" | "phone";
+    setFieldError((f) => (f[name] ? { ...f, [name]: false } : f));
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,14 +38,19 @@ export function HomeLogin() {
       redirect: false,
       mode: "buyer",
       username: String(form.get("username") || ""),
+      phone: String(form.get("phone") || ""),
     });
 
     if (res?.error) {
-      setFieldError(true);
+      const err = res.error.toLowerCase();
+      setFieldError({
+        username: err.includes("username") || err.includes("tidak"),
+        phone: err.includes("nomor") || err.includes("telepon") || err.includes("cocok"),
+      });
       setLoading(false);
       return;
     }
-    setFieldError(false);
+    setFieldError({});
     router.push("/dashboard");
     router.refresh();
   }
@@ -76,31 +86,55 @@ export function HomeLogin() {
                 name="username"
                 required
                 autoComplete="username"
-                placeholder="Contoh: prabowo2345"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                onChange={() => fieldError && setFieldError(false)}
-                aria-invalid={fieldError}
+                placeholder="Contoh: curatedbyder123"
+                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                onChange={onFieldChange}
+                aria-invalid={fieldError.username}
               />
             </div>
-            {fieldError && (
+            {fieldError.username && (
               <p className="text-xs font-medium text-red-600">Username tidak ditemukan!</p>
             )}
             <p className="text-xs text-black/60">
-              Username = nama depan + 4 angka terakhir nomor HP. Contoh:{" "}
-              <span className="font-semibold">prabowo subianto</span> + 08128312345 →{" "}
-              <span className="font-semibold">prabowo2345</span>
+              Masukkan username yang sudah pernah diberikan oleh admin
             </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="login-phone">Nomor Telepon</Label>
+            <div className="relative">
+              <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="login-phone"
+                name="phone"
+                type="tel"
+                required
+                autoComplete="tel"
+                placeholder="Contoh: 08128312345"
+                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                onChange={onFieldChange}
+                aria-invalid={fieldError.phone}
+              />
+            </div>
+            {fieldError.phone && (
+              <p className="text-xs font-medium text-red-600">Nomor telepon tidak cocok!</p>
+            )}
           </div>
         </div>
 
         <Button
           type="submit"
           variant="outline"
-          className="w-full transition-all hover:bg-black hover:text-white"
+          className="w-full transition-colors hover:bg-[#c96666]! hover:text-white!"
+          style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
           disabled={loading}
         >
           {loading ? "Memproses..." : "Masuk & Lihat Pesanan"}
         </Button>
+
+        <p className="text-center text-xs font-medium text-black/70">
+          Hubungi Admin
+        </p>
       </form>
 
       <div className="grid grid-cols-2 gap-3">
@@ -109,7 +143,8 @@ export function HomeLogin() {
             key={p.label}
             asChild
             variant="outline"
-            className="w-full transition-all hover:bg-[#333] hover:text-white shadow-sm hover:shadow"
+            className="w-full shadow-sm transition-colors hover:bg-[#c96666]! hover:text-white! hover:shadow"
+            style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
           >
             <a href={p.href} target="_blank" rel="noopener noreferrer">
               <p.icon className="h-4 w-4" />

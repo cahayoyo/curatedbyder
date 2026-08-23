@@ -90,13 +90,13 @@ export function PhotoCarousel() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-3xl border bg-card shadow-md select-none cursor-grab"
+      className="relative w-full overflow-hidden rounded-3xl border bg-[#FED6D6] shadow-md select-none cursor-grab"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
     >
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-background">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#FED6D6]">
         {!loaded && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
