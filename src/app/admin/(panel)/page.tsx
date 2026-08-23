@@ -1,41 +1,73 @@
 import { db } from "@/lib/db";
-import { LayoutDashboard, Users, TrendingUp, ShoppingCart, BookOpen } from "lucide-react";
+import { formatIDR } from "@/lib/format";
+import {
+  LayoutDashboard,
+  Wallet,
+  PiggyBank,
+  ReceiptText,
+  ShoppingCart,
+  PackageCheck,
+  Users,
+  BookOpen,
+  TrendingUp,
+} from "lucide-react";
+
+const FULL_STATUSES = [
+  "ORDER_PLACED",
+  "SHIPPING_TO_INDONESIA",
+  "ARRIVED_IN_INDONESIA",
+  "ARRIVED_AT_WAREHOUSE",
+  "SHIPPED_TO_CUSTOMER",
+  "ORDER_DELIVERED",
+] as const;
+
+const STATUS_LABEL: Record<string, string> = {
+  ORDER_PLACED: "Order Placed",
+  SHIPPING_TO_INDONESIA: "Shipping to Indonesia",
+  ARRIVED_IN_INDONESIA: "Arrived in Indonesia",
+  ARRIVED_AT_WAREHOUSE: "Arrived at Warehouse",
+  SHIPPED_TO_CUSTOMER: "Shipped to Customer",
+  ORDER_DELIVERED: "Order Delivered",
+};
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, buyers, totalBooks, bestSellerRows] =
-    await Promise.all([
-      db.order.count(),
-      db.user.count({ where: { role: "USER" } }),
-      db.book.count(),
-      db.orderItem.groupBy({
-        by: ["bookId"],
-        where: { bookId: { not: null } },
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: "desc" } },
-        take: 5,
-      }),
-    ]);
+  const [totalOrders, financial, byStatus, buyers, totalBooks] = await Promise.all([
+    db.order.count(),
+    db.order.aggregate({
+      _sum: { total: true, dp: true, remaining: true },
+    }),
+    db.order.groupBy({
+      by: ["status"],
+      _count: { _all: true },
+    }),
+    db.user.count({ where: { role: "USER" } }),
+    db.book.count(),
+  ]);
 
-  const bestSellerTitles: Record<string, string> = {};
-  if (bestSellerRows.length > 0) {
-    const bestIds = bestSellerRows
-      .map((b) => b.bookId)
-      .filter((id): id is string => id != null);
-    const books = await db.book.findMany({
-      where: { id: { in: bestIds } },
-      select: { id: true, title: true },
-    });
-    for (const b of books) bestSellerTitles[b.id] = b.title;
-  }
+  const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
 
-  const bestSellers = bestSellerRows
-    .filter((b) => b.bookId != null)
-    .map((b) => ({
-      id: b.bookId as string,
-      title: bestSellerTitles[b.bookId as string] ?? "Unknown",
-      qty: b._sum.quantity ?? 0,
-    }))
-    .filter((b) => b.qty > 0);
+  const financialCards = [
+    {
+      label: "Total Pesanan",
+      value: String(totalOrders),
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      label: "Total Revenue",
+      value: formatIDR(financial._sum.total ?? 0),
+      icon: <ReceiptText className="h-4 w-4" />,
+    },
+    {
+      label: "Total DP",
+      value: formatIDR(financial._sum.dp ?? 0),
+      icon: <Wallet className="h-4 w-4" />,
+    },
+    {
+      label: "Total Remaining Payment",
+      value: formatIDR(financial._sum.remaining ?? 0),
+      icon: <PiggyBank className="h-4 w-4" />,
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -44,44 +76,65 @@ export default async function AdminOverviewPage() {
         Overview
       </h2>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-Total Pembeli
-            </p>
-          <p className="text-2xl font-bold">{buyers}</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <ShoppingCart className="h-4 w-4" />
-            Total Pesanan
-          </p>
-          <p className="text-2xl font-bold">{totalOrders}</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <BookOpen className="h-4 w-4" />
-            Total Buku
-          </p>
-          <p className="text-2xl font-bold">{totalBooks}</p>
+      {/* Financial */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <TrendingUp className="h-4 w-4" />
+          Financial
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {financialCards.map((r) => (
+            <div key={r.label} className="rounded-lg border p-4">
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                {r.icon}
+                {r.label}
+              </p>
+              <p className="text-2xl font-bold">{r.value}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="rounded-lg border p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-          <TrendingUp className="h-4 w-4" />
-          Buku Best Seller
+      {/* Operational */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <PackageCheck className="h-4 w-4" />
+          Operational
         </p>
-        <ul className="space-y-1 text-sm">
-          {bestSellers.map((b) => (
-            <li key={b.id} className="flex justify-between">
-              <span>{b.title}</span>
-              <span className="font-medium">{b.qty} sold</span>
-            </li>
-          ))}
-          {bestSellers.length === 0 && <li className="text-muted-foreground">No orders yet.</li>}
-        </ul>
+        <div className="rounded-lg border p-4">
+          <ul className="space-y-1 text-sm">
+            {FULL_STATUSES.map((s) => (
+              <li key={s} className="flex justify-between">
+                <span>{STATUS_LABEL[s]}</span>
+                <span className="font-medium">{statusCount.get(s) ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Catalog */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <BookOpen className="h-4 w-4" />
+          Catalog
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              Total Pembeli
+            </p>
+            <p className="text-2xl font-bold">{buyers}</p>
+          </div>
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <BookOpen className="h-4 w-4" />
+              Total Buku
+            </p>
+            <p className="text-2xl font-bold">{totalBooks}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
