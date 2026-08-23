@@ -14,6 +14,13 @@ const SESSION_COOKIE_NAMES = [
 export async function customSignOut() {
   const store = cookies();
   for (const name of SESSION_COOKIE_NAMES) {
-    store.delete(name);
+    store.set(name, "", {
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: "lax",
+      secure: name.startsWith("__Secure-"),
+    });
   }
 }
