@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -43,6 +43,11 @@ export function PhotoCarousel() {
   function next() {
     goTo(index + 1);
   }
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), 3000);
+    return () => clearInterval(id);
+  }, [count]);
 
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     setDragStart(e.clientX);

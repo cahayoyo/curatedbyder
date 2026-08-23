@@ -76,7 +76,7 @@ export function HomeLogin() {
             }}
           />
         ))}
-        <div className="relative z-10 space-y-3">
+        <div className="relative z-10 space-y-2">
           <div className="space-y-1.5">
             <Label htmlFor="login-username">Username</Label>
             <div className="relative">
@@ -125,15 +125,22 @@ export function HomeLogin() {
         <Button
           type="submit"
           variant="outline"
-          className="w-full transition-colors hover:bg-[#c96666]! hover:text-white!"
-          style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
+          className="w-full bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666] hover:text-white"
           disabled={loading}
         >
           {loading ? "Memproses..." : "Masuk & Lihat Pesanan"}
         </Button>
 
-        <p className="text-center text-xs font-medium text-black/70">
-          Hubungi Admin
+        <p className="text-center text-xs text-black/70">
+          Jika ada kendala,{" "}
+          <a
+            href="https://wa.me/6281284605363?text=Halo%20Admin%20CuratedByDer%2C%0A%0ASaya%20lupa%20username%20untuk%20masuk%20ke%20Website%20CuratedByDer%0AMohon%20bantuannya%2C%20Terimakasih"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-black underline-offset-2 transition-colors hover:text-[#c96666] hover:underline"
+          >
+            Hubungi Admin
+          </a>
         </p>
       </form>
 
@@ -143,8 +150,7 @@ export function HomeLogin() {
             key={p.label}
             asChild
             variant="outline"
-            className="w-full shadow-sm transition-colors hover:bg-[#c96666]! hover:text-white! hover:shadow"
-            style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
+            className="w-full bg-[#D97A7A] text-white shadow-sm transition-colors hover:bg-[#c96666] hover:text-white hover:shadow"
           >
             <a href={p.href} target="_blank" rel="noopener noreferrer">
               <p.icon className="h-4 w-4" />
