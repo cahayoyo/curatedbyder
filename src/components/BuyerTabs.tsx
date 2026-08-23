@@ -147,28 +147,30 @@ function OrderCard({ order }: { order: OrderDTO }) {
           </span>
           <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
         </span>
-        <BadgeGroup status={order.status} payment={order.paymentStatus} />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Aksi pesanan"
-              className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-[#D97A7A] hover:text-white"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
-            <DropdownMenuItem
-              onSelect={() => setDetailOpen(true)}
-              className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
-            >
-              <Eye className="h-4 w-4" />
-              Lihat
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <BadgeGroup status={order.status} payment={order.paymentStatus} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Aksi pesanan"
+                className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-[#D97A7A] hover:text-white"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+              <DropdownMenuItem
+                onSelect={() => setDetailOpen(true)}
+                className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+              >
+                <Eye className="h-4 w-4" />
+                Lihat
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </span>
       </div>
 
       <div className="mb-2 h-px w-full bg-black/15" />

@@ -6,6 +6,7 @@ import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
 type OrderPdfDTO = {
   invoiceNumber: string;
   soldAt: Date;
+  logoBase64?: string;
   buyer: { name: string; phone: string | null; contact: string | null };
   batch: { name: string } | null;
   eta: string | null;
@@ -24,29 +25,48 @@ type OrderPdfDTO = {
   status: string;
 };
 
+const LABEL_X = 14;
+const VALUE_GAP = 3;
+
+function infoText(doc: jsPDF, label: string, value: string, y: number) {
+  doc.setFont("helvetica", "normal");
+  doc.text(label, LABEL_X, y);
+  const w = doc.getTextWidth(label);
+  doc.text(`: ${value}`, LABEL_X + w + VALUE_GAP, y);
+}
+
 export function buildOrderPdf(order: OrderPdfDTO) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 14;
 
+  const logo = order.logoBase64;
+  let titleX = margin;
+  if (logo) {
+    doc.addImage(`data:image/jpeg;base64,${logo}`, "JPEG", margin, 9, 10, 10);
+    titleX = margin + 13;
+  }
+
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("Detail Pesanan", margin, 18);
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Invoice: ${order.invoiceNumber}`, margin, 26);
-  doc.text(`Tanggal: ${dateLabel(order.soldAt)}`, margin, 32);
+  doc.text("Detail Pesanan", titleX, 17);
 
   doc.setFontSize(10);
-  doc.text(`Pembeli   : ${order.buyer.name}`, margin, 42);
-  doc.text(`Phone     : ${order.buyer.phone || "—"}`, margin, 47);
-  doc.text(`Alamat    : ${order.buyer.contact || "—"}`, margin, 52);
-  doc.text(`Batch     : ${order.batch?.name || "—"}`, margin, 57);
-  doc.text(`ETA       : ${etaLabel(order.eta)}`, margin, 61);
+  const infoRows: [string, string][] = [
+    ["Invoice", order.invoiceNumber],
+    ["Tanggal", dateLabel(order.soldAt)],
+    ["Pembeli", order.buyer.name],
+    ["Phone", order.buyer.phone || "—"],
+    ["Alamat", order.buyer.contact || "—"],
+    ["Batch", order.batch?.name || "—"],
+    ["ETA", etaLabel(order.eta)],
+  ];
+  infoRows.forEach(([label, value], i) => {
+    infoText(doc, label, value, 28 + i * 5.2);
+  });
 
   autoTable(doc, {
-    startY: 74,
+    startY: 40 + infoRows.length * 5.2,
     head: [["#", "Nama Produk", "Format", "Status", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
@@ -69,18 +89,44 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   });
 
   const lastY = (doc as unknown as { lastAutoTable: { finalY: number } })
-    .lastAutoTable.finalY + 10;
+    .lastAutoTable.finalY + 6;
 
-  doc.setFontSize(11);
-  doc.text(`Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`, pageWidth - margin, lastY, { align: "right" });
-  doc.text(`Total  : ${formatIDR(order.total)}`, pageWidth - margin, lastY + 6, { align: "right" });
-  doc.text(`DP     : ${formatIDR(order.dp ?? 0)}`, pageWidth - margin, lastY + 12, { align: "right" });
-  doc.text(`Sisa   : ${formatIDR(order.remaining ?? 0)}`, pageWidth - margin, lastY + 18, { align: "right" });
+  const totals: [string, string, string, string][] = [
+    ["DP", "Sisa", "Ongkir", "Total"],
+    [
+      formatIDR(order.dp ?? 0),
+      formatIDR(order.remaining ?? 0),
+      order.shippingCost != null ? formatIDR(order.shippingCost) : "—",
+      formatIDR(order.total),
+    ],
+  ];
 
-  doc.setFontSize(9);
-  doc.text(`Status Bayar : ${PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}`, margin, lastY + 12);
-  doc.text(`Status Order : ${STATUS_LABEL[order.status] || order.status}`, margin, lastY + 17);
-  doc.text(`No Resi      : ${order.trackingNumber || "--"}`, margin, lastY + 22);
+  const totalWidth = 90;
+  const xStart = pageWidth - margin - totalWidth;
+  autoTable(doc, {
+    startY: lastY + 6,
+    head: [totals[0]],
+    body: [totals[1]],
+    theme: "grid",
+    styles: { fontSize: 10, cellPadding: 2 },
+    headStyles: { fillColor: [217, 122, 122], textColor: [255, 255, 255] },
+    bodyStyles: { fillColor: [255, 241, 238] },
+    columnStyles: {
+      0: { halign: "right", cellWidth: 22 },
+      1: { halign: "right", cellWidth: 22 },
+      2: { halign: "right", cellWidth: 22 },
+      3: { halign: "right", cellWidth: 24 },
+    },
+    margin: { left: xStart, right: margin },
+    tableWidth: totalWidth,
+  });
+
+  const statusY = lastY + 20;
+
+  doc.setFontSize(10);
+  infoText(doc, "Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus, statusY);
+  infoText(doc, "Status Order", STATUS_LABEL[order.status] || order.status, statusY + 6);
+  infoText(doc, "No Resi", order.trackingNumber || "--", statusY + 12);
 
   return doc;
 }
