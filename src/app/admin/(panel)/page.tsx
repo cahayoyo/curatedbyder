@@ -10,6 +10,7 @@ import {
   Users,
   BookOpen,
   TrendingUp,
+  ToyBrick,
 } from "lucide-react";
 
 const FULL_STATUSES = [
@@ -31,43 +32,23 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, financial, byStatus, buyers, totalBooks] = await Promise.all([
-    db.order.count(),
-    db.order.aggregate({
-      _sum: { total: true, dp: true, remaining: true },
-    }),
-    db.order.groupBy({
-      by: ["status"],
-      _count: { _all: true },
-    }),
-    db.user.count({ where: { role: "USER" } }),
-    db.book.count(),
-  ]);
+  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks] =
+    await Promise.all([
+      db.order.count(),
+      db.order.count({ where: { items: { some: { book: { isNot: null } } } } }),
+      db.order.count({ where: { items: { some: { toy: { isNot: null } } } } }),
+      db.order.aggregate({
+        _sum: { total: true, dp: true, remaining: true },
+      }),
+      db.order.groupBy({
+        by: ["status"],
+        _count: { _all: true },
+      }),
+      db.user.count({ where: { role: "USER" } }),
+      db.book.count(),
+    ]);
 
   const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
-
-  const financialCards = [
-    {
-      label: "Total Pesanan",
-      value: String(totalOrders),
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      label: "Total Revenue",
-      value: formatIDR(financial._sum.total ?? 0),
-      icon: <ReceiptText className="h-4 w-4" />,
-    },
-    {
-      label: "Total DP",
-      value: formatIDR(financial._sum.dp ?? 0),
-      icon: <Wallet className="h-4 w-4" />,
-    },
-    {
-      label: "Total Remaining Payment",
-      value: formatIDR(financial._sum.remaining ?? 0),
-      icon: <PiggyBank className="h-4 w-4" />,
-    },
-  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -76,22 +57,73 @@ export default async function AdminOverviewPage() {
         Overview
       </h2>
 
+      {/* Orders */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <ShoppingCart className="h-4 w-4" />
+          Orders
+        </p>
+
+        {/* Total pesanan - full width */}
+        <div className="rounded-lg border p-4 w-full">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ShoppingCart className="h-4 w-4" />
+            Total Pesanan
+          </p>
+          <p className="text-2xl font-bold">{totalOrders}</p>
+        </div>
+
+        {/* Buku / Mainan side by side */}
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <BookOpen className="h-4 w-4" />
+              Pesanan Buku
+            </p>
+            <p className="text-2xl font-bold">{bookOrders}</p>
+          </div>
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <ToyBrick className="h-4 w-4" />
+              Pesanan Mainan
+            </p>
+            <p className="text-2xl font-bold">{toyOrders}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Financial */}
       <div>
         <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
           <TrendingUp className="h-4 w-4" />
           Financial
         </p>
-        <div className="grid grid-cols-2 gap-4">
-          {financialCards.map((r) => (
-            <div key={r.label} className="rounded-lg border p-4">
-              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                {r.icon}
-                {r.label}
-              </p>
-              <p className="text-2xl font-bold">{r.value}</p>
-            </div>
-          ))}
+
+        {/* Total revenue - full width */}
+        <div className="rounded-lg border p-4 w-full">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ReceiptText className="h-4 w-4" />
+            Total Revenue
+          </p>
+          <p className="text-2xl font-bold">{formatIDR(financial._sum.total ?? 0)}</p>
+        </div>
+
+        {/* DP + Remaining side by side */}
+        <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Wallet className="h-4 w-4" />
+              Total DP
+            </p>
+            <p className="text-2xl font-bold">{formatIDR(financial._sum.dp ?? 0)}</p>
+          </div>
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <PiggyBank className="h-4 w-4" />
+              Total Remaining Payment
+            </p>
+            <p className="text-2xl font-bold">{formatIDR(financial._sum.remaining ?? 0)}</p>
+          </div>
         </div>
       </div>
 
