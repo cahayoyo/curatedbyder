@@ -21,9 +21,23 @@ import { formatIDR, formatRp } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number; formats?: string[] };
+type Toy = { id: string; title: string; price: number; stock: number; formats?: string[] };
 type Batch = { id: string; name: string };
 type BatchPrice = { batchId: string; bookId: string; price: number; formats?: string[] };
-type LineItem = { bookId: string; quantity: string; unitPrice?: number };
+type LineItem = {
+  kind: "book" | "toy";
+  bookId: string;
+  toyId: string;
+  quantity: string;
+  unitPrice?: number;
+};
+
+const emptyLine = (): LineItem => ({
+  kind: "book",
+  bookId: "",
+  toyId: "",
+  quantity: "1",
+});
 
 type OrderInitial = {
   id: string;
@@ -36,7 +50,7 @@ type OrderInitial = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
-  items: { bookId: string; quantity: number }[];
+  items: { bookId?: string | null; toyId?: string | null; quantity: number }[];
 };
 
 const btn =
@@ -98,12 +112,14 @@ function SearchSelect({
 export function OrderForm({
   buyers,
   books,
+  toys = [],
   batches,
   initial,
   batchPrices = [],
 }: {
   buyers: Buyer[];
   books: Book[];
+  toys?: Toy[];
   batches: Batch[];
   initial?: OrderInitial;
   batchPrices?: BatchPrice[];
@@ -128,22 +144,37 @@ export function OrderForm({
   const [items, setItems] = useState<LineItem[]>(
     initial?.items?.length
       ? initial.items.map((it) => ({
-          bookId: it.bookId,
+          kind: it.toyId ? ("toy" as const) : ("book" as const),
+          bookId: it.bookId ?? "",
+          toyId: it.toyId ?? "",
           quantity: String(it.quantity),
-          unitPrice: batchPrices.find((bp) => bp.batchId === initial.batchId && bp.bookId === it.bookId)?.price ??
-            books.find((b) => b.id === it.bookId)?.price,
+          unitPrice:
+            it.toyId != null && it.toyId
+              ? toys.find((t) => t.id === it.toyId)?.price
+              : batchPrices.find((bp) => bp.batchId === initial.batchId && bp.bookId === it.bookId)?.price ??
+                books.find((b) => b.id === it.bookId)?.price,
         }))
-      : [{ bookId: "", quantity: "1" }]
+      : [emptyLine()]
   );
 
   function addItem() {
-    setItems((i) => [...i, { bookId: "", quantity: "1" }]);
+    setItems((i) => [...i, emptyLine()]);
   }
   function removeItem(idx: number) {
     setItems((i) => i.filter((_, n) => n !== idx));
   }
   function updateItem(idx: number, patch: Partial<LineItem>) {
     setItems((i) => i.map((it, n) => (n === idx ? { ...it, ...patch } : it)));
+  }
+
+  function setItemKind(idx: number, kind: "book" | "toy") {
+    setItems((i) =>
+      i.map((it, n) =>
+        n === idx
+          ? { ...it, kind, bookId: "", toyId: "", unitPrice: undefined }
+          : it
+      )
+    );
   }
 
   const bookVariants = useMemo(() => {
@@ -185,6 +216,24 @@ export function OrderForm({
         (item.unitPrice == null || v.unitPrice === item.unitPrice)
     );
 
+  const toyVariants = useMemo(() => {
+    return toys.map((t) => ({
+      value: `toy:${t.id}::${t.price}`,
+      toyId: t.id,
+      unitPrice: t.price,
+      label: `${t.title} (stok ${t.stock})`,
+      formats: t.formats ?? [],
+    }));
+  }, [toys]);
+
+  const toyVariantMap = new Map(toyVariants.map((v) => [v.value, v]));
+  const toyOptionForItem = (item: LineItem) =>
+    toyVariants.find(
+      (v) =>
+        v.toyId === item.toyId &&
+        (item.unitPrice == null || v.unitPrice === item.unitPrice)
+    );
+
   function bookPrice(item: LineItem) {
     if (item.unitPrice != null) return item.unitPrice;
     const batchPrice = batchPrices.find((bp) => bp.batchId === batchId && bp.bookId === item.bookId);
@@ -192,12 +241,25 @@ export function OrderForm({
     return books.find((b) => b.id === item.bookId)?.price ?? 0;
   }
 
-  const bookTotal = items.reduce((acc, it) => {
+  function itemPrice(item: LineItem) {
+    if (item.kind === "toy") {
+      if (item.unitPrice != null) return item.unitPrice;
+      return toys.find((t) => t.id === item.toyId)?.price ?? 0;
+    }
+    return bookPrice(item);
+  }
+
+  function itemFormatsOf(item: LineItem): string[] {
+    if (item.kind === "toy") return toyOptionForItem(item)?.formats ?? [];
+    return bookOptionForItem(item)?.formats ?? [];
+  }
+
+  const productTotal = items.reduce((acc, it) => {
     const qty = Number(it.quantity) || 0;
-    return acc + bookPrice(it) * qty;
+    return acc + itemPrice(it) * qty;
   }, 0);
   const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
-  const total = bookTotal + shippingCostNum;
+  const total = productTotal + shippingCostNum;
   const autoDp = Math.round(total * 0.3);
   const effectiveDp = isEdit ? (dp ? Number(dp) : null) : total > 0 ? autoDp : null;
   const remaining = effectiveDp ? Math.max(0, total - effectiveDp) : null;
@@ -205,17 +267,22 @@ export function OrderForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const itemPayload = items
-      .filter((i) => i.bookId)
-      .map((i) => ({ bookId: i.bookId, quantity: Number(i.quantity), unitPrice: bookPrice(i) }));
+      .filter((i) => i.kind === "book" ? i.bookId : i.toyId)
+      .map((i) => ({
+        bookId: i.kind === "book" ? i.bookId : undefined,
+        toyId: i.kind === "toy" ? i.toyId : undefined,
+        quantity: Number(i.quantity),
+        unitPrice: itemPrice(i),
+      }));
 
     if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
     if (!batchId) return toast.error("Batch wajib dipilih");
     if (!eta) return toast.error("ETA wajib dipilih");
     if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
     if (!status) return toast.error("Status order wajib dipilih");
-    if (itemPayload.length === 0) return toast.error("Pilih minimal satu buku");
-    const hasEmptyBook = items.some((i) => !i.bookId);
-    if (hasEmptyBook) return toast.error("Semua baris buku wajib diisi");
+    if (itemPayload.length === 0) return toast.error("Pilih minimal satu produk");
+    const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
+    if (hasEmptyProduct) return toast.error("Semua baris produk wajib diisi");
 
     startTransition(async () => {
       try {
@@ -308,35 +375,70 @@ export function OrderForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Buku</Label>
+        <Label>Produk</Label>
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[1fr_110px_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
           >
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Tipe</span>
+              <Select
+                value={item.kind}
+                onValueChange={(v) => setItemKind(idx, v as "book" | "toy")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="book">Buku</SelectItem>
+                  <SelectItem value="toy">Mainan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="min-w-0 space-y-1">
-              <span className="text-xs text-muted-foreground">Judul Buku</span>
-              <SearchSelect
-                options={bookVariants.map((v) => ({ value: v.value, label: v.label }))}
-                value={bookOptionForItem(item)?.value ?? ""}
-                onValueChange={(v) => {
-                  const variant = bookVariantMap.get(v);
-                  if (variant) {
-                    updateItem(idx, {
-                      bookId: variant.bookId,
-                      unitPrice: variant.unitPrice,
-                    });
-                  }
-                }}
-                placeholder="Select book"
-                triggerClassName="w-full min-w-0 truncate"
-              />
+              <span className="text-xs text-muted-foreground">Nama Produk</span>
+              {item.kind === "book" ? (
+                <SearchSelect
+                  options={bookVariants.map((v) => ({ value: v.value, label: v.label }))}
+                  value={bookOptionForItem(item)?.value ?? ""}
+                  onValueChange={(v) => {
+                    const variant = bookVariantMap.get(v);
+                    if (variant) {
+                      updateItem(idx, {
+                        bookId: variant.bookId,
+                        toyId: "",
+                        unitPrice: variant.unitPrice,
+                      });
+                    }
+                  }}
+                  placeholder="Select buku"
+                  triggerClassName="w-full min-w-0 truncate"
+                />
+              ) : (
+                <SearchSelect
+                  options={toyVariants.map((v) => ({ value: v.value, label: v.label }))}
+                  value={toyOptionForItem(item)?.value ?? ""}
+                  onValueChange={(v) => {
+                    const variant = toyVariantMap.get(v);
+                    if (variant) {
+                      updateItem(idx, {
+                        toyId: variant.toyId,
+                        bookId: "",
+                        unitPrice: variant.unitPrice,
+                      });
+                    }
+                  }}
+                  placeholder="Select mainan"
+                  triggerClassName="w-full min-w-0 truncate"
+                />
+              )}
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Format</span>
               <div className="flex h-9 min-w-0 items-center gap-1 overflow-x-auto rounded-md border border-input bg-black/5 px-2">
-                {(bookOptionForItem(item)?.formats ?? []).length > 0 ? (
-                  (bookOptionForItem(item)?.formats ?? []).map((f) => (
+                {itemFormatsOf(item).length > 0 ? (
+                  itemFormatsOf(item).map((f) => (
                     <span
                       key={f}
                       className={`inline-flex h-4 shrink-0 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
@@ -362,7 +464,7 @@ export function OrderForm({
               <span className="text-xs text-muted-foreground">Harga</span>
               <Input
                 readOnly
-                value={item.bookId ? formatIDR(bookPrice(item)) : "—"}
+                value={(item.kind === "book" ? item.bookId : item.toyId) ? formatIDR(itemPrice(item)) : "—"}
                 className="bg-black/5 text-sm"
               />
             </div>
@@ -388,7 +490,7 @@ export function OrderForm({
           onClick={addItem}
           className="border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
-          <Plus className="h-4 w-4" /> Tambah Buku
+          <Plus className="h-4 w-4" /> Tambah Produk
         </Button>
       </div>
 

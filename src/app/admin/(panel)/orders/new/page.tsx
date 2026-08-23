@@ -2,13 +2,17 @@ import { db } from "@/lib/db";
 import { OrderForm } from "@/components/OrderForm";
 
 export default async function NewOrderPage() {
-  const [buyers, books, batches, batchPrices] = await Promise.all([
+  const [buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.user.findMany({
       where: { role: "USER" },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
     db.book.findMany({
+      select: { id: true, title: true, price: true, stock: true, formats: true },
+      orderBy: { title: "asc" },
+    }),
+    db.toy.findMany({
       select: { id: true, title: true, price: true, stock: true, formats: true },
       orderBy: { title: "asc" },
     }),
@@ -27,6 +31,7 @@ export default async function NewOrderPage() {
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({ id: b.id, title: b.title, price: b.price, stock: b.stock, formats: b.formats }))}
+        toys={toys.map((t) => ({ id: t.id, title: t.title, price: t.price, stock: t.stock, formats: t.formats }))}
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         batchPrices={batchPrices.map((bp) => ({ batchId: bp.batchId, bookId: bp.bookId, price: bp.price, formats: bp.formats }))}
       />

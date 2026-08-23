@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { OrderForm } from "@/components/OrderForm";
 
 export default async function EditOrderPage({ params }: { params: { id: string } }) {
-  const [order, buyers, books, batches, batchPrices] = await Promise.all([
+  const [order, buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.order.findUnique({
       where: { id: params.id },
-      include: { items: { select: { bookId: true, quantity: true } } },
+      include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
     }),
     db.user.findMany({
       where: { role: "USER" },
@@ -14,6 +14,10 @@ export default async function EditOrderPage({ params }: { params: { id: string }
       orderBy: { name: "asc" },
     }),
     db.book.findMany({
+      select: { id: true, title: true, price: true, stock: true, formats: true },
+      orderBy: { title: "asc" },
+    }),
+    db.toy.findMany({
       select: { id: true, title: true, price: true, stock: true, formats: true },
       orderBy: { title: "asc" },
     }),
@@ -40,6 +44,13 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           stock: b.stock,
           formats: b.formats,
         }))}
+        toys={toys.map((t) => ({
+          id: t.id,
+          title: t.title,
+          price: t.price,
+          stock: t.stock,
+          formats: t.formats,
+        }))}
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         batchPrices={batchPrices.map((bp) => ({ batchId: bp.batchId, bookId: bp.bookId, price: bp.price, formats: bp.formats }))}
         initial={{
@@ -54,7 +65,8 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           trackingNumber: order.trackingNumber,
           paymentStatus: order.paymentStatus,
           items: order.items.map((it) => ({
-            bookId: it.bookId,
+            bookId: it.bookId ?? "",
+            toyId: it.toyId ?? "",
             quantity: it.quantity,
           })),
         }}

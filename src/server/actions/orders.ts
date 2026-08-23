@@ -29,26 +29,50 @@ const orderSchema = z.object({
   items: z
     .array(
       z.object({
-        bookId: z.string(),
+        bookId: z.string().optional().nullable(),
+        toyId: z.string().optional().nullable(),
         quantity: z.number().int().min(1),
         unitPrice: z.number().int().min(0).optional(),
       })
     )
-    .min(1),
+    .min(1)
+    .refine((items) => items.every((i) => i.bookId || i.toyId), {
+      message: "Setiap item wajib memiliki buku atau mainan",
+    }),
 });
 
 async function applyStock(
   tx: Prisma.TransactionClient,
-  entries: { bookId: string; amount: number }[]
+  entries: { bookId?: string | null; toyId?: string | null; amount: number }[]
 ) {
-  const byAmount = new Map<number, string[]>();
+  const bookByAmount = new Map<number, string[]>();
   for (const e of entries) {
-    const list = byAmount.get(e.amount) ?? [];
+    if (!e.bookId) continue;
+    const list = bookByAmount.get(e.amount) ?? [];
     list.push(e.bookId);
-    byAmount.set(e.amount, list);
+    bookByAmount.set(e.amount, list);
   }
-  for (const [amount, ids] of Array.from(byAmount.entries())) {
+  for (const [amount, ids] of Array.from(bookByAmount.entries())) {
     await tx.book.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        stock:
+          amount >= 0
+            ? { increment: amount }
+            : { decrement: -amount },
+      },
+    });
+  }
+
+  const toyByAmount = new Map<number, string[]>();
+  for (const e of entries) {
+    if (!e.toyId) continue;
+    const list = toyByAmount.get(e.amount) ?? [];
+    list.push(e.toyId);
+    toyByAmount.set(e.amount, list);
+  }
+  for (const [amount, ids] of Array.from(toyByAmount.entries())) {
+    await tx.toy.updateMany({
       where: { id: { in: ids } },
       data: {
         stock:
@@ -118,10 +142,15 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
   const data = orderSchema.parse(input);
 
   const order = await db.$transaction(async (tx) => {
-    const bookIds = data.items.map((i) => i.bookId);
-    const [books, batchPrices, countToday] = await Promise.all([
+    const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
+    const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
+    const [books, toys, batchPrices, countToday] = await Promise.all([
       tx.book.findMany({
         where: { id: { in: bookIds } },
+        select: { id: true, title: true, price: true, stock: true },
+      }),
+      tx.toy.findMany({
+        where: { id: { in: toyIds } },
         select: { id: true, title: true, price: true, stock: true },
       }),
       tx.bookBatchPrice.findMany({
@@ -138,24 +167,47 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         });
       })(),
     ]);
-    const map = new Map(books.map((b) => [b.id, b]));
+    const bookMap = new Map(books.map((b) => [b.id, b]));
+    const toyMap = new Map(toys.map((t) => [t.id, t]));
     const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
 
-    const effectivePrice = (bookId: string, override?: number) =>
-      override ?? batchPriceMap.get(bookId) ?? map.get(bookId)?.price ?? 0;
+    const effectiveBookPrice = (bookId: string, override?: number) =>
+      override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
+    const effectiveToyPrice = (toyId: string, override?: number) =>
+      override ?? toyMap.get(toyId)?.price ?? 0;
 
     let total = 0;
-    const entries: { bookId: string; amount: number }[] = [];
+    const entries: { bookId?: string; toyId?: string; amount: number }[] = [];
     const items = data.items.map((i) => {
-      const book = map.get(i.bookId);
-      if (!book || book.stock < i.quantity) {
-        throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
+      if (i.unitPrice == null) {
+        throw new Error(`Harga wajib diisi untuk setiap item`);
       }
-      const price = effectivePrice(i.bookId, i.unitPrice);
+      if (i.bookId) {
+        const book = bookMap.get(i.bookId);
+        if (!book || book.stock < i.quantity) {
+          throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
+        }
+        const price = effectiveBookPrice(i.bookId, i.unitPrice);
+        total += price * i.quantity;
+        entries.push({ bookId: i.bookId, amount: -i.quantity });
+        return {
+          bookId: i.bookId,
+          toyId: null,
+          quantity: i.quantity,
+          unitPrice: price,
+          subtotal: price * i.quantity,
+        };
+      }
+      const toy = toyMap.get(i.toyId as string);
+      if (!toy || toy.stock < i.quantity) {
+        throw new Error(`Not enough stock for ${toy?.title ?? i.toyId}`);
+      }
+      const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
       total += price * i.quantity;
-      entries.push({ bookId: i.bookId, amount: -i.quantity });
+      entries.push({ toyId: i.toyId as string, amount: -i.quantity });
       return {
-        bookId: i.bookId,
+        bookId: null,
+        toyId: i.toyId as string,
         quantity: i.quantity,
         unitPrice: price,
         subtotal: price * i.quantity,
@@ -211,14 +263,19 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
   const data = orderSchema.parse(input);
 
   await db.$transaction(async (tx) => {
-    const bookIds = data.items.map((i) => i.bookId);
-    const [existing, books, batchPrices] = await Promise.all([
+    const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
+    const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
+    const [existing, books, toys, batchPrices] = await Promise.all([
       tx.order.findUnique({
         where: { id },
-        include: { items: { select: { bookId: true, quantity: true } } },
+        include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
       }),
       tx.book.findMany({
         where: { id: { in: bookIds } },
+        select: { id: true, title: true, price: true, stock: true },
+      }),
+      tx.toy.findMany({
+        where: { id: { in: toyIds } },
         select: { id: true, title: true, price: true, stock: true },
       }),
       tx.bookBatchPrice.findMany({
@@ -228,43 +285,75 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     ]);
     if (!existing) throw new Error("Order not found");
 
-    const oldMap = new Map(existing.items.map((it) => [it.bookId, it.quantity]));
+    const oldMap = new Map(
+      existing.items.map((it) => [it.bookId ?? it.toyId ?? "", it.quantity])
+    );
     const bookMap = new Map(books.map((b) => [b.id, b]));
+    const toyMap = new Map(toys.map((t) => [t.id, t]));
     const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
-    const effectivePrice = (bookId: string, override?: number) =>
+    const effectiveBookPrice = (bookId: string, override?: number) =>
       override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
+    const effectiveToyPrice = (toyId: string, override?: number) =>
+      override ?? toyMap.get(toyId)?.price ?? 0;
 
     let total = 0;
     const createItems: {
-      bookId: string;
+      bookId: string | null;
+      toyId: string | null;
       quantity: number;
       unitPrice: number;
       subtotal: number;
     }[] = [];
-    const stockChanges: { bookId: string; amount: number }[] = [];
+    const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
 
     for (const i of data.items) {
-      const book = bookMap.get(i.bookId);
-      if (!book) throw new Error(`Book not found for ${i.bookId}`);
-      const oldQty = oldMap.get(i.bookId) ?? 0;
-      const diff = i.quantity - oldQty;
-      if (diff > 0 && book.stock < diff) {
-        throw new Error(`Not enough stock for ${book.title}`);
+      if (i.unitPrice == null) {
+        throw new Error(`Harga wajib diisi untuk setiap item`);
       }
-      const price = effectivePrice(i.bookId, i.unitPrice);
-      total += price * i.quantity;
-      createItems.push({
-        bookId: i.bookId,
-        quantity: i.quantity,
-        unitPrice: price,
-        subtotal: price * i.quantity,
-      });
-      if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
+      const key = i.bookId ?? i.toyId ?? "";
+      const oldQty = oldMap.get(key) ?? 0;
+      const diff = i.quantity - oldQty;
+      if (i.bookId) {
+        const book = bookMap.get(i.bookId);
+        if (!book) throw new Error(`Buku tidak ditemukan: ${i.bookId}`);
+        if (diff > 0 && book.stock < diff) {
+          throw new Error(`Not enough stock for ${book.title}`);
+        }
+        const price = effectiveBookPrice(i.bookId, i.unitPrice);
+        total += price * i.quantity;
+        createItems.push({
+          bookId: i.bookId,
+          toyId: null,
+          quantity: i.quantity,
+          unitPrice: price,
+          subtotal: price * i.quantity,
+        });
+        if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
+      } else {
+        const toy = toyMap.get(i.toyId as string);
+        if (!toy) throw new Error(`Mainan tidak ditemukan: ${i.toyId}`);
+        if (diff > 0 && toy.stock < diff) {
+          throw new Error(`Not enough stock for ${toy.title}`);
+        }
+        const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
+        total += price * i.quantity;
+        createItems.push({
+          bookId: null,
+          toyId: i.toyId as string,
+          quantity: i.quantity,
+          unitPrice: price,
+          subtotal: price * i.quantity,
+        });
+        if (diff !== 0) stockChanges.push({ toyId: i.toyId as string, amount: -diff });
+      }
     }
 
     for (const [bid, oldQty] of Array.from(oldMap.entries())) {
-      if (!data.items.some((i) => i.bookId === bid)) {
-        stockChanges.push({ bookId: bid, amount: oldQty });
+      if (!data.items.some((i) => (i.bookId ?? i.toyId ?? "") === bid)) {
+        const book = bookMap.get(bid);
+        const toy = toyMap.get(bid);
+        if (book) stockChanges.push({ bookId: bid, amount: oldQty });
+        else if (toy) stockChanges.push({ toyId: bid, amount: oldQty });
       }
     }
 
@@ -332,13 +421,17 @@ export async function deleteOrder(id: string) {
   await db.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id },
-      include: { items: { select: { bookId: true, quantity: true } } },
+      include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
     });
     if (!order) throw new Error("Order not found");
 
     await applyStock(
       tx,
-      order.items.map((it) => ({ bookId: it.bookId, amount: it.quantity }))
+      order.items.map((it) => ({
+        bookId: it.bookId,
+        toyId: it.toyId,
+        amount: it.quantity,
+      }))
     );
     await tx.order.delete({ where: { id } });
   });

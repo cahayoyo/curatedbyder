@@ -17,7 +17,10 @@ export async function GET(
       buyer: { select: { name: true, phone: true, contact: true } },
       batch: { select: { name: true } },
       items: {
-        include: { book: { select: { title: true, formats: true, status: true } } },
+        include: {
+          book: { select: { title: true, formats: true, status: true } },
+          toy: { select: { title: true, formats: true, status: true } },
+        },
       },
     },
   });
@@ -26,7 +29,21 @@ export async function GET(
     return new NextResponse("Order not found", { status: 404 });
   }
 
-  const doc = buildOrderPdf(order);
+  const dto = {
+    ...order,
+    items: order.items.map((it) => ({
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      subtotal: it.subtotal,
+      book: {
+        title: it.book?.title ?? it.toy?.title ?? "—",
+        formats: it.book?.formats ?? it.toy?.formats ?? [],
+        status: (it.book ?? it.toy)?.status ?? "PRE_ORDER",
+      },
+    })),
+  };
+
+  const doc = buildOrderPdf(dto);
   const buf = doc.output("arraybuffer");
 
   return new NextResponse(buf, {

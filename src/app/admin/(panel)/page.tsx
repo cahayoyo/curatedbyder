@@ -9,6 +9,7 @@ export default async function AdminOverviewPage() {
       db.book.count(),
       db.orderItem.groupBy({
         by: ["bookId"],
+        where: { bookId: { not: null } },
         _sum: { quantity: true },
         orderBy: { _sum: { quantity: "desc" } },
         take: 5,
@@ -17,17 +18,21 @@ export default async function AdminOverviewPage() {
 
   const bestSellerTitles: Record<string, string> = {};
   if (bestSellerRows.length > 0) {
+    const bestIds = bestSellerRows
+      .map((b) => b.bookId)
+      .filter((id): id is string => id != null);
     const books = await db.book.findMany({
-      where: { id: { in: bestSellerRows.map((b) => b.bookId) } },
+      where: { id: { in: bestIds } },
       select: { id: true, title: true },
     });
     for (const b of books) bestSellerTitles[b.id] = b.title;
   }
 
   const bestSellers = bestSellerRows
+    .filter((b) => b.bookId != null)
     .map((b) => ({
-      id: b.bookId,
-      title: bestSellerTitles[b.bookId] ?? "Unknown",
+      id: b.bookId as string,
+      title: bestSellerTitles[b.bookId as string] ?? "Unknown",
       qty: b._sum.quantity ?? 0,
     }))
     .filter((b) => b.qty > 0);

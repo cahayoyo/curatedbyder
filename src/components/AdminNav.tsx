@@ -10,12 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LayoutDashboard, BookOpen, Users, ShoppingCart } from "lucide-react";
+import { Menu, LayoutDashboard, BookOpen, ToyBrick, Users, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/books", label: "Buku", icon: BookOpen },
+  { href: "/admin/toys", label: "Toys", icon: ToyBrick },
   { href: "/admin/buyers", label: "Pembeli", icon: Users },
   { href: "/admin/orders", label: "Pesanan", icon: ShoppingCart },
 ];

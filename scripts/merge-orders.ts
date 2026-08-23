@@ -41,7 +41,7 @@ async function main() {
           cur.quantity += it.quantity;
           cur.subtotal += it.subtotal;
         } else {
-          itemMap.set(k, { bookId: it.bookId, unitPrice: it.unitPrice, quantity: it.quantity, subtotal: it.subtotal });
+          itemMap.set(k, { bookId: it.bookId ?? "", unitPrice: it.unitPrice, quantity: it.quantity, subtotal: it.subtotal });
         }
       }
     }

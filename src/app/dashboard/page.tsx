@@ -9,7 +9,12 @@ export default async function DashboardPage() {
   const orders = await db.order.findMany({
     where: { buyerId: userId },
     include: {
-      items: { include: { book: { select: { title: true } } } },
+      items: {
+        include: {
+          book: { select: { title: true } },
+          toy: { select: { title: true } },
+        },
+      },
     },
     orderBy: { soldAt: "desc" },
   });
@@ -27,7 +32,7 @@ export default async function DashboardPage() {
     items: s.items.map((i) => ({
       quantity: i.quantity,
       unitPrice: i.unitPrice,
-      book: { title: i.book.title },
+      book: { title: i.book?.title ?? i.toy?.title ?? "—" },
     })),
   }));
 

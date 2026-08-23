@@ -47,7 +47,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   autoTable(doc, {
     startY: 74,
-    head: [["#", "Judul Buku", "Format", "Status", "Qty", "Harga", "Subtotal"]],
+    head: [["#", "Nama Produk", "Format", "Status", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
       it.book.title,

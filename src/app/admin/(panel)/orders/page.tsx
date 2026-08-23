@@ -111,6 +111,7 @@ export default async function AdminOrdersPage({
       { invoiceNumber: { contains: q, mode: "insensitive" as const } },
       { buyer: { name: { contains: q, mode: "insensitive" as const } } },
       { items: { some: { book: { title: { contains: q, mode: "insensitive" as const } } } } },
+      { items: { some: { toy: { title: { contains: q, mode: "insensitive" as const } } } } },
     ];
   }
   if (paymentStatuses.length > 0) {
@@ -143,7 +144,7 @@ export default async function AdminOrdersPage({
       db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
     ]);
 
-  const orderInclude = {
+const orderInclude = {
     buyer: { select: { id: true, name: true, phone: true, contact: true } },
     batch: { select: { id: true, name: true } },
     items: {
@@ -156,13 +157,90 @@ export default async function AdminOrdersPage({
             batchPrices: { select: { batchId: true, formats: true } },
           },
         },
+        toy: {
+          select: {
+            title: true,
+            formats: true,
+            status: true,
+            batchPrices: { select: { batchId: true, formats: true } },
+          },
+        },
       },
     },
   } as const;
 
-  function itemFormats(orderBatchId: string | undefined, item: { book: { formats: string[]; batchPrices: { batchId: string; formats: string[] }[] } }): string[] {
-    const bp = item.book.batchPrices.find((x) => x.batchId === orderBatchId);
-    return bp ? bp.formats : item.book.formats;
+  type OrderItemDTO = {
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+    kind?: "BUKU" | "MAINAN" | "LAINNYA";
+    book: {
+      title: string;
+      formats: string[];
+      status: "READY_STOCK" | "PRE_ORDER";
+    };
+  };
+
+  type ItemOrToy = {
+    book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
+    toy: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
+  };
+
+  function itemTitle(it: ItemOrToy): string {
+    return it.book?.title ?? it.toy?.title ?? "—";
+  }
+
+  function itemFormats(orderBatchId: string | undefined, it: ItemOrToy): string[] {
+    const src = it.book ?? it.toy;
+    if (!src) return [];
+    const bp = src.batchPrices.find((x) => x.batchId === orderBatchId);
+    return bp ? bp.formats : src.formats;
+  }
+
+  function itemStatus(it: ItemOrToy): "READY_STOCK" | "PRE_ORDER" {
+    return it.book?.status ?? it.toy?.status ?? "PRE_ORDER";
+  }
+
+  function itemKind(it: ItemOrToy): "BUKU" | "MAINAN" | "LAINNYA" {
+    if (it.book) return "BUKU";
+    if (it.toy) return "MAINAN";
+    return "LAINNYA";
+  }
+
+  function ProductLabel({ it }: { it: ItemOrToy }) {
+    const kind = itemKind(it);
+    if (kind === "BUKU")
+      return (
+        <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+          Buku
+        </span>
+      );
+    if (kind === "MAINAN")
+      return (
+        <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+          Mainan
+        </span>
+      );
+    return null;
+  }
+
+  function toItemDTO(
+    it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number },
+    orderBatchId: string | undefined
+  ): OrderItemDTO {
+    return {
+      id: it.id,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      subtotal: it.subtotal,
+      kind: itemKind(it),
+      book: {
+        title: itemTitle(it),
+        formats: itemFormats(orderBatchId, it),
+        status: itemStatus(it),
+      },
+    };
   }
 
   let orders;
@@ -171,8 +249,8 @@ export default async function AdminOrdersPage({
     const dirFactor = dir === "asc" ? 1 : -1;
     all.sort((a, b) => {
       if (sortValid === "book") {
-        const ta = a.items[0]?.book.title ?? "";
-        const tb = b.items[0]?.book.title ?? "";
+        const ta = a.items[0] ? itemTitle(a.items[0]) : "";
+        const tb = b.items[0] ? itemTitle(b.items[0]) : "";
         return ta.localeCompare(tb, undefined, { sensitivity: "base" }) * dirFactor;
       }
       const pa = a.items[0]?.unitPrice ?? 0;
@@ -282,17 +360,7 @@ export default async function AdminOrdersPage({
               status: s.status,
               batch: s.batch,
               buyer: s.buyer,
-              items: s.items.map((it) => ({
-                id: it.id,
-                quantity: it.quantity,
-                unitPrice: it.unitPrice,
-                subtotal: it.subtotal,
-                book: {
-                  title: it.book.title,
-                  formats: itemFormats(s.batchId, it),
-                  status: it.book.status,
-                },
-              })),
+              items: s.items.map((it) => toItemDTO(it, s.batchId)),
             }}
             onDelete={deleteOrder.bind(null, s.id)}
           />
@@ -323,7 +391,7 @@ export default async function AdminOrdersPage({
                   <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" /><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /><SortButton label="Judul Buku" column="book" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /><SortButton label="Nama Produk" column="book" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
@@ -368,7 +436,12 @@ export default async function AdminOrdersPage({
                   <TableCell rowSpan={s.items.length}>{s.batch?.name || "—"}</TableCell>
                   <TableCell rowSpan={s.items.length}>{etaLabel(s.eta)}</TableCell>
                   <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
-                  <TableCell className="text-center text-xs">{s.items[0].book.title}</TableCell>
+                  <TableCell className="text-center text-xs">
+                    <span className="inline-flex items-center">
+                      {s.items[0] ? itemTitle(s.items[0]) : "—"}
+                      <ProductLabel it={s.items[0]} />
+                    </span>
+                  </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-wrap items-center justify-center gap-1">
                       {itemFormats(s.batchId, s.items[0]).length > 0
@@ -420,17 +493,7 @@ export default async function AdminOrdersPage({
                           status: s.status,
                           batch: s.batch,
                           buyer: s.buyer,
-                          items: s.items.map((it) => ({
-                            id: it.id,
-                            quantity: it.quantity,
-                            unitPrice: it.unitPrice,
-                            subtotal: it.subtotal,
-                            book: {
-                              title: it.book.title,
-                              formats: itemFormats(s.batchId, it),
-                              status: it.book.status,
-                            },
-                          })),
+                          items: s.items.map((it) => toItemDTO(it, s.batchId)),
                         }}
                       />
                       <NavActionButton
@@ -451,7 +514,12 @@ export default async function AdminOrdersPage({
                 </TableRow>
                 {s.items.slice(1).map((it, i) => (
                   <TableRow key={`${s.id}-item-${i}`} className="border-b border-input last:border-0">
-                    <TableCell className="text-center text-xs">{it.book.title}</TableCell>
+                    <TableCell className="text-center text-xs">
+                    <span className="inline-flex items-center">
+                      {itemTitle(it)}
+                      <ProductLabel it={it} />
+                    </span>
+                  </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap items-center justify-center gap-1">
                         {itemFormats(s.batchId, it).length > 0

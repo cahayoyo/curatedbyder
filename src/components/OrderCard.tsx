@@ -173,8 +173,16 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <span className="line-clamp-1">{it.book.title}</span>
-                <span className="shrink-0 font-bold">{formatIDR(it.subtotal)}</span>
+                <span className="line-clamp-1 min-w-0 flex-1">{it.book.title}</span>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {it.kind === "BUKU" && (
+                    <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">Buku</span>
+                  )}
+                  {it.kind === "MAINAN" && (
+                    <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">Mainan</span>
+                  )}
+                  <span className="font-bold">{formatIDR(it.subtotal)}</span>
+                </div>
               </div>
               <p className="flex flex-wrap items-center gap-1">
                   {it.book.formats.length
@@ -257,7 +265,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
           <DialogHeader>
             <DialogTitle>Konfirmasi Hapus</DialogTitle>
             <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus order &quot;{order.invoiceNumber}&quot;? Stok buku akan dikembalikan.
+              Apakah anda benar ingin menghapus order &quot;{order.invoiceNumber}&quot;? Stok produk akan dikembalikan.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2">

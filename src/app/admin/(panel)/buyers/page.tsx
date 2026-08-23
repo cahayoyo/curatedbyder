@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard, AtSign, ListOrdered } from "lucide-react";
+import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard, AtSign } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
@@ -124,12 +124,6 @@ export default async function AdminBuyersPage({
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
-                    <ListOrdered className="h-3.5 w-3.5" />
-                    No
-                  </span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1">
                     <AtSign className="h-3.5 w-3.5" />
                     <SortButton label="Username" column="username" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw }} />
                   </span>
@@ -161,11 +155,8 @@ export default async function AdminBuyersPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {buyers.map((b, i) => (
+            {buyers.map((b) => (
               <TableRow key={b.id} className="border-b border-input last:border-0">
-                <TableCell className="text-muted-foreground">
-                  {(page - 1) * PAGE_SIZE + i + 1}
-                </TableCell>
                 <TableCell>{b.username ?? "-"}</TableCell>
                 <TableCell className="font-medium">{b.name}</TableCell>
                 <TableCell>{b.phone ?? "-"}</TableCell>
@@ -191,7 +182,7 @@ export default async function AdminBuyersPage({
             ))}
             {buyers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Belum ada pembeli.
                 </TableCell>
               </TableRow>

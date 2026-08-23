@@ -37,8 +37,25 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
 };
+
+function ProductTag({ kind }: { kind?: string }) {
+  if (kind === "BUKU")
+    return (
+      <span className="ml-1 inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+        Buku
+      </span>
+    );
+  if (kind === "MAINAN")
+    return (
+      <span className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+        Mainan
+      </span>
+    );
+  return null;
+}
 
 export type OrderDTO = {
   id: string;
@@ -61,7 +78,7 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
   const lines: string[] = [
     `Halo kak ${order.buyer.name},`,
     "",
-    "*Terimakasih untuk pembelian buku anda*",
+    "*Terimakasih untuk pembelian produk anda*",
     "",
     "*Detail Pembelian*",
     `Invoice : ${order.invoiceNumber}`,
@@ -70,20 +87,20 @@ function buildWaText(order: OrderDTO, pdfUrl: string): string {
     `No Resi : ${order.trackingNumber || "--"}`,
     `Alamat : ${order.buyer.contact || "—"}`,
     "",
-    "*Detail Buku*",
+    "*Detail Produk*",
   ];
   if (order.items.length === 1) {
     const it = order.items[0];
     lines.push(
-      `Nama Buku : ${it.book.title}`,
+      `Nama Produk : ${it.book.title}`,
       `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
     );
   } else {
     order.items.forEach((it, i) => {
       if (i > 0) lines.push("");
-      lines.push(`Buku ${i + 1}`);
+      lines.push(`Produk ${i + 1}`);
       lines.push(
-        `Nama Buku : ${it.book.title}`,
+        `Nama Produk : ${it.book.title}`,
         `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
       );
     });
@@ -189,7 +206,10 @@ export function OrderDetailDialog({
         <div className="space-y-2 text-sm">
           {order.items.map((it, i) => (
             <div key={it.id || i} className="rounded-lg border p-2">
-              <p className="font-medium">{it.book.title}</p>
+              <p className="flex flex-wrap items-center font-medium">
+                {it.book.title}
+                <ProductTag kind={it.kind} />
+              </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Format: {it.book.formats.length ? it.book.formats.join(", ") : "—"}
               </p>
