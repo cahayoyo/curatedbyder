@@ -106,6 +106,7 @@ export function OrderForm({
   initial?: OrderInitial;
 }) {
   const router = useRouter();
+  const isEdit = Boolean(initial?.id);
   const [pending, startTransition] = useTransition();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
   const [batchId, setBatchId] = useState<string>(initial?.batchId ?? "");
@@ -147,8 +148,9 @@ export function OrderForm({
   }, 0);
   const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
   const total = bookTotal + shippingCostNum;
-  const dpNum = dp ? Number(dp) : 0;
-  const remaining = dpNum > 0 ? Math.max(0, total - dpNum) : null;
+  const autoDp = Math.round(total * 0.3);
+  const effectiveDp = isEdit ? (dp ? Number(dp) : null) : total > 0 ? autoDp : null;
+  const remaining = effectiveDp ? Math.max(0, total - effectiveDp) : null;
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -183,7 +185,7 @@ export function OrderForm({
             | "OCT"
             | "NOV"
             | "DEC",
-          dp: dp ? Number(dp) : null,
+          dp: effectiveDp,
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
           paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
@@ -326,17 +328,26 @@ export function OrderForm({
           <Input readOnly value={formatIDR(total)} className="bg-black/5" />
         </div>
         <div className="space-y-1.5">
-          <Label>DP</Label>
+          <Label>
+            DP{" "}
+            {!isEdit && (
+              <span className="text-xs text-muted-foreground">
+                (Perhitungan DP 30% dari Harga Total)
+              </span>
+            )}
+          </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
               Rp
             </span>
             <Input
               inputMode="numeric"
-              className="pl-10 placeholder:text-black/30"
-              value={dp ? formatRp(dp) : ""}
+              readOnly={!isEdit}
+              disabled={!isEdit}
+              className={`pl-10 placeholder:text-black/30 ${!isEdit ? "bg-black/5" : ""}`}
+              value={isEdit ? (dp ? formatRp(dp) : "") : effectiveDp ? formatRp(String(effectiveDp)) : ""}
               onChange={(e) => setDp(e.target.value.replace(/\D/g, ""))}
-              placeholder="Masukkan jika menggunakan DP..."
+              placeholder={isEdit ? "Masukkan jika menggunakan DP..." : "Auto 30%"}
             />
           </div>
         </div>

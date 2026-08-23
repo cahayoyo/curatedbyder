@@ -29,6 +29,7 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
 import { BookFilter } from "@/components/BookFilter";
+import { SortButton } from "@/components/SortButton";
 import { formatIDR } from "@/lib/format";
 import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
@@ -42,10 +43,24 @@ const PAGE_SIZE = 20;
 export default async function AdminBooksPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string; status?: string; min?: string; max?: string };
+  searchParams: { q?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
+
+  const sort = searchParams?.sort?.trim();
+  const sortValid = ["title", "publisher", "price", "stock"].includes(sort ?? "")
+    ? (sort as "title" | "publisher" | "price" | "stock")
+    : undefined;
+  const dir = searchParams?.dir?.trim() === "desc" ? ("desc" as const) : ("asc" as const);
+
+  const orderBy = (() => {
+    if (sortValid === "title") return { title: dir };
+    if (sortValid === "publisher") return { publisher: dir };
+    if (sortValid === "price") return { price: dir };
+    if (sortValid === "stock") return { stock: dir };
+    return { createdAt: "desc" as const };
+  })();
 
   const statuses = (searchParams?.status ?? "")
     .split(",")
@@ -84,7 +99,7 @@ export default async function AdminBooksPage({
     db.book.count({ where }),
     db.book.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
@@ -179,7 +194,7 @@ export default async function AdminBooksPage({
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <ListOrdered className="h-3.5 w-3.5" />
-                  Judul
+                  <SortButton label="Judul" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -191,7 +206,7 @@ export default async function AdminBooksPage({
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3.5 w-3.5" />
-                  Publisher
+                  <SortButton label="Publisher" column="publisher" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -209,13 +224,13 @@ export default async function AdminBooksPage({
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Banknote className="h-3.5 w-3.5" />
-                  Harga
+                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Boxes className="h-3.5 w-3.5" />
-                  Stok
+                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, min: min != null ? String(min) : "", max: max != null ? String(max) : "", status: searchParams?.status ?? "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -332,6 +347,8 @@ export default async function AdminBooksPage({
           status: searchParams?.status ?? "",
           min: min != null ? String(min) : "",
           max: max != null ? String(max) : "",
+          sort: sortValid ?? "",
+          dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
         }}
       />
       </div>

@@ -14,17 +14,31 @@ import { SearchInput } from "@/components/SearchInput";
 import { deleteBuyer } from "@/server/actions/buyers";
 import { Pagination } from "@/components/Pagination";
 import { BuyerCard } from "@/components/BuyerCard";
+import { SortButton } from "@/components/SortButton";
 
 const PAGE_SIZE = 20;
 
 export default async function AdminBuyersPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string };
+  searchParams: { q?: string; page?: string; sort?: string; dir?: string };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+
+  const sort = searchParams?.sort?.trim();
+  const sortValid = ["username", "name"].includes(sort ?? "")
+    ? (sort as "username" | "name")
+    : undefined;
+  const dir = searchParams?.dir?.trim() === "desc" ? ("desc" as const) : ("asc" as const);
+
+  const orderBy =
+    sortValid === "name"
+      ? { name: dir }
+      : sortValid === "username"
+        ? { username: dir }
+        : { createdAt: "desc" as const };
 
   const where = q
     ? {
@@ -43,7 +57,7 @@ export default async function AdminBuyersPage({
     db.user.findMany({
       where,
       select: { id: true, username: true, name: true, phone: true, contact: true },
-      orderBy: { name: "asc" },
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
@@ -117,13 +131,13 @@ export default async function AdminBuyersPage({
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
                     <AtSign className="h-3.5 w-3.5" />
-                    Username
+                    <SortButton label="Username" column="username" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw }} />
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
-                    Nama
+                    <SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw }} />
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
@@ -192,7 +206,7 @@ export default async function AdminBuyersPage({
         page={page}
         pageSize={PAGE_SIZE}
         basePath="/admin/buyers"
-        query={{ q: qRaw }}
+query={{ q: qRaw, sort: sortValid ?? "", dir: searchParams?.dir?.trim() === "desc" ? "desc" : "" }}
       />
       </div>
     </div>

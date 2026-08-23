@@ -14,6 +14,7 @@ import { OrderCard } from "@/components/OrderCard";
 import { OrderSummaryAccordion, type OrderSummaryDTO } from "@/components/OrderSummaryAccord";
 import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
+import { SortButton } from "@/components/SortButton";
 import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
@@ -38,11 +39,48 @@ export default async function AdminOrdersPage({
     eta?: string;
     dateFrom?: string;
     dateTo?: string;
+    sort?: string;
+    dir?: string;
   };
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+
+  const sort = searchParams?.sort?.trim();
+  const sortValid = ["batch", "eta", "name", "book", "invoice", "price", "total", "dp", "remaining"].includes(sort ?? "")
+    ? (sort as "batch" | "eta" | "name" | "book" | "invoice" | "price" | "total" | "dp" | "remaining")
+    : undefined;
+  const dir = searchParams?.dir?.trim() === "desc" ? ("desc" as const) : ("asc" as const);
+
+  function orderByClause(
+    s: "batch" | "eta" | "name" | "invoice" | "total" | "dp" | "remaining" | undefined,
+    d: "asc" | "desc"
+  ): Prisma.OrderOrderByWithRelationInput {
+    switch (s) {
+      case "batch":
+        return { batch: { name: d } };
+      case "eta":
+        return { eta: d };
+      case "name":
+        return { buyer: { name: d } };
+      case "invoice":
+        return { createdAt: d };
+      case "total":
+        return { total: d };
+      case "dp":
+        return { dp: d };
+      case "remaining":
+        return { remaining: d };
+      default:
+        return { createdAt: "desc" };
+    }
+  }
+
+  const orderBy = orderByClause(
+    sortValid && sortValid !== "book" && sortValid !== "price" ? sortValid : undefined,
+    dir
+  );
 
   const paymentStatuses = (searchParams?.paymentStatus ?? "")
     .split(",")
@@ -93,21 +131,10 @@ export default async function AdminOrdersPage({
     if (dateTo) where.soldAt.lte = dateTo;
   }
 
-  const [totalOrders, totalFiltered, orders, batches, sums, byBatch, byEta, byPayment, byStatus] =
+  const [totalOrders, totalFiltered, batches, sums, byBatch, byEta, byPayment, byStatus] =
     await Promise.all([
       db.order.count(),
       db.order.count({ where }),
-      db.order.findMany({
-        where,
-        include: {
-          buyer: { select: { id: true, name: true, phone: true, contact: true } },
-          batch: { select: { id: true, name: true } },
-          items: { include: { book: { select: { title: true, formats: true, status: true } } } },
-        },
-        orderBy: { soldAt: "desc" },
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-      }),
       db.batch.findMany({ orderBy: { name: "asc" } }),
       db.order.aggregate({ _sum: { total: true } }),
       db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
@@ -115,6 +142,37 @@ export default async function AdminOrdersPage({
       db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
       db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
     ]);
+
+  const orderInclude = {
+    buyer: { select: { id: true, name: true, phone: true, contact: true } },
+    batch: { select: { id: true, name: true } },
+    items: { include: { book: { select: { title: true, formats: true, status: true } } } },
+  } as const;
+
+  let orders;
+  if (sortValid === "book" || sortValid === "price") {
+    const all = await db.order.findMany({ where, include: orderInclude });
+    const dirFactor = dir === "asc" ? 1 : -1;
+    all.sort((a, b) => {
+      if (sortValid === "book") {
+        const ta = a.items[0]?.book.title ?? "";
+        const tb = b.items[0]?.book.title ?? "";
+        return ta.localeCompare(tb, undefined, { sensitivity: "base" }) * dirFactor;
+      }
+      const pa = a.items[0]?.unitPrice ?? 0;
+      const pb = b.items[0]?.unitPrice ?? 0;
+      return (pa - pb) * dirFactor;
+    });
+    orders = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  } else {
+    orders = await db.order.findMany({
+      where,
+      include: orderInclude,
+      orderBy,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    });
+  }
 
   const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
   const etaMap = new Map(byEta.map((e) => [e.eta, e]));
@@ -148,6 +206,16 @@ export default async function AdminOrdersPage({
       count: statusMap.get(s.value)?._count._all ?? 0,
       total: statusMap.get(s.value)?._sum.total ?? 0,
     })),
+  };
+
+  const pageQuery = {
+    q: qRaw,
+    paymentStatus: searchParams?.paymentStatus ?? "",
+    status: searchParams?.status ?? "",
+    batch: searchParams?.batch ?? "",
+    eta: searchParams?.eta ?? "",
+    dateFrom: searchParams?.dateFrom ?? "",
+    dateTo: searchParams?.dateTo ?? "",
   };
 
   return (
@@ -223,37 +291,37 @@ export default async function AdminOrdersPage({
           <TableHeader>
             <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" />Invoice</span>
+                  <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" /><SortButton label="Invoice" column="invoice" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />Batch</span>
+                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" /><SortButton label="Batch" column="batch" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />ETA</span>
+                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /><SortButton label="ETA" column="eta" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />Nama</span>
+                  <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" /><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />Judul Buku</span>
+                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /><SortButton label="Judul Buku" column="book" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
+                  <span className="flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
+                  <span className="flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><Banknote className="h-3.5 w-3.5" />Harga</span>
+                  <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" />Total</span>
+                  <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" /><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" />DP</span>
+                  <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /><SortButton label="DP" column="dp" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" />Remaining</span>
+                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" /><SortButton label="Remaining" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" />Ongkir</span>
@@ -398,13 +466,9 @@ export default async function AdminOrdersPage({
         pageSize={PAGE_SIZE}
         basePath="/admin/orders"
         query={{
-          q: qRaw,
-          paymentStatus: searchParams?.paymentStatus ?? "",
-          status: searchParams?.status ?? "",
-          batch: searchParams?.batch ?? "",
-          eta: searchParams?.eta ?? "",
-          dateFrom: searchParams?.dateFrom ?? "",
-          dateTo: searchParams?.dateTo ?? "",
+          ...pageQuery,
+          sort: sortValid ?? "",
+          dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
         }}
       />
       </div>
