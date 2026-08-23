@@ -146,8 +146,24 @@ export default async function AdminOrdersPage({
   const orderInclude = {
     buyer: { select: { id: true, name: true, phone: true, contact: true } },
     batch: { select: { id: true, name: true } },
-    items: { include: { book: { select: { title: true, formats: true, status: true } } } },
+    items: {
+      include: {
+        book: {
+          select: {
+            title: true,
+            formats: true,
+            status: true,
+            batchPrices: { select: { batchId: true, formats: true } },
+          },
+        },
+      },
+    },
   } as const;
+
+  function itemFormats(orderBatchId: string | undefined, item: { book: { formats: string[]; batchPrices: { batchId: string; formats: string[] }[] } }): string[] {
+    const bp = item.book.batchPrices.find((x) => x.batchId === orderBatchId);
+    return bp ? bp.formats : item.book.formats;
+  }
 
   let orders;
   if (sortValid === "book" || sortValid === "price") {
@@ -271,7 +287,11 @@ export default async function AdminOrdersPage({
                 quantity: it.quantity,
                 unitPrice: it.unitPrice,
                 subtotal: it.subtotal,
-                book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
+                book: {
+                  title: it.book.title,
+                  formats: itemFormats(s.batchId, it),
+                  status: it.book.status,
+                },
               })),
             }}
             onDelete={deleteOrder.bind(null, s.id)}
@@ -351,8 +371,8 @@ export default async function AdminOrdersPage({
                   <TableCell className="text-center text-xs">{s.items[0].book.title}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-wrap items-center justify-center gap-1">
-                      {s.items[0].book.formats.length > 0
-                        ? s.items[0].book.formats.map((f) => (
+                      {itemFormats(s.batchId, s.items[0]).length > 0
+                        ? itemFormats(s.batchId, s.items[0]).map((f) => (
                             <span
                               key={f}
                               className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
@@ -405,7 +425,11 @@ export default async function AdminOrdersPage({
                             quantity: it.quantity,
                             unitPrice: it.unitPrice,
                             subtotal: it.subtotal,
-                            book: { title: it.book.title, formats: it.book.formats, status: it.book.status },
+                            book: {
+                              title: it.book.title,
+                              formats: itemFormats(s.batchId, it),
+                              status: it.book.status,
+                            },
                           })),
                         }}
                       />
@@ -430,8 +454,8 @@ export default async function AdminOrdersPage({
                     <TableCell className="text-center text-xs">{it.book.title}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap items-center justify-center gap-1">
-                        {it.book.formats.length > 0
-                          ? it.book.formats.map((f) => (
+                        {itemFormats(s.batchId, it).length > 0
+                          ? itemFormats(s.batchId, it).map((f) => (
                               <span
                                 key={f}
                                 className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
