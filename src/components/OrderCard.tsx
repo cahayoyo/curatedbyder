@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/format";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, STATUS_BADGE, PAYMENT_BADGE, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog";
 import {
@@ -94,10 +94,10 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
           <span className="font-mono text-xs font-bold">{order.invoiceNumber}</span>
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
-          <Badge variant="outline" className="whitespace-nowrap border-emerald-300 bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">
+          <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${PAYMENT_BADGE[order.paymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}>
             {PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}
           </Badge>
-          <Badge variant="outline" className="whitespace-nowrap border-sky-300 bg-sky-100 px-2 py-0.5 text-xs text-sky-800">
+          <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${STATUS_BADGE[order.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}>
             {STATUS_LABEL[order.status] || order.status}
           </Badge>
           <DropdownMenu>

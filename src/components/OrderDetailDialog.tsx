@@ -234,20 +234,6 @@ export function OrderDetailDialog({
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Truck className="h-3.5 w-3.5" />
-              Ongkir
-            </span>
-            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Calculator className="h-3.5 w-3.5" />
-              Total
-            </span>
-            <span className="font-semibold">{formatIDR(order.total)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" />
               DP
             </span>
@@ -259,6 +245,21 @@ export function OrderDetailDialog({
               Sisa
             </span>
             <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Truck className="h-3.5 w-3.5" />
+              Ongkir
+            </span>
+            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
+          </div>
+          <div className="h-px w-full bg-black/15" />
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Calculator className="h-3.5 w-3.5" />
+              Total
+            </span>
+            <span className="font-semibold">{formatIDR(order.total)}</span>
           </div>
         </div>
 

@@ -30,7 +30,7 @@ export default async function AdminLayout({
             <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
             <div className="flex flex-col leading-tight">
               <span className="font-semibold">CuratedByDer</span>
-              <span className="hidden text-[11px] font-medium opacity-70 md:inline">ADMIN PANEL</span>
+              <span className="text-[11px] font-medium opacity-70">ADMIN DASHBOARD</span>
             </div>
           </div>
 

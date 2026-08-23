@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Fragment } from "react";
+import { Fragment, Suspense } from "react";
 import {
   Table,
   TableBody,
@@ -37,15 +37,14 @@ import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
 import { BookCard } from "@/components/BookCard";
 import { FormatBadge } from "@/components/FormatBadge";
+import { ListLoader } from "@/components/ListLoader";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
-export default async function AdminBooksPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
-}) {
+type BookSearchParams = { q?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+
+function parseFilters(searchParams: BookSearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
 
@@ -96,7 +95,52 @@ export default async function AdminBooksPage({
     if (max != null) where.price.lte = max;
   }
 
-  const [totalFiltered, books, statusCounts] = await Promise.all([
+  return { q, qRaw, sortValid, dir, orderBy, min, max, statuses, where, page };
+}
+
+async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) {
+  const { where } = parseFilters(searchParams);
+  const [totalFiltered, statusCounts] = await Promise.all([
+    db.book.count({ where }),
+    db.book.groupBy({ by: ["status"], where, _count: { _all: true } }),
+  ]);
+
+  const readyCount =
+    statusCounts.find((s) => s.status === "READY_STOCK")?._count._all ?? 0;
+  const preOrderCount =
+    statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
+
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Package className="h-4 w-4" />
+          Total Buku
+        </p>
+        <p className="text-2xl font-bold">{totalFiltered}</p>
+      </div>
+      <div className="rounded-lg border p-4">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <PackageCheck className="h-4 w-4" />
+          Total Buku Ready Stok
+        </p>
+        <p className="text-2xl font-bold">{readyCount}</p>
+      </div>
+      <div className="rounded-lg border p-4">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          Total Buku Pre Order
+        </p>
+        <p className="text-2xl font-bold">{preOrderCount}</p>
+      </div>
+    </div>
+  );
+}
+
+async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
+  const { qRaw, sortValid, dir, orderBy, min, max, where, page } = parseFilters(searchParams);
+
+  const [totalFiltered, books] = await Promise.all([
     db.book.count({ where }),
     db.book.findMany({
       where,
@@ -107,62 +151,10 @@ export default async function AdminBooksPage({
         batchPrices: { include: { batch: { select: { name: true } } } },
       },
     }),
-    db.book.groupBy({ by: ["status"], where, _count: { _all: true } }),
   ]);
 
-  const readyCount =
-    statusCounts.find((s) => s.status === "READY_STOCK")?._count._all ?? 0;
-  const preOrderCount =
-    statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
-
   return (
-    <div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <BookOpen className="h-6 w-6" />
-          Daftar Buku
-        </h2>
-        <NavActionButton
-          href="/admin/books/new"
-          icon={<BookPlus className="h-4 w-4" />}
-          className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
-        >
-          Tambah Buku
-        </NavActionButton>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Package className="h-4 w-4" />
-            Total Buku
-          </p>
-          <p className="text-2xl font-bold">{totalFiltered}</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <PackageCheck className="h-4 w-4" />
-            Total Buku Ready Stok
-          </p>
-          <p className="text-2xl font-bold">{readyCount}</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            Total Buku Pre Order
-          </p>
-          <p className="text-2xl font-bold">{preOrderCount}</p>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2">
-        <BookFilter basePath="/admin/books" />
-        <div className="w-[70%] md:w-[80%]">
-          <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
-        </div>
-      </div>
-
+    <>
       {/* Mobile: card layout */}
       <div className="space-y-3 md:hidden">
         {books.map((b) => (
@@ -187,7 +179,6 @@ export default async function AdminBooksPage({
             Belum ada buku.
           </div>
         )}
-      </div>
       </div>
 
       {/* Desktop: table layout */}
@@ -386,20 +377,61 @@ export default async function AdminBooksPage({
       </div>
 
       <div className="mx-auto max-w-5xl">
-      <Pagination
-        total={totalFiltered}
-        page={page}
-        pageSize={PAGE_SIZE}
-        basePath="/admin/books"
-        query={{
-          q: qRaw,
-          status: searchParams?.status ?? "",
-          min: min != null ? String(min) : "",
-          max: max != null ? String(max) : "",
-          sort: sortValid ?? "",
-          dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
-        }}
-      />
+        <Pagination
+          total={totalFiltered}
+          page={page}
+          pageSize={PAGE_SIZE}
+          basePath="/admin/books"
+          query={{
+            q: qRaw,
+            status: searchParams?.status ?? "",
+            min: min != null ? String(min) : "",
+            max: max != null ? String(max) : "",
+            sort: sortValid ?? "",
+            dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
+export default function AdminBooksPage({
+  searchParams,
+}: {
+  searchParams: BookSearchParams;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-2xl font-bold">
+            <BookOpen className="h-6 w-6" />
+            Daftar Buku
+          </h2>
+          <NavActionButton
+            href="/admin/books/new"
+            icon={<BookPlus className="h-4 w-4" />}
+            className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+          >
+            Tambah Buku
+          </NavActionButton>
+        </div>
+
+        <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
+          <BooksStats searchParams={searchParams} />
+        </Suspense>
+
+        <div className="flex items-start gap-2">
+          <BookFilter basePath="/admin/books" />
+          <div className="w-[70%] md:w-[80%]">
+            <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
+          </div>
+        </div>
+
+        <Suspense fallback={<ListLoader />}>
+          <BooksList searchParams={searchParams} />
+        </Suspense>
       </div>
     </div>
   );

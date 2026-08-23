@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Fragment } from "react";
+import { Fragment, Suspense } from "react";
 import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -15,6 +15,7 @@ import { OrderSummaryAccordion, type OrderSummaryDTO } from "@/components/OrderS
 import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
 import { SortButton } from "@/components/SortButton";
+import { ListLoader } from "@/components/ListLoader";
 import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
@@ -27,21 +28,145 @@ import {
 
 const PAGE_SIZE = 20;
 
-export default async function AdminOrdersPage({
+type OrderSearchParams = {
+  q?: string;
+  page?: string;
+  paymentStatus?: string;
+  status?: string;
+  batch?: string;
+  eta?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sort?: string;
+  dir?: string;
+};
+
+const orderInclude = {
+  buyer: { select: { id: true, name: true, phone: true, contact: true } },
+  batch: { select: { id: true, name: true } },
+  items: {
+    include: {
+      book: {
+        select: {
+          title: true,
+          formats: true,
+          status: true,
+          batchPrices: { select: { batchId: true, formats: true } },
+        },
+      },
+      toy: {
+        select: {
+          title: true,
+          status: true,
+        },
+      },
+    },
+  },
+} as const;
+
+type OrderItemDTO = {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  kind?: "BUKU" | "MAINAN" | "LAINNYA";
+  book: {
+    title: string;
+    formats: string[];
+    status: "READY_STOCK" | "PRE_ORDER";
+  };
+};
+
+type ItemOrToy = {
+  book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
+  toy: { title: string; status: "READY_STOCK" | "PRE_ORDER" } | null;
+};
+
+function itemTitle(it: ItemOrToy): string {
+  return it.book?.title ?? it.toy?.title ?? "—";
+}
+
+function itemFormats(orderBatchId: string | undefined, it: ItemOrToy): string[] {
+  if (it.toy) return [];
+  const src = it.book;
+  if (!src) return [];
+  const bp = src.batchPrices.find((x) => x.batchId === orderBatchId);
+  return bp ? bp.formats : src.formats;
+}
+
+function itemStatus(it: ItemOrToy): "READY_STOCK" | "PRE_ORDER" {
+  return it.book?.status ?? it.toy?.status ?? "PRE_ORDER";
+}
+
+function itemKind(it: ItemOrToy): "BUKU" | "MAINAN" | "LAINNYA" {
+  if (it.book) return "BUKU";
+  if (it.toy) return "MAINAN";
+  return "LAINNYA";
+}
+
+function ProductLabel({ it }: { it: ItemOrToy }) {
+  const kind = itemKind(it);
+  if (kind === "BUKU")
+    return (
+      <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+        Buku
+      </span>
+    );
+  if (kind === "MAINAN")
+    return (
+      <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+        Mainan
+      </span>
+    );
+  return null;
+}
+
+function toItemDTO(
+  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number },
+  orderBatchId: string | undefined
+): OrderItemDTO {
+  return {
+    id: it.id,
+    quantity: it.quantity,
+    unitPrice: it.unitPrice,
+    subtotal: it.subtotal,
+    kind: itemKind(it),
+    book: {
+      title: itemTitle(it),
+      formats: itemFormats(orderBatchId, it),
+      status: itemStatus(it),
+    },
+  };
+}
+
+function orderByClause(
+  s: "batch" | "eta" | "name" | "invoice" | "total" | "dp" | "remaining" | undefined,
+  d: "asc" | "desc"
+): Prisma.OrderOrderByWithRelationInput {
+  switch (s) {
+    case "batch":
+      return { batch: { name: d } };
+    case "eta":
+      return { eta: d };
+    case "name":
+      return { buyer: { name: d } };
+    case "invoice":
+      return { createdAt: d };
+    case "total":
+      return { total: d };
+    case "dp":
+      return { dp: d };
+    case "remaining":
+      return { remaining: d };
+    default:
+      return { createdAt: "desc" };
+  }
+}
+
+async function OrdersList({
   searchParams,
 }: {
-  searchParams: {
-    q?: string;
-    page?: string;
-    paymentStatus?: string;
-    status?: string;
-    batch?: string;
-    eta?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    sort?: string;
-    dir?: string;
-  };
+  searchParams: OrderSearchParams;
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
@@ -52,30 +177,6 @@ export default async function AdminOrdersPage({
     ? (sort as "batch" | "eta" | "name" | "book" | "invoice" | "price" | "total" | "dp" | "remaining")
     : undefined;
   const dir = searchParams?.dir?.trim() === "desc" ? ("desc" as const) : ("asc" as const);
-
-  function orderByClause(
-    s: "batch" | "eta" | "name" | "invoice" | "total" | "dp" | "remaining" | undefined,
-    d: "asc" | "desc"
-  ): Prisma.OrderOrderByWithRelationInput {
-    switch (s) {
-      case "batch":
-        return { batch: { name: d } };
-      case "eta":
-        return { eta: d };
-      case "name":
-        return { buyer: { name: d } };
-      case "invoice":
-        return { createdAt: d };
-      case "total":
-        return { total: d };
-      case "dp":
-        return { dp: d };
-      case "remaining":
-        return { remaining: d };
-      default:
-        return { createdAt: "desc" };
-    }
-  }
 
   const orderBy = orderByClause(
     sortValid && sortValid !== "book" && sortValid !== "price" ? sortValid : undefined,
@@ -132,115 +233,7 @@ export default async function AdminOrdersPage({
     if (dateTo) where.soldAt.lte = dateTo;
   }
 
-  const [totalOrders, totalFiltered, batches, sums, byBatch, byEta, byPayment, byStatus] =
-    await Promise.all([
-      db.order.count(),
-      db.order.count({ where }),
-      db.batch.findMany({ orderBy: { name: "asc" } }),
-      db.order.aggregate({ _sum: { total: true } }),
-      db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
-    ]);
-
-const orderInclude = {
-    buyer: { select: { id: true, name: true, phone: true, contact: true } },
-    batch: { select: { id: true, name: true } },
-    items: {
-      include: {
-        book: {
-          select: {
-            title: true,
-            formats: true,
-            status: true,
-            batchPrices: { select: { batchId: true, formats: true } },
-          },
-        },
-        toy: {
-          select: {
-            title: true,
-            status: true,
-          },
-        },
-      },
-    },
-  } as const;
-
-  type OrderItemDTO = {
-    id: string;
-    quantity: number;
-    unitPrice: number;
-    subtotal: number;
-    kind?: "BUKU" | "MAINAN" | "LAINNYA";
-    book: {
-      title: string;
-      formats: string[];
-      status: "READY_STOCK" | "PRE_ORDER";
-    };
-  };
-
-  type ItemOrToy = {
-    book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
-    toy: { title: string; status: "READY_STOCK" | "PRE_ORDER" } | null;
-  };
-
-  function itemTitle(it: ItemOrToy): string {
-    return it.book?.title ?? it.toy?.title ?? "—";
-  }
-
-  function itemFormats(orderBatchId: string | undefined, it: ItemOrToy): string[] {
-    if (it.toy) return [];
-    const src = it.book;
-    if (!src) return [];
-    const bp = src.batchPrices.find((x) => x.batchId === orderBatchId);
-    return bp ? bp.formats : src.formats;
-  }
-
-  function itemStatus(it: ItemOrToy): "READY_STOCK" | "PRE_ORDER" {
-    return it.book?.status ?? it.toy?.status ?? "PRE_ORDER";
-  }
-
-  function itemKind(it: ItemOrToy): "BUKU" | "MAINAN" | "LAINNYA" {
-    if (it.book) return "BUKU";
-    if (it.toy) return "MAINAN";
-    return "LAINNYA";
-  }
-
-  function ProductLabel({ it }: { it: ItemOrToy }) {
-    const kind = itemKind(it);
-    if (kind === "BUKU")
-      return (
-        <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
-          Buku
-        </span>
-      );
-    if (kind === "MAINAN")
-      return (
-        <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
-          Mainan
-        </span>
-      );
-    return null;
-  }
-
-  function toItemDTO(
-    it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number },
-    orderBatchId: string | undefined
-  ): OrderItemDTO {
-    return {
-      id: it.id,
-      quantity: it.quantity,
-      unitPrice: it.unitPrice,
-      subtotal: it.subtotal,
-      kind: itemKind(it),
-      book: {
-        title: itemTitle(it),
-        formats: itemFormats(orderBatchId, it),
-        status: itemStatus(it),
-      },
-    };
-  }
+  const totalFiltered = await db.order.count({ where });
 
   let orders;
   if (sortValid === "book" || sortValid === "price") {
@@ -267,40 +260,6 @@ const orderInclude = {
     });
   }
 
-  const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
-  const etaMap = new Map(byEta.map((e) => [e.eta, e]));
-  const paymentMap = new Map(byPayment.map((p) => [p.paymentStatus, p]));
-  const statusMap = new Map(byStatus.map((s) => [s.status, s]));
-
-  const summaryData: OrderSummaryDTO = {
-    totalOrders,
-    grandTotal: sums._sum.total ?? 0,
-    byBatch: batches.map((b) => ({
-      value: b.id,
-      label: b.name,
-      count: batchMap.get(b.id)?._count._all ?? 0,
-      total: batchMap.get(b.id)?._sum.total ?? 0,
-    })),
-    byEta: ETAS.map((e) => ({
-      value: e.value,
-      label: e.label,
-      count: etaMap.get(e.value)?._count._all ?? 0,
-      total: etaMap.get(e.value)?._sum.total ?? 0,
-    })),
-    byPayment: PAYMENT_STATUSES.map((p) => ({
-      value: p.value,
-      label: p.label,
-      count: paymentMap.get(p.value)?._count._all ?? 0,
-      total: paymentMap.get(p.value)?._sum.total ?? 0,
-    })),
-    byStatus: STATUSES.map((s) => ({
-      value: s.value,
-      label: s.label,
-      count: statusMap.get(s.value)?._count._all ?? 0,
-      total: statusMap.get(s.value)?._sum.total ?? 0,
-    })),
-  };
-
   const pageQuery = {
     q: qRaw,
     paymentStatus: searchParams?.paymentStatus ?? "",
@@ -312,34 +271,7 @@ const orderInclude = {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <ShoppingCart className="h-6 w-6" />
-          List Pesanan
-        </h2>
-        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <ManageBatchDialog batches={batches} />
-          <NavActionButton
-            href="/admin/orders/new"
-            icon={<Plus className="h-4 w-4" />}
-            className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
-          >
-            Tambah Pesanan
-          </NavActionButton>
-        </div>
-      </div>
-
-      <OrderSummaryAccordion {...summaryData} />
-
-      <div className="flex items-start gap-2">
-        <OrderFilter basePath="/admin/orders" batches={batches} />
-        <div className="w-[70%] md:w-[80%]">
-          <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
-        </div>
-      </div>
-
+    <>
       {/* Mobile: card layout */}
       <div className="space-y-3 md:hidden">
         {orders.map((s) => (
@@ -369,7 +301,6 @@ const orderInclude = {
             Belum ada pesanan.
           </div>
         )}
-      </div>
       </div>
 
       {/* Desktop: table layout */}
@@ -551,17 +482,104 @@ const orderInclude = {
       </div>
 
       <div className="mx-auto max-w-5xl">
-      <Pagination
-        total={totalFiltered}
-        page={page}
-        pageSize={PAGE_SIZE}
-        basePath="/admin/orders"
-        query={{
-          ...pageQuery,
-          sort: sortValid ?? "",
-          dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
-        }}
-      />
+        <Pagination
+          total={totalFiltered}
+          page={page}
+          pageSize={PAGE_SIZE}
+          basePath="/admin/orders"
+          query={{
+            ...pageQuery,
+            sort: sortValid ?? "",
+            dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: OrderSearchParams;
+}) {
+  const [totalOrders, batches, sums, byBatch, byEta, byPayment, byStatus] =
+    await Promise.all([
+      db.order.count(),
+      db.batch.findMany({ orderBy: { name: "asc" } }),
+      db.order.aggregate({ _sum: { total: true } }),
+      db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
+      db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
+    ]);
+
+  const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
+  const etaMap = new Map(byEta.map((e) => [e.eta, e]));
+  const paymentMap = new Map(byPayment.map((p) => [p.paymentStatus, p]));
+  const statusMap = new Map(byStatus.map((s) => [s.status, s]));
+
+  const summaryData: OrderSummaryDTO = {
+    totalOrders,
+    grandTotal: sums._sum.total ?? 0,
+    byBatch: batches.map((b) => ({
+      value: b.id,
+      label: b.name,
+      count: batchMap.get(b.id)?._count._all ?? 0,
+      total: batchMap.get(b.id)?._sum.total ?? 0,
+    })),
+    byEta: ETAS.map((e) => ({
+      value: e.value,
+      label: e.label,
+      count: etaMap.get(e.value)?._count._all ?? 0,
+      total: etaMap.get(e.value)?._sum.total ?? 0,
+    })),
+    byPayment: PAYMENT_STATUSES.map((p) => ({
+      value: p.value,
+      label: p.label,
+      count: paymentMap.get(p.value)?._count._all ?? 0,
+      total: paymentMap.get(p.value)?._sum.total ?? 0,
+    })),
+    byStatus: STATUSES.map((s) => ({
+      value: s.value,
+      label: s.label,
+      count: statusMap.get(s.value)?._count._all ?? 0,
+      total: statusMap.get(s.value)?._sum.total ?? 0,
+    })),
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-2xl font-bold">
+            <ShoppingCart className="h-6 w-6" />
+            List Pesanan
+          </h2>
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <ManageBatchDialog batches={batches} />
+            <NavActionButton
+              href="/admin/orders/new"
+              icon={<Plus className="h-4 w-4" />}
+              className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
+            >
+              Tambah Pesanan
+            </NavActionButton>
+          </div>
+        </div>
+
+        <OrderSummaryAccordion {...summaryData} />
+
+        <div className="flex items-start gap-2">
+          <OrderFilter basePath="/admin/orders" batches={batches} />
+          <div className="w-[70%] md:w-[80%]">
+            <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+          </div>
+        </div>
+
+        <Suspense fallback={<ListLoader />}>
+          <OrdersList searchParams={searchParams} />
+        </Suspense>
       </div>
     </div>
   );

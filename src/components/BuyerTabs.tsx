@@ -120,13 +120,13 @@ function SummaryCol({ icon, title, children }: { icon: React.ReactNode; title: s
 function ProductTag({ kind }: { kind?: string }) {
   if (kind === "BUKU")
     return (
-      <span className="ml-1 inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+      <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
         Buku
       </span>
     );
   if (kind === "MAINAN")
     return (
-      <span className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+      <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
         Mainan
       </span>
     );
@@ -205,18 +205,19 @@ function OrderCard({ order }: { order: OrderDTO }) {
                 <span className="line-clamp-1 min-w-0 flex-1">{it.book.title}</span>
                 <span className="shrink-0 font-bold">{formatIDR(it.unitPrice * it.quantity)}</span>
               </div>
-              {it.book.formats.length > 0 && (
-                <p className="mt-0.5 flex flex-wrap items-center gap-1">
-                  {it.book.formats.map((f) => (
-                    <span
-                      key={f}
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                    >
-                      {f}
-                    </span>
-                  ))}
-                </p>
-              )}
+              <p className="mt-0.5 flex flex-wrap items-center gap-1">
+                <ProductTag kind={it.kind} />
+                {it.book.formats.length
+                  ? it.book.formats.map((f) => (
+                      <span
+                        key={f}
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                      >
+                        {f}
+                      </span>
+                    ))
+                  : ""}
+              </p>
               <p className="text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)}
               </p>
@@ -382,20 +383,6 @@ function BuyerOrderDetail({
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Truck className="h-3.5 w-3.5" />
-              Ongkir
-            </span>
-            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Calculator className="h-3.5 w-3.5" />
-              Total
-            </span>
-            <span className="font-semibold">{formatIDR(order.total)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" />
               DP
             </span>
@@ -408,6 +395,21 @@ function BuyerOrderDetail({
             </span>
             <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
           </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Truck className="h-3.5 w-3.5" />
+              Ongkir
+            </span>
+            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
+          </div>
+          <div className="h-px w-full bg-black/15" />
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Calculator className="h-3.5 w-3.5" />
+              Total
+            </span>
+            <span className="font-semibold">{formatIDR(order.total)}</span>
+          </div>
         </div>
 
         <DialogFooter className="flex-row gap-2">
@@ -419,9 +421,9 @@ function BuyerOrderDetail({
             Download PDF
           </Button>
           <Button
-            variant="outline"
+            type="button"
             onClick={() => openAdminWa(order)}
-            className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+            className="flex-1 bg-[#25D366] hover:bg-[#1ebe57]"
           >
             <MessageCircle className="h-4 w-4" />
             Hubungi Admin
@@ -429,6 +431,64 @@ function BuyerOrderDetail({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PaymentCard({ order }: { order: OrderDTO }) {
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2 font-semibold leading-snug">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
+            <Wallet className="h-5 w-5 text-[#D97A7A]" />
+          </span>
+          <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
+        </span>
+        <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${PAYMENT_BADGE[order.paymentStatus] ?? ""}`}>
+          {PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}
+        </Badge>
+      </div>
+
+      <div className="mb-2 h-px w-full bg-black/15" />
+
+      <div className="space-y-2 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Wallet className="h-3.5 w-3.5" />
+            DP
+          </span>
+          <span className="font-medium">{formatIDR(order.dp ?? 0)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <PiggyBank className="h-3.5 w-3.5" />
+            Sisa
+          </span>
+          <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Truck className="h-3.5 w-3.5" />
+            Ongkir
+          </span>
+          <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
+        </div>
+        <div className="h-px w-full bg-black/15" />
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Calculator className="h-3.5 w-3.5" />
+            Total
+          </span>
+          <span className="font-semibold">{formatIDR(order.total)}</span>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
+      </div>
+    </div>
   );
 }
 
@@ -486,6 +546,10 @@ export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
           <FileText className="h-4 w-4" />
           Invoice
         </TabsTrigger>
+        <TabsTrigger value="payment" className="flex-1 gap-1.5">
+          <Wallet className="h-4 w-4" />
+          Pembayaran
+        </TabsTrigger>
         <TabsTrigger value="shipment" className="flex-1 gap-1.5">
           <Search className="h-4 w-4" />
           Lacak
@@ -499,6 +563,18 @@ export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
           <div className="space-y-4">
             {orders.map((s) => (
               <OrderCard key={s.id} order={s} />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="payment" className="mt-4">
+        {orders.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No orders yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((s) => (
+              <PaymentCard key={s.id} order={s} />
             ))}
           </div>
         )}

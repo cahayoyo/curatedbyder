@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Suspense } from "react";
 import {
   Table,
   TableBody,
@@ -15,14 +16,13 @@ import { deleteBuyer } from "@/server/actions/buyers";
 import { Pagination } from "@/components/Pagination";
 import { BuyerCard } from "@/components/BuyerCard";
 import { SortButton } from "@/components/SortButton";
+import { ListLoader } from "@/components/ListLoader";
 
 const PAGE_SIZE = 20;
 
-export default async function AdminBuyersPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; page?: string; sort?: string; dir?: string };
-}) {
+type BuyerSearchParams = { q?: string; page?: string; sort?: string; dir?: string };
+
+async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
@@ -51,8 +51,7 @@ export default async function AdminBuyersPage({
       }
     : { role: "USER" as const };
 
-  const [totalBuyers, totalFiltered, buyers] = await Promise.all([
-    db.user.count({ where: { role: "USER" } }),
+  const [totalFiltered, buyers] = await Promise.all([
     db.user.count({ where }),
     db.user.findMany({
       where,
@@ -64,36 +63,7 @@ export default async function AdminBuyersPage({
   ]);
 
   return (
-    <div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <Users className="h-6 w-6" />
-          Daftar Pembeli
-        </h2>
-        <NavActionButton
-          href="/admin/buyers/new"
-          icon={<UserPlus className="h-4 w-4" />}
-          className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
-        >
-          Tambah Pembeli
-        </NavActionButton>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4">
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <IdCard className="h-4 w-4" />
-            Total Pembeli
-          </p>
-          <p className="text-2xl font-bold">{totalBuyers}</p>
-        </div>
-      </div>
-
-      <div className="w-full md:max-w-md">
-        <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
-      </div>
-
+    <>
       {/* Mobile: card layout */}
       <div className="space-y-3 md:hidden">
         {buyers.map((b) => (
@@ -114,7 +84,6 @@ export default async function AdminBuyersPage({
             Belum ada pembeli.
           </div>
         )}
-      </div>
       </div>
 
       {/* Desktop: table layout */}
@@ -192,13 +161,59 @@ export default async function AdminBuyersPage({
       </div>
 
       <div className="mx-auto max-w-5xl">
-      <Pagination
-        total={totalFiltered}
-        page={page}
-        pageSize={PAGE_SIZE}
-        basePath="/admin/buyers"
-query={{ q: qRaw, sort: sortValid ?? "", dir: searchParams?.dir?.trim() === "desc" ? "desc" : "" }}
-      />
+        <Pagination
+          total={totalFiltered}
+          page={page}
+          pageSize={PAGE_SIZE}
+          basePath="/admin/buyers"
+          query={{ q: qRaw, sort: sortValid ?? "", dir: searchParams?.dir?.trim() === "desc" ? "desc" : "" }}
+        />
+      </div>
+    </>
+  );
+}
+
+export default async function AdminBuyersPage({
+  searchParams,
+}: {
+  searchParams: BuyerSearchParams;
+}) {
+  const totalBuyers = await db.user.count({ where: { role: "USER" } });
+
+  return (
+    <div className="space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-2xl font-bold">
+            <Users className="h-6 w-6" />
+            Daftar Pembeli
+          </h2>
+          <NavActionButton
+            href="/admin/buyers/new"
+            icon={<UserPlus className="h-4 w-4" />}
+            className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+          >
+            Tambah Pembeli
+          </NavActionButton>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg border p-4">
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <IdCard className="h-4 w-4" />
+              Total Pembeli
+            </p>
+            <p className="text-2xl font-bold">{totalBuyers}</p>
+          </div>
+        </div>
+
+        <div className="w-full md:max-w-md">
+          <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
+        </div>
+
+        <Suspense fallback={<ListLoader />}>
+          <BuyersList searchParams={searchParams} />
+        </Suspense>
       </div>
     </div>
   );

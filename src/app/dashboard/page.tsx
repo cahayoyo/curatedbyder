@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 import { SearchInput } from "@/components/SearchInput";
 import { BuyerFilter } from "@/components/BuyerFilter";
-import { BuyerDashLoader } from "@/components/BuyerDashLoader";
+import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
 import { ShoppingCart } from "lucide-react";
 
@@ -22,7 +22,16 @@ export default async function DashboardPage({
   const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const batches = await db.batch.findMany({ orderBy: { name: "asc" } });
+  const userBatches = await db.order.findMany({
+    where: { buyerId: userId },
+    select: { batch: { select: { id: true, name: true } } },
+    distinct: ["batchId"],
+    orderBy: { batch: { name: "asc" } },
+  });
+
+  const batches = userBatches
+    .map((o) => o.batch)
+    .filter((b): b is { id: string; name: string } => b !== null);
 
   return (
     <div className="space-y-4">
@@ -41,7 +50,7 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <Suspense fallback={<BuyerDashLoader />}>
+      <Suspense fallback={<ListLoader label="Memuat pesanan..." />}>
         <OrdersSection userId={userId} searchParams={searchParams} />
       </Suspense>
     </div>
