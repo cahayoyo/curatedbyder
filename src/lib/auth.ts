@@ -37,11 +37,11 @@ export const authOptions: NextAuthOptions = {
           if (!username || !phoneInput) return null;
 
           const user = await db.user.findFirst({ where: { username, role: "USER" } });
-          if (!user) throw new Error("Username tidak ditemukan");
+          if (!user) throw new Error("USERNAME_NOT_FOUND");
 
           const storedPhone = (user.phone || "").replace(/\D/g, "");
           if (!storedPhone || storedPhone !== phoneInput) {
-            throw new Error("Nomor telepon tidak cocok");
+            throw new Error("PHONE_MISMATCH");
           }
 
           return { id: user.id, email: user.email, name: user.name, role: user.role };

@@ -42,10 +42,10 @@ export function HomeLogin() {
     });
 
     if (res?.error) {
-      const err = res.error.toLowerCase();
+      const err = res.error;
       setFieldError({
-        username: err.includes("username") || err.includes("tidak"),
-        phone: err.includes("nomor") || err.includes("telepon") || err.includes("cocok"),
+        username: err.includes("USERNAME_NOT_FOUND"),
+        phone: err.includes("PHONE_MISMATCH"),
       });
       setLoading(false);
       return;
