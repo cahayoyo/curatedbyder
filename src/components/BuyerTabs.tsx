@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination } from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -538,9 +540,36 @@ function TrackCard({ order }: { order: OrderDTO }) {
   );
 }
 
-export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
+export function BuyerTabs({
+  orders,
+  total,
+  page,
+  pageSize,
+  basePath,
+  query,
+  defaultTab,
+}: {
+  orders: OrderDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+  basePath: string;
+  query: Record<string, string | undefined>;
+  defaultTab: string;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = defaultTab;
+
+  function selectTab(v: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (v === "invoice") params.delete("tab");
+    else params.set("tab", v);
+    router.push(`${basePath}?${params.toString()}`);
+  }
+
   return (
-    <Tabs defaultValue="invoice">
+    <Tabs value={tab} onValueChange={selectTab}>
       <TabsList className="w-full">
         <TabsTrigger value="invoice" className="flex-1 gap-1.5">
           <FileText className="h-4 w-4" />
@@ -591,6 +620,10 @@ export function BuyerTabs({ orders }: { orders: OrderDTO[] }) {
           </div>
         )}
       </TabsContent>
+
+      <div className="mt-5 flex justify-center">
+        <Pagination total={total} page={page} pageSize={pageSize} basePath={basePath} query={query} />
+      </div>
     </Tabs>
   );
 }

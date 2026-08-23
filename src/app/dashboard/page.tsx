@@ -9,15 +9,21 @@ import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
 import { ShoppingCart } from "lucide-react";
 
+const PAGE_SIZE = 10;
+
+type DashboardSearchParams = {
+  q?: string;
+  batch?: string;
+  status?: string;
+  paymentStatus?: string;
+  tab?: string;
+  page?: string;
+};
+
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: {
-    q?: string;
-    batch?: string;
-    status?: string;
-    paymentStatus?: string;
-  };
+  searchParams: DashboardSearchParams;
 }) {
   const session = await requireRole("USER");
   const userId = session.user.id;
@@ -62,7 +68,7 @@ async function OrdersSection({
   searchParams,
 }: {
   userId: string;
-  searchParams: { q?: string; batch?: string; status?: string; paymentStatus?: string };
+  searchParams: DashboardSearchParams;
 }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const batchId = searchParams?.batch?.trim();
@@ -72,6 +78,10 @@ async function OrdersSection({
     .split(",")
     .map((s) => s.trim())
     .filter((s) => PAYMENT_STATUSES.some((opt) => opt.value === s));
+  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const tab = ["invoice", "payment", "shipment"].includes(searchParams?.tab ?? "")
+    ? searchParams.tab!
+    : "invoice";
 
   const where: Prisma.OrderWhereInput = { buyerId: userId };
   if (q) {
@@ -92,6 +102,8 @@ async function OrdersSection({
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
   }
 
+  const total = await db.order.count({ where });
+
   const orders = await db.order.findMany({
     where,
     include: {
@@ -105,6 +117,8 @@ async function OrdersSection({
       },
     },
     orderBy: { soldAt: "desc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   });
 
   const dto: OrderDTO[] = orders.map((s) => ({
@@ -135,5 +149,23 @@ async function OrdersSection({
     })),
   }));
 
-  return <BuyerTabs orders={dto} />;
+  const paginationQuery = {
+    q: searchParams?.q ?? "",
+    batch: searchParams?.batch ?? "",
+    status: searchParams?.status ?? "",
+    paymentStatus: searchParams?.paymentStatus ?? "",
+    tab: tab === "invoice" ? undefined : tab,
+  };
+
+  return (
+    <BuyerTabs
+      orders={dto}
+      total={total}
+      page={page}
+      pageSize={PAGE_SIZE}
+      basePath="/dashboard"
+      query={paginationQuery}
+      defaultTab={tab}
+    />
+  );
 }
