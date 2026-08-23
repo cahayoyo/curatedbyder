@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FORMATS, BOOK_STATUSES } from "@/lib/orderOptions";
+import { BOOK_STATUSES } from "@/lib/orderOptions";
 import { formatRp } from "@/lib/format";
 import { BookImagePicker } from "@/components/BookImagePicker";
 
@@ -30,8 +30,7 @@ type InitialToy = {
   price: number;
   stock: number;
   status: "READY_STOCK" | "PRE_ORDER";
-  formats: string[];
-  batchPrices?: { batchId: string; price: number; formats: string[] }[];
+  batchPrices?: { batchId: string; price: number }[];
 };
 
 type Batch = { id: string; name: string };
@@ -45,8 +44,7 @@ type ToyRow = {
   price: string;
   stock: string;
   status: "READY_STOCK" | "PRE_ORDER";
-  formats: string[];
-  batchPrices: { batchId: string; price: string; formats: string[] }[];
+  batchPrices: { batchId: string; price: string }[];
 };
 
 const emptyRow = (): ToyRow => ({
@@ -57,7 +55,6 @@ const emptyRow = (): ToyRow => ({
   price: "",
   stock: "0",
   status: "READY_STOCK",
-  formats: [],
   batchPrices: [],
 });
 
@@ -82,11 +79,9 @@ export function ToyForm({
             price: initial.price != null ? String(initial.price) : "",
             stock: initial.stock != null ? String(initial.stock) : "0",
             status: initial.status ?? "READY_STOCK",
-            formats: initial.formats ?? [],
             batchPrices: (initial.batchPrices ?? []).map((b) => ({
               batchId: b.batchId,
               price: String(b.price),
-              formats: b.formats ?? [],
             })),
           },
         ]
@@ -101,7 +96,7 @@ export function ToyForm({
     setRows((rs) => [...rs, emptyRow()]);
   }
 
-  function upBatchPrice(index: number, bi: number, patch: { batchId?: string; price?: string; formats?: string[] }) {
+  function upBatchPrice(index: number, bi: number, patch: { batchId?: string; price?: string }) {
     setRows((rs) =>
       rs.map((r, i) =>
         i === index
@@ -119,29 +114,7 @@ export function ToyForm({
   function addBatchPriceRow(index: number) {
     setRows((rs) =>
       rs.map((r, i) =>
-        i === index ? { ...r, batchPrices: [...r.batchPrices, { batchId: "", price: "", formats: [] }] } : r
-      )
-    );
-  }
-
-  function toggleBatchFormat(index: number, bi: number, value: string) {
-    setRows((rs) =>
-      rs.map((r, i) =>
-        i === index
-          ? {
-              ...r,
-              batchPrices: r.batchPrices.map((bp, n) =>
-                n === bi
-                  ? {
-                      ...bp,
-                      formats: bp.formats.includes(value)
-                        ? bp.formats.filter((f) => f !== value)
-                        : [...bp.formats, value],
-                    }
-                  : bp
-              ),
-            }
-          : r
+        i === index ? { ...r, batchPrices: [...r.batchPrices, { batchId: "", price: "" }] } : r
       )
     );
   }
@@ -150,21 +123,6 @@ export function ToyForm({
     setRows((rs) =>
       rs.map((r, i) =>
         i === index ? { ...r, batchPrices: r.batchPrices.filter((_, n) => n !== bi) } : r
-      )
-    );
-  }
-
-  function toggleFormat(index: number, value: string) {
-    setRows((rs) =>
-      rs.map((r, i) =>
-        i === index
-          ? {
-              ...r,
-              formats: r.formats.includes(value)
-                ? r.formats.filter((f) => f !== value)
-                : [...r.formats, value],
-            }
-          : r
       )
     );
   }
@@ -188,7 +146,6 @@ export function ToyForm({
           price: Number(r.price),
           stock: Number(r.stock),
           status: r.status,
-          formats: r.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
         });
         const entriesFor = (r: ToyRow) =>
           r.batchPrices
@@ -196,14 +153,13 @@ export function ToyForm({
             .map((b) => ({
               batchId: b.batchId,
               price: Number(b.price),
-              formats: b.formats as ("HC" | "PB" | "BB" | "SET" | "SB")[],
             }));
 
         if (initial?.id) {
           const r = rows[0];
           await updateToy(initial.id, toyPayload(r));
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
-          toast.success("Toy diubah");
+          toast.success("Mainan diubah");
         } else {
           for (const r of rows) {
             const toy = await createToy(toyPayload(r));
@@ -212,12 +168,12 @@ export function ToyForm({
               await setToyBatchPrices({ toyId: toy.id, entries });
             }
           }
-          toast.success(`${rows.length} toy berhasil dibuat`);
+          toast.success(`${rows.length} mainan berhasil dibuat`);
         }
         router.push("/admin/toys");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to save toy");
+        toast.error(err instanceof Error ? err.message : "Failed to save mainan");
       }
     });
   }
@@ -228,7 +184,7 @@ export function ToyForm({
         <div key={r.id ?? i} className="space-y-3 border border-input rounded-lg p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold">
-              {rows.length === 1 ? "Toy" : `Toy ${i + 1}`}
+              {rows.length === 1 ? "Mainan" : `Mainan ${i + 1}`}
             </span>
             {i > 0 && (
               <Button
@@ -259,13 +215,12 @@ export function ToyForm({
             <Label>Gambar</Label>
             <BookImagePicker
               image={r.image}
-              alt={r.title || "Toy image"}
+              alt={r.title || "Mainan image"}
               onChange={(url) => upRow(i, "image", url)}
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="space-y-1.5">
               <Label>Publisher</Label>
               <Input
                 value={r.publisher}
@@ -274,26 +229,6 @@ export function ToyForm({
                 className="placeholder:text-[#b5b5b5]"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Format</Label>
-              <div className="flex flex-wrap gap-3 pt-2">
-                {FORMATS.map((f) => (
-                  <label
-                    key={f.value}
-                    className="flex cursor-pointer items-center gap-1.5 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={r.formats.includes(f.value)}
-                      onChange={() => toggleFormat(i, f.value)}
-                      className="h-4 w-4 accent-[#D97A7A]"
-                    />
-                    {f.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
 
           <div className="space-y-1.5">
             <Label>Informasi</Label>
@@ -420,23 +355,6 @@ export function ToyForm({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 pl-1">
-                  <span className="text-xs text-muted-foreground">Format:</span>
-                  {FORMATS.map((f) => (
-                    <label
-                      key={f.value}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={br.formats.includes(f.value)}
-                        onChange={() => toggleBatchFormat(i, bi, f.value)}
-                        className="h-4 w-4 accent-[#D97A7A]"
-                      />
-                      {f.label}
-                    </label>
-                  ))}
-                </div>
               </div>
               ))}
               {r.batchPrices.length > 0 && (
@@ -471,7 +389,7 @@ export function ToyForm({
           disabled={pending}
           className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
-          {pending ? "Menyimpan..." : initial?.id ? "Ubah Toy" : "Buat Toy"}
+          {pending ? "Menyimpan..." : initial?.id ? "Ubah Mainan" : "Buat Mainan"}
         </Button>
         <Button
           type="button"

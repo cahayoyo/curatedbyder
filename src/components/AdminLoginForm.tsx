@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,6 +101,18 @@ export function AdminLoginForm() {
             {loading ? "Memproses..." : "Masuk"}
           </Button>
         </form>
+
+        <div className="mt-4">
+          <Link href="/" className="block">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border border-black bg-transparent text-black transition-colors hover:bg-black hover:text-white"
+            >
+              Kunjungi Website Dashboard User
+            </Button>
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

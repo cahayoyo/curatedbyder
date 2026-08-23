@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
-import { FORMAT_TYPE, BOOK_STATUS_TYPE } from "@/lib/orderOptions";
+import { BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
 const toySchema = z.object({
   title: z.string().trim().min(1),
@@ -15,7 +15,6 @@ const toySchema = z.object({
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
   status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
-  formats: z.array(z.enum(FORMAT_TYPE)).default([]),
 });
 
 function orNull(v: string | undefined | null): string | null {
@@ -46,7 +45,6 @@ export async function createToy(input: z.infer<typeof toySchema>) {
         price: data.price,
         stock: data.stock,
         status: data.status,
-        formats: data.formats,
       },
     });
     revalidatePath("/admin/toys");
@@ -76,7 +74,6 @@ export async function updateToy(id: string, input: z.infer<typeof toySchema>) {
         price: data.price,
         stock: data.stock,
         status: data.status,
-        formats: data.formats,
       },
     });
     revalidatePath("/admin/toys");
@@ -102,7 +99,6 @@ const toyBatchPriceSchema = z.object({
     z.object({
       batchId: z.string().min(1),
       price: z.number().int().min(0),
-      formats: z.array(z.enum(FORMAT_TYPE)).default([]),
     })
   ),
 });
@@ -120,7 +116,6 @@ export async function setToyBatchPrices(input: z.infer<typeof toyBatchPriceSchem
           toyId: data.toyId,
           batchId: e.batchId,
           price: e.price,
-          formats: e.formats,
         })),
       });
     }

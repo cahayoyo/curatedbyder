@@ -311,9 +311,11 @@ export default async function AdminBooksPage({
                               <span>—</span>
                             )}
                           </span>
-                          <span className="text-[10px] font-medium text-muted-foreground">
-                            {v.label}
-                          </span>
+                          {variants.length > 1 && (
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              {v.label}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

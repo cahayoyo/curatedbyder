@@ -19,7 +19,7 @@ export async function GET(
       items: {
         include: {
           book: { select: { title: true, formats: true, status: true } },
-          toy: { select: { title: true, formats: true, status: true } },
+          toy: { select: { title: true, status: true } },
         },
       },
     },
@@ -37,7 +37,7 @@ export async function GET(
       subtotal: it.subtotal,
       book: {
         title: it.book?.title ?? it.toy?.title ?? "—",
-        formats: it.book?.formats ?? it.toy?.formats ?? [],
+        formats: it.book?.formats ?? [],
         status: (it.book ?? it.toy)?.status ?? "PRE_ORDER",
       },
     })),

@@ -160,9 +160,7 @@ const orderInclude = {
         toy: {
           select: {
             title: true,
-            formats: true,
             status: true,
-            batchPrices: { select: { batchId: true, formats: true } },
           },
         },
       },
@@ -184,7 +182,7 @@ const orderInclude = {
 
   type ItemOrToy = {
     book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
-    toy: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER"; batchPrices: { batchId: string; formats: string[] }[] } | null;
+    toy: { title: string; status: "READY_STOCK" | "PRE_ORDER" } | null;
   };
 
   function itemTitle(it: ItemOrToy): string {
@@ -192,7 +190,8 @@ const orderInclude = {
   }
 
   function itemFormats(orderBatchId: string | undefined, it: ItemOrToy): string[] {
-    const src = it.book ?? it.toy;
+    if (it.toy) return [];
+    const src = it.book;
     if (!src) return [];
     const bp = src.batchPrices.find((x) => x.batchId === orderBatchId);
     return bp ? bp.formats : src.formats;

@@ -21,7 +21,7 @@ import { formatIDR, formatRp } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
 type Book = { id: string; title: string; price: number; stock: number; formats?: string[] };
-type Toy = { id: string; title: string; price: number; stock: number; formats?: string[] };
+type Toy = { id: string; title: string; price: number; stock: number };
 type Batch = { id: string; name: string };
 type BatchPrice = { batchId: string; bookId: string; price: number; formats?: string[] };
 type LineItem = {
@@ -222,7 +222,6 @@ export function OrderForm({
       toyId: t.id,
       unitPrice: t.price,
       label: `${t.title} (stok ${t.stock})`,
-      formats: t.formats ?? [],
     }));
   }, [toys]);
 
@@ -250,7 +249,7 @@ export function OrderForm({
   }
 
   function itemFormatsOf(item: LineItem): string[] {
-    if (item.kind === "toy") return toyOptionForItem(item)?.formats ?? [];
+    if (item.kind === "toy") return [];
     return bookOptionForItem(item)?.formats ?? [];
   }
 

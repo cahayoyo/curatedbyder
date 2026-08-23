@@ -6,7 +6,7 @@ export default async function EditToyPage({ params }: { params: { id: string } }
   const [toy, batches] = await Promise.all([
     db.toy.findUnique({
       where: { id: params.id },
-      include: { batchPrices: { select: { batchId: true, price: true, formats: true } } },
+      include: { batchPrices: { select: { batchId: true, price: true } } },
     }),
     db.batch.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
@@ -14,7 +14,7 @@ export default async function EditToyPage({ params }: { params: { id: string } }
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
-      <h2 className="text-2xl font-bold">Ubah Toy: {toy.title}</h2>
+      <h2 className="text-2xl font-bold">Ubah Mainan: {toy.title}</h2>
       <ToyForm
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         initial={{
@@ -26,8 +26,7 @@ export default async function EditToyPage({ params }: { params: { id: string } }
           price: toy.price,
           stock: toy.stock,
           status: toy.status,
-          formats: toy.formats,
-          batchPrices: toy.batchPrices.map((bp) => ({ batchId: bp.batchId, price: bp.price, formats: bp.formats as string[] })),
+          batchPrices: toy.batchPrices.map((bp) => ({ batchId: bp.batchId, price: bp.price })),
         }}
       />
     </div>

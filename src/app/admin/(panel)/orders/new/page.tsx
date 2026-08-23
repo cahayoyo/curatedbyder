@@ -13,7 +13,7 @@ export default async function NewOrderPage() {
       orderBy: { title: "asc" },
     }),
     db.toy.findMany({
-      select: { id: true, title: true, price: true, stock: true, formats: true },
+      select: { id: true, title: true, price: true, stock: true },
       orderBy: { title: "asc" },
     }),
     db.batch.findMany({
@@ -31,7 +31,7 @@ export default async function NewOrderPage() {
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({ id: b.id, title: b.title, price: b.price, stock: b.stock, formats: b.formats }))}
-        toys={toys.map((t) => ({ id: t.id, title: t.title, price: t.price, stock: t.stock, formats: t.formats }))}
+        toys={toys.map((t) => ({ id: t.id, title: t.title, price: t.price, stock: t.stock }))}
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         batchPrices={batchPrices.map((bp) => ({ batchId: bp.batchId, bookId: bp.bookId, price: bp.price, formats: bp.formats }))}
       />

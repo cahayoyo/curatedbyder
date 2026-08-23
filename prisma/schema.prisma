@@ -72,7 +72,6 @@ model Toy {
   price       Int
   stock       Int             @default(0)
   status      StockStatus     @default(READY_STOCK)
-  formats     Format[]        @default([])
   createdAt   DateTime        @default(now())
   batchPrices ToyBatchPrice[]
   orderItems  OrderItem[]
@@ -85,7 +84,6 @@ model ToyBatchPrice {
   batchId   String
   batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
   price     Int
-  formats   Format[] @default([])
   createdAt DateTime @default(now())
 
   @@unique([toyId, batchId])

@@ -100,7 +100,7 @@ async function main() {
     let existing = await db.toy.findUnique({ where: { title } });
     if (!existing) {
       existing = await db.toy.create({
-        data: { title, price, stock: 0, status: "PRE_ORDER", formats: [] },
+        data: { title, price, stock: 0, status: "PRE_ORDER" },
       });
     }
     toyMap.set(title, existing.id);

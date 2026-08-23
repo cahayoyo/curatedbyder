@@ -19,10 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Building2, Info, MoreVertical, Pencil, Tag, Trash2, ImageIcon, ToyBrick, Banknote, Boxes } from "lucide-react";
+import { Building2, Info, MoreVertical, Pencil, Trash2, ImageIcon, ToyBrick, Banknote, Boxes } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { FormatBadge } from "@/components/FormatBadge";
 
 type ToyDTO = {
   id: string;
@@ -30,7 +29,6 @@ type ToyDTO = {
   image: string | null;
   publisher: string | null;
   info: string | null;
-  formats: string[];
   price: number;
   stock: number;
   status: "READY_STOCK" | "PRE_ORDER";
@@ -111,7 +109,7 @@ export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Aksi toy"
+              aria-label="Aksi mainan"
               className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-black/20 hover:text-black"
             >
               <MoreVertical className="h-5 w-5" />
@@ -157,17 +155,6 @@ export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }
 
       <div className="mt-2 h-px w-full bg-black/15" />
 
-      <div className="mt-2 flex items-center gap-1.5 text-sm">
-        <Tag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <div className="flex flex-wrap gap-1">
-          {toy.formats.length > 0 ? (
-            toy.formats.map((f) => <FormatBadge key={f} value={f} />)
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </div>
-      </div>
-
       <div className="mt-2 h-px w-full bg-black/15" />
 
       <div className="mt-2 flex items-center justify-between">
@@ -193,7 +180,7 @@ export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }
           <DialogHeader>
             <DialogTitle>Konfirmasi Hapus</DialogTitle>
             <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus toy &quot;{toy.title}&quot;?
+              Apakah anda benar ingin menghapus mainan &quot;{toy.title}&quot;?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2">

@@ -12,13 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   ToyBrick,
   Pencil,
-  ToyBrick as ToyPlus,
   Package,
   ListOrdered,
   Banknote,
   Boxes,
   Hand,
-  Tag,
   Building2,
   Info,
   ImageIcon,
@@ -36,7 +34,6 @@ import { deleteToy } from "@/server/actions/toys";
 import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
 import { ToyCard } from "@/components/ToyCard";
-import { FormatBadge } from "@/components/FormatBadge";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -121,14 +118,14 @@ export default async function AdminToysPage({
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <ToyBrick className="h-6 w-6" />
-          Daftar Toys
+          Daftar Mainan
         </h2>
         <NavActionButton
           href="/admin/toys/new"
-          icon={<ToyPlus className="h-4 w-4" />}
+          icon={<ToyBrick className="h-4 w-4" />}
           className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
         >
-          Tambah Toy
+          Tambah Mainan
         </NavActionButton>
       </div>
 
@@ -136,21 +133,21 @@ export default async function AdminToysPage({
         <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Package className="h-4 w-4" />
-            Total Toys
+            Total Mainan
           </p>
           <p className="text-2xl font-bold">{totalFiltered}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <PackageCheck className="h-4 w-4" />
-            Total Toys Ready Stok
+            Total Mainan Ready Stok
           </p>
           <p className="text-2xl font-bold">{readyCount}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            Total Toys Pre Order
+            Total Mainan Pre Order
           </p>
           <p className="text-2xl font-bold">{preOrderCount}</p>
         </div>
@@ -174,7 +171,6 @@ export default async function AdminToysPage({
               image: b.image,
               publisher: b.publisher,
               info: b.info,
-              formats: b.formats as string[],
               price: b.price,
               stock: b.stock,
               status: b.status,
@@ -184,7 +180,7 @@ export default async function AdminToysPage({
         ))}
         {toys.length === 0 && (
           <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-            Belum ada toy.
+            Belum ada mainan.
           </div>
         )}
       </div>
@@ -221,12 +217,6 @@ export default async function AdminToysPage({
               </TableHead>
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
-                  <Tag className="h-3.5 w-3.5" />
-                  Format
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
                   <Banknote className="h-3.5 w-3.5" />
                   <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
                 </span>
@@ -256,19 +246,16 @@ export default async function AdminToysPage({
               const variants: {
                 key: string;
                 label: string;
-                formats: string[];
                 price: number;
               }[] = [
                 {
                   key: `${b.id}-main`,
                   label: "Utama",
-                  formats: (b.formats ?? []) as string[],
                   price: b.price,
                 },
                 ...b.batchPrices.map((bp) => ({
                   key: bp.id,
                   label: bp.batch.name,
-                  formats: (bp.formats ?? []) as string[],
                   price: bp.price,
                 })),
               ];
@@ -303,20 +290,9 @@ export default async function AdminToysPage({
                         </>
                       )}
                       <TableCell>
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="flex flex-wrap gap-1">
-                            {v.formats.length > 0 ? (
-                              v.formats.map((f) => <FormatBadge key={f} value={f} />)
-                            ) : (
-                              <span>—</span>
-                            )}
-                          </span>
-                          <span className="text-[10px] font-medium text-muted-foreground">
-                            {v.label}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
+                        {variants.length > 1 && (
+                          <span className="mr-1 text-[10px] font-medium text-muted-foreground">{v.label}</span>
+                        )}
                         {formatIDR(v.price)}
                       </TableCell>
                       {vi === 0 && (
@@ -359,8 +335,8 @@ export default async function AdminToysPage({
                               </NavActionButton>
                               <ConfirmDeleteButton
                                 title="Konfirmasi Hapus"
-                                description={`Apakah anda benar ingin menghapus toy "${b.title}"?`}
-                                successMessage="Toy dihapus"
+                                description={`Apakah anda benar ingin menghapus mainan "${b.title}"?`}
+                                successMessage="Mainan dihapus"
                                 onConfirm={deleteToy.bind(null, b.id)}
                               />
                             </div>
@@ -374,8 +350,8 @@ export default async function AdminToysPage({
             })}
             {toys.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
-                  Belum ada toy.
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Belum ada mainan.
                 </TableCell>
               </TableRow>
             )}

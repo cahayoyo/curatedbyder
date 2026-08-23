@@ -18,7 +18,7 @@ export default async function EditOrderPage({ params }: { params: { id: string }
       orderBy: { title: "asc" },
     }),
     db.toy.findMany({
-      select: { id: true, title: true, price: true, stock: true, formats: true },
+      select: { id: true, title: true, price: true, stock: true },
       orderBy: { title: "asc" },
     }),
     db.batch.findMany({
@@ -49,7 +49,6 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           title: t.title,
           price: t.price,
           stock: t.stock,
-          formats: t.formats,
         }))}
         batches={batches.map((b) => ({ id: b.id, name: b.name }))}
         batchPrices={batchPrices.map((bp) => ({ batchId: bp.batchId, bookId: bp.bookId, price: bp.price, formats: bp.formats }))}
