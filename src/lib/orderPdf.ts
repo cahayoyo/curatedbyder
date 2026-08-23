@@ -72,10 +72,10 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     .lastAutoTable.finalY + 10;
 
   doc.setFontSize(11);
-  doc.text(`Total : ${formatIDR(order.total)}`, pageWidth - margin, lastY, { align: "right" });
-  doc.text(`DP    : ${formatIDR(order.dp ?? 0)}`, pageWidth - margin, lastY + 6, { align: "right" });
-  doc.text(`Sisa  : ${formatIDR(order.remaining ?? 0)}`, pageWidth - margin, lastY + 12, { align: "right" });
-  doc.text(`Ongkir: ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`, pageWidth - margin, lastY + 18, { align: "right" });
+  doc.text(`Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`, pageWidth - margin, lastY, { align: "right" });
+  doc.text(`Total  : ${formatIDR(order.total)}`, pageWidth - margin, lastY + 6, { align: "right" });
+  doc.text(`DP     : ${formatIDR(order.dp ?? 0)}`, pageWidth - margin, lastY + 12, { align: "right" });
+  doc.text(`Sisa   : ${formatIDR(order.remaining ?? 0)}`, pageWidth - margin, lastY + 18, { align: "right" });
 
   doc.setFontSize(9);
   doc.text(`Status Bayar : ${PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}`, margin, lastY + 12);

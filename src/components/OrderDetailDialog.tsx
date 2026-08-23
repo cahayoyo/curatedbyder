@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import {
   Calculator,
   CalendarClock,
@@ -206,12 +206,19 @@ export function OrderDetailDialog({
         <div className="space-y-2 text-sm">
           {order.items.map((it, i) => (
             <div key={it.id || i} className="rounded-lg border p-2">
-              <p className="flex flex-wrap items-center font-medium">
-                {it.book.title}
+              <p className="line-clamp-1 min-w-0 flex-1 font-medium">{it.book.title}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-1">
                 <ProductTag kind={it.kind} />
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {it.book.formats.length ? `Format: ${it.book.formats.join(", ")}` : ""}
+                {it.book.formats.length
+                  ? it.book.formats.map((f) => (
+                      <span
+                        key={f}
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                      >
+                        {f}
+                      </span>
+                    ))
+                  : ""}
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
                 <span>Qty: {it.quantity}</span>
@@ -225,6 +232,13 @@ export function OrderDetailDialog({
         <div className="my-1 h-px bg-black/15" />
 
         <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Truck className="h-3.5 w-3.5" />
+              Ongkir
+            </span>
+            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
+          </div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Calculator className="h-3.5 w-3.5" />

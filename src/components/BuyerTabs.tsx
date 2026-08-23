@@ -27,6 +27,7 @@ import {
   etaLabel,
 } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
+import { dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
 import {
   Calculator,
@@ -35,13 +36,17 @@ import {
   Eye,
   FileText,
   Layers,
+  ListOrdered,
+  MapPin,
   MessageCircle,
   MoreVertical,
   Package,
+  PackageCheck,
   Phone,
   PiggyBank,
   ReceiptText,
   Search,
+  ShieldCheck,
   ShoppingCart,
   Truck,
   UserRound,
@@ -51,6 +56,8 @@ import {
 type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
+  subtotal: number;
+  kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[] };
 };
 
@@ -69,6 +76,7 @@ export type OrderDTO = {
   batchName: string | null;
   buyerName: string;
   buyerPhone: string | null;
+  buyerContact: string | null;
   items: OrderItemDTO[];
 };
 
@@ -107,6 +115,22 @@ function SummaryCol({ icon, title, children }: { icon: React.ReactNode; title: s
       <span className="font-semibold">{children}</span>
     </div>
   );
+}
+
+function ProductTag({ kind }: { kind?: string }) {
+  if (kind === "BUKU")
+    return (
+      <span className="ml-1 inline-flex items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+        Buku
+      </span>
+    );
+  if (kind === "MAINAN")
+    return (
+      <span className="ml-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+        Mainan
+      </span>
+    );
+  return null;
 }
 
 function OrderCard({ order }: { order: OrderDTO }) {
@@ -151,17 +175,20 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
           {order.buyerName}
         </InfoRow>
-        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="HP:">
-          {order.buyerPhone || "—"}
-        </InfoRow>
         <InfoRow icon={<Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Batch:">
           {order.batchName || "—"}
         </InfoRow>
-        <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
-          {new Date(order.soldAt).toLocaleDateString("id-ID")}
+        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="HP:">
+          {order.buyerPhone || "—"}
         </InfoRow>
         <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="ETA:">
           {etaLabel(order.eta)}
+        </InfoRow>
+      </div>
+
+      <div className="mt-2.5 flex justify-center text-sm">
+        <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
+          {new Date(order.soldAt).toLocaleDateString("id-ID")}
         </InfoRow>
       </div>
 
@@ -201,8 +228,11 @@ function OrderCard({ order }: { order: OrderDTO }) {
       <div className="mt-2 h-px w-full bg-black/15" />
 
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
-        <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
-          {formatIDR(order.total)}
+        <SummaryCol icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
+          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
+        </SummaryCol>
+        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
+          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
         </SummaryCol>
         <SummaryCol icon={<Wallet className="h-3.5 w-3.5" />} title="DP">
           {formatIDR(order.dp ?? 0)}
@@ -210,11 +240,8 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa">
           {formatIDR(order.remaining ?? 0)}
         </SummaryCol>
-        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
-          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
-        </SummaryCol>
-        <SummaryCol icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
-          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
+        <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
+          {formatIDR(order.total)}
         </SummaryCol>
       </div>
 
@@ -266,56 +293,86 @@ function BuyerOrderDetail({
         </DialogHeader>
 
         <div className="space-y-2.5 text-sm">
-          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
-            {order.buyerName}
-          </InfoRow>
-          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="HP:">
-            {order.buyerPhone || "—"}
-          </InfoRow>
-          <InfoRow icon={<Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Batch:">
-            {order.batchName || "—"}
-          </InfoRow>
-          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
-            {new Date(order.soldAt).toLocaleDateString("id-ID")}
-          </InfoRow>
-          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="ETA:">
-            {etaLabel(order.eta)}
-          </InfoRow>
-          <InfoRow icon={<Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Ongkir:">
-            {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
-          </InfoRow>
-          <InfoRow icon={<Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No Resi:">
-            {order.trackingNumber || "—"}
-          </InfoRow>
-          <InfoRow icon={<ReceiptText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Status:">
-            {STATUS_LABEL[order.status] || order.status}
-          </InfoRow>
-          <InfoRow icon={<Wallet className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Bayar:">
-            {PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}
-          </InfoRow>
+          <div className="flex items-center gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Tanggal</span>
+            <span className="ml-auto font-medium">{dateLabel(order.soldAt)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Pembeli</span>
+            <span className="ml-auto text-right font-medium">{order.buyerName}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">No. HP</span>
+            <span className="ml-auto text-right font-medium">{order.buyerPhone || "—"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Alamat</span>
+            <span className="ml-auto text-right font-medium">{order.buyerContact || "—"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Batch</span>
+            <span className="ml-auto font-medium">{order.batchName || "—"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">ETA</span>
+            <span className="ml-auto font-medium">{etaLabel(order.eta)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Ongkir</span>
+            <span className="ml-auto font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">No Resi</span>
+            <span className="ml-auto text-right font-mono font-medium">{order.trackingNumber || "—"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Status Pesanan</span>
+            <span className="ml-auto font-medium">{STATUS_LABEL[order.status] || order.status}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Status Pembayaran</span>
+            <span className="ml-auto font-medium">{PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}</span>
+          </div>
         </div>
 
         <div className="my-1 h-px w-full bg-black/15" />
 
+        <p className="flex items-center gap-1.5 text-sm font-semibold">
+          <ListOrdered className="h-4 w-4" />
+          Item
+        </p>
         <div className="space-y-2 text-sm">
           {order.items.map((it, i) => (
             <div key={i} className="rounded-lg border p-2">
-              <p className="flex flex-wrap items-center font-medium">{it.book.title}</p>
-              {it.book.formats.length > 0 && (
-                <p className="mt-0.5 flex flex-wrap items-center gap-1">
-                  {it.book.formats.map((f) => (
-                    <span
-                      key={f}
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                    >
-                      {f}
-                    </span>
-                  ))}
-                </p>
-              )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                Qty: {it.quantity} · Harga: {formatIDR(it.unitPrice)}
+              <p className="line-clamp-1 min-w-0 flex-1 font-medium">{it.book.title}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-1">
+                <ProductTag kind={it.kind} />
+                {it.book.formats.length
+                  ? it.book.formats.map((f) => (
+                      <span
+                        key={f}
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                      >
+                        {f}
+                      </span>
+                    ))
+                  : ""}
               </p>
+              <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
+                <span>Qty: {it.quantity}</span>
+                <span>Harga: {formatIDR(it.unitPrice)}</span>
+                <span className="text-right font-medium">{formatIDR(it.subtotal)}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -323,6 +380,13 @@ function BuyerOrderDetail({
         <div className="my-1 h-px bg-black/15" />
 
         <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Truck className="h-3.5 w-3.5" />
+              Ongkir
+            </span>
+            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
+          </div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Calculator className="h-3.5 w-3.5" />

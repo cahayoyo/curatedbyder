@@ -219,10 +219,17 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
       <div className="mt-2 flex flex-wrap items-start justify-center gap-x-8 gap-y-2 text-sm">
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calculator className="h-3.5 w-3.5" />
-            <span>Total</span>
+            <Package className="h-3.5 w-3.5" />
+            <span>No Resi</span>
           </div>
-          <span className="font-bold">{formatIDR(order.total)}</span>
+          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "--"}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Truck className="h-3.5 w-3.5" />
+            <span>Ongkir</span>
+          </div>
+          <span className="font-semibold">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -240,17 +247,10 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Truck className="h-3.5 w-3.5" />
-            <span>Ongkir</span>
+            <Calculator className="h-3.5 w-3.5" />
+            <span>Total</span>
           </div>
-          <span className="font-semibold">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Package className="h-3.5 w-3.5" />
-            <span>No Resi</span>
-          </div>
-          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "--"}</span>
+          <span className="font-bold">{formatIDR(order.total)}</span>
         </div>
       </div>
 

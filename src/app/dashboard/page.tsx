@@ -86,7 +86,7 @@ async function OrdersSection({
   const orders = await db.order.findMany({
     where,
     include: {
-      buyer: { select: { name: true, phone: true } },
+      buyer: { select: { name: true, phone: true, contact: true } },
       batch: { select: { name: true } },
       items: {
         include: {
@@ -113,9 +113,12 @@ async function OrdersSection({
     batchName: s.batch?.name ?? null,
     buyerName: s.buyer.name,
     buyerPhone: s.buyer.phone,
+    buyerContact: s.buyer.contact,
     items: s.items.map((i) => ({
       quantity: i.quantity,
       unitPrice: i.unitPrice,
+      subtotal: i.quantity * i.unitPrice,
+      kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
       book: {
         title: i.book?.title ?? i.toy?.title ?? "—",
         formats: i.book?.formats ?? [],
