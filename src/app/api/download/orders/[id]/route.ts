@@ -1,18 +1,7 @@
 import { db } from "@/lib/db";
 import { buildOrderPdf } from "@/lib/orderPdf";
 import { NextRequest, NextResponse } from "next/server";
-import { readFileSync } from "fs";
-import { join } from "path";
-import { cwd } from "process";
-
-function logoBase64(): string {
-  try {
-    const data = readFileSync(join(cwd(), "src", "assets", "img", "logoder.jpg"));
-    return data.toString("base64");
-  } catch {
-    return "";
-  }
-}
+import { LOGO_BASE64 } from "@/lib/logo";
 
 export async function GET(
   _req: NextRequest,
@@ -43,7 +32,7 @@ export async function GET(
 
   const dto = {
     ...order,
-    logoBase64: logoBase64(),
+    logoBase64: LOGO_BASE64,
     items: order.items.map((it) => ({
       quantity: it.quantity,
       unitPrice: it.unitPrice,

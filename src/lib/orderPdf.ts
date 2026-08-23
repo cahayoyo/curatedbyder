@@ -28,17 +28,20 @@ type OrderPdfDTO = {
 const LABEL_X = 14;
 const VALUE_GAP = 3;
 
-function infoText(doc: jsPDF, label: string, value: string, y: number) {
+function infoText(doc: jsPDF, label: string, value: string, y: number, labelW: number) {
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.text(label, LABEL_X, y);
-  const w = doc.getTextWidth(label);
-  doc.text(`: ${value}`, LABEL_X + w + VALUE_GAP, y);
+  doc.text(`: ${value}`, LABEL_X + labelW + VALUE_GAP, y);
 }
 
 export function buildOrderPdf(order: OrderPdfDTO) {
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 14;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  const labelW = doc.getTextWidth("Status Bayar");
 
   const logo = order.logoBase64;
   let titleX = margin;
@@ -62,7 +65,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ["ETA", etaLabel(order.eta)],
   ];
   infoRows.forEach(([label, value], i) => {
-    infoText(doc, label, value, 28 + i * 5.2);
+    infoText(doc, label, value, 28 + i * 5.2, labelW);
   });
 
   autoTable(doc, {
@@ -77,56 +80,36 @@ export function buildOrderPdf(order: OrderPdfDTO) {
       formatIDR(it.unitPrice),
       formatIDR(it.subtotal),
     ]),
+    foot: [
+      ["", "", "", "", "", "DP", formatIDR(order.dp ?? 0)],
+      ["", "", "", "", "", "Sisa", formatIDR(order.remaining ?? 0)],
+      ["", "", "", "", "", "Ongkir", order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
+      ["", "", "", "", "", "Total", formatIDR(order.total)],
+    ],
     styles: { fontSize: 9, cellPadding: 2 },
     headStyles: { fillColor: [217, 122, 122] },
+    footStyles: { fillColor: [255, 241, 238], fontStyle: "bold", halign: "right", textColor: [0, 0, 0] },
     columnStyles: {
       0: { cellWidth: 8 },
       4: { cellWidth: 12, halign: "center" },
       5: { cellWidth: 30, halign: "right" },
       6: { cellWidth: 32, halign: "right" },
     },
+    didParseCell: (data) => {
+      if (data.section === "foot") {
+        data.cell.styles.halign = data.column.index >= 5 ? "right" : "center";
+      }
+    },
     theme: "grid",
   });
 
   const lastY = (doc as unknown as { lastAutoTable: { finalY: number } })
-    .lastAutoTable.finalY + 6;
-
-  const totals: [string, string, string, string][] = [
-    ["DP", "Sisa", "Ongkir", "Total"],
-    [
-      formatIDR(order.dp ?? 0),
-      formatIDR(order.remaining ?? 0),
-      order.shippingCost != null ? formatIDR(order.shippingCost) : "—",
-      formatIDR(order.total),
-    ],
-  ];
-
-  const totalWidth = 90;
-  const xStart = pageWidth - margin - totalWidth;
-  autoTable(doc, {
-    startY: lastY + 6,
-    head: [totals[0]],
-    body: [totals[1]],
-    theme: "grid",
-    styles: { fontSize: 10, cellPadding: 2 },
-    headStyles: { fillColor: [217, 122, 122], textColor: [255, 255, 255] },
-    bodyStyles: { fillColor: [255, 241, 238] },
-    columnStyles: {
-      0: { halign: "right", cellWidth: 22 },
-      1: { halign: "right", cellWidth: 22 },
-      2: { halign: "right", cellWidth: 22 },
-      3: { halign: "right", cellWidth: 24 },
-    },
-    margin: { left: xStart, right: margin },
-    tableWidth: totalWidth,
-  });
-
-  const statusY = lastY + 20;
+    .lastAutoTable.finalY + 14;
 
   doc.setFontSize(10);
-  infoText(doc, "Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus, statusY);
-  infoText(doc, "Status Order", STATUS_LABEL[order.status] || order.status, statusY + 6);
-  infoText(doc, "No Resi", order.trackingNumber || "--", statusY + 12);
+  infoText(doc, "Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus, lastY, labelW);
+  infoText(doc, "Status Order", STATUS_LABEL[order.status] || order.status, lastY + 6, labelW);
+  infoText(doc, "No Resi", order.trackingNumber || "--", lastY + 12, labelW);
 
   return doc;
 }
