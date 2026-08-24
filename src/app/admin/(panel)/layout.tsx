@@ -21,12 +21,12 @@ export default async function AdminLayout({
         className="border-b"
         style={{ backgroundColor: "#FED6D6" }}
       >
-        <div className="relative mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center md:hidden">
+        <div className="mx-auto grid h-14 max-w-5xl grid-cols-3 items-center gap-2 px-4 md:flex">
+          <div className="flex md:hidden">
             <AdminNav />
           </div>
 
-          <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 md:static md:translate-x-0 md:translate-y-0">
+          <div className="flex items-center justify-self-center gap-2 md:mr-2 md:justify-self-start">
             <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
             <div className="flex flex-col leading-tight">
               <span className="font-semibold">CuratedByDer</span>
@@ -34,11 +34,14 @@ export default async function AdminLayout({
             </div>
           </div>
 
-          <div className="hidden flex-1 justify-center md:flex">
+          <div className="hidden md:flex md:flex-1 md:justify-center">
             <AdminNav />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex justify-self-end md:hidden">
+            <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
+          </div>
+          <div className="hidden md:flex md:justify-self-end">
             <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
           </div>
         </div>
