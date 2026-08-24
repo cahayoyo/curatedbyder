@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { UserMenu } from "@/components/UserMenu";
 import { UserNav } from "@/components/UserNav";
-import logoder from "@/assets/img/logoder.jpg";
+import logoder from "@/assets/img/logoderbaru.jpeg";
 
 export default async function DashboardLayout({
   children,

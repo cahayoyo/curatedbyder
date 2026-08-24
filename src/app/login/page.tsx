@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { PhotoCarousel } from "@/components/PhotoCarousel";
 import { HomeLogin } from "@/components/HomeLogin";
 import { BookAccents } from "@/components/BookAccents";
-import logo from "@/assets/img/logoder.jpg";
+import logo from "@/assets/img/logoderbaru.jpeg";
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions);
