@@ -74,38 +74,50 @@ export type OrderDTO = {
   items: OrderItemDTO[];
 };
 
-function buildWaText(order: OrderDTO, pdfUrl: string): string {
-  const lines: string[] = [
-    `Halo kak ${order.buyer.name},`,
+function getPeriod(date: Date): string {
+  const hour =
+    Number(
+      new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Jakarta",
+      }).format(date)
+    ) % 24;
+  if (hour >= 18 || hour === 0) return "malam";
+  if (hour <= 10) return "pagi";
+  if (hour <= 14) return "siang";
+  return "sore";
+}
+
+function buildWaText(order: OrderDTO): string {
+  const period = getPeriod(new Date());
+  const batch = order.batch?.name ?? "—";
+  const eta = etaLabel(order.eta);
+const lines: string[] = [
+    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order Batch: *${batch}*, ETA: *${eta}*. Mohon diperiksa kembali ya kak \u{1F60A}\u{1F64F}\u{1F3FC}`,
     "",
-    "*Terimakasih untuk pembelian produk anda*",
+    "*Detail Pesanan*",
+  ];
+  order.items.forEach((it, i) => {
+    if (i > 0) lines.push("");
+    const kindLabel = it.kind === "MAINAN" ? "Mainan" : "Buku";
+    lines.push(`Nama Produk ${kindLabel} : ${it.book.title}`);
+    lines.push(`Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`);
+  });
+  lines.push(
     "",
-    "*Detail Pembelian*",
     `Invoice : ${order.invoiceNumber}`,
-    `Total Harga: ${formatIDR(order.total)}`,
+    `Total : ${formatIDR(order.total)}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
     `No Resi : ${order.trackingNumber || "--"}`,
     `Alamat : ${order.buyer.contact || "—"}`,
     "",
-    "*Detail Produk*",
-  ];
-  if (order.items.length === 1) {
-    const it = order.items[0];
-    lines.push(
-      `Nama Produk : ${it.book.title}`,
-      `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
-    );
-  } else {
-    order.items.forEach((it, i) => {
-      if (i > 0) lines.push("");
-      lines.push(`Produk ${i + 1}`);
-      lines.push(
-        `Nama Produk : ${it.book.title}`,
-        `Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`
-      );
-    });
-  }
-  lines.push("", `Link Invoice Order PDF :`, `${pdfUrl}`);
+    "Transfer hanya melalui rekening :",
+    "BCA 8990789330 Adera Nurul",
+    "JAGO 103600160006 Adera Nurul",
+    "",
+    "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak \u{1F970}",
+  );
   return lines.join("\n");
 }
 
@@ -116,8 +128,7 @@ function downloadPdf(order: OrderDTO) {
 
 function openWa(order: OrderDTO) {
   if (!order.buyer.phone) return;
-  const pdfUrl = `${window.location.origin}/api/download/orders/${order.id}`;
-  const link = waLink(order.buyer.phone, buildWaText(order, pdfUrl));
+  const link = waLink(order.buyer.phone, buildWaText(order));
   if (link) window.open(link, "_blank");
 }
 
