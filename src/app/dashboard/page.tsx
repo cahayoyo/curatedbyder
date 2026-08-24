@@ -28,16 +28,11 @@ export default async function DashboardPage({
   const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const userBatches = await db.order.findMany({
-    where: { buyerId: userId },
-    select: { batch: { select: { id: true, name: true } } },
-    distinct: ["batchId"],
-    orderBy: { batch: { name: "asc" } },
+  const batches = await db.batch.findMany({
+    where: { orders: { some: { buyerId: userId } } },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
   });
-
-  const batches = userBatches
-    .map((o) => o.batch)
-    .filter((b): b is { id: string; name: string } => b !== null);
 
   return (
     <div className="space-y-4">

@@ -133,23 +133,27 @@ model BookBatchPrice {
 }
 
 model Order {
-  id            String        @id @default(cuid())
-  invoiceNumber String        @unique
-  buyerId       String
-  buyer         User          @relation(fields: [buyerId], references: [id])
-  status        OrderStatus   @default(ORDER_PLACED)
-  total         Int
-  soldAt        DateTime      @default(now())
-  batchId       String
-  batch         Batch         @relation(fields: [batchId], references: [id])
-  eta           Eta
-  dp            Int?
-  remaining     Int?
-  shippingCost  Int?
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique
+  buyerId        String
+  buyer          User          @relation(fields: [buyerId], references: [id])
+  status         OrderStatus   @default(ORDER_PLACED)
+  total          Int
+  soldAt         DateTime      @default(now())
+  batchId        String
+  batch          Batch         @relation(fields: [batchId], references: [id])
+  eta            Eta
+  dp             Int?
+  remaining      Int?
+  shippingCost   Int?
   trackingNumber String?
-  paymentStatus PaymentStatus @default(NO_PAYMENT)
-  createdAt     DateTime      @default(now())
-  items         OrderItem[]
+  paymentStatus  PaymentStatus @default(NO_PAYMENT)
+  createdAt      DateTime      @default(now())
+  items          OrderItem[]
+
+  @@index([soldAt])
+  @@index([buyerId, soldAt])
+  @@index([status])
 }
 
 model OrderItem {

@@ -141,120 +141,137 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
 
   const data = orderSchema.parse(input);
 
-  const order = await db.$transaction(async (tx) => {
-    const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
-    const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
-    const [books, toys, batchPrices, countToday] = await Promise.all([
-      tx.book.findMany({
-        where: { id: { in: bookIds } },
-        select: { id: true, title: true, price: true, stock: true },
-      }),
-      tx.toy.findMany({
-        where: { id: { in: toyIds } },
-        select: { id: true, title: true, price: true, stock: true },
-      }),
-      tx.bookBatchPrice.findMany({
-        where: { batchId: data.batchId, bookId: { in: bookIds } },
-        select: { bookId: true, price: true },
-      }),
-      (() => {
-        const now = new Date();
-        return tx.order.aggregate({
+  const run = (seqOffset: number) =>
+    db.$transaction(async (tx) => {
+      const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
+      const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
+      const [books, toys, batchPrices, countToday] = await Promise.all([
+        tx.book.findMany({
+          where: { id: { in: bookIds } },
+          select: { id: true, title: true, price: true, stock: true },
+        }),
+        tx.toy.findMany({
+          where: { id: { in: toyIds } },
+          select: { id: true, title: true, price: true, stock: true },
+        }),
+        tx.bookBatchPrice.findMany({
+          where: { batchId: data.batchId, bookId: { in: bookIds } },
+          select: { bookId: true, price: true },
+        }),
+        tx.order.aggregate({
           where: {
-            soldAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
+            soldAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+            },
           },
           _max: { invoiceNumber: true },
-        });
-      })(),
-    ]);
-    const bookMap = new Map(books.map((b) => [b.id, b]));
-    const toyMap = new Map(toys.map((t) => [t.id, t]));
-    const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
+        }),
+      ]);
+      const bookMap = new Map(books.map((b) => [b.id, b]));
+      const toyMap = new Map(toys.map((t) => [t.id, t]));
+      const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
 
-    const effectiveBookPrice = (bookId: string, override?: number) =>
-      override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
-    const effectiveToyPrice = (toyId: string, override?: number) =>
-      override ?? toyMap.get(toyId)?.price ?? 0;
+      const effectiveBookPrice = (bookId: string, override?: number) =>
+        override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
+      const effectiveToyPrice = (toyId: string, override?: number) =>
+        override ?? toyMap.get(toyId)?.price ?? 0;
 
-    let total = 0;
-    const entries: { bookId?: string; toyId?: string; amount: number }[] = [];
-    const items = data.items.map((i) => {
-      if (i.unitPrice == null) {
-        throw new Error(`Harga wajib diisi untuk setiap item`);
-      }
-      if (i.bookId) {
-        const book = bookMap.get(i.bookId);
-        if (!book || book.stock < i.quantity) {
-          throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
+      let total = 0;
+      const entries: { bookId?: string; toyId?: string; amount: number }[] = [];
+      const items = data.items.map((i) => {
+        if (i.unitPrice == null) {
+          throw new Error(`Harga wajib diisi untuk setiap item`);
         }
-        const price = effectiveBookPrice(i.bookId, i.unitPrice);
+        if (i.bookId) {
+          const book = bookMap.get(i.bookId);
+          if (!book || book.stock < i.quantity) {
+            throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
+          }
+          const price = effectiveBookPrice(i.bookId, i.unitPrice);
+          total += price * i.quantity;
+          entries.push({ bookId: i.bookId, amount: -i.quantity });
+          return {
+            bookId: i.bookId,
+            toyId: null,
+            quantity: i.quantity,
+            unitPrice: price,
+            subtotal: price * i.quantity,
+          };
+        }
+        const toy = toyMap.get(i.toyId as string);
+        if (!toy || toy.stock < i.quantity) {
+          throw new Error(`Not enough stock for ${toy?.title ?? i.toyId}`);
+        }
+        const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
         total += price * i.quantity;
-        entries.push({ bookId: i.bookId, amount: -i.quantity });
+        entries.push({ toyId: i.toyId as string, amount: -i.quantity });
         return {
-          bookId: i.bookId,
-          toyId: null,
+          bookId: null,
+          toyId: i.toyId as string,
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
         };
-      }
-      const toy = toyMap.get(i.toyId as string);
-      if (!toy || toy.stock < i.quantity) {
-        throw new Error(`Not enough stock for ${toy?.title ?? i.toyId}`);
-      }
-      const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
-      total += price * i.quantity;
-      entries.push({ toyId: i.toyId as string, amount: -i.quantity });
-      return {
-        bookId: null,
-        toyId: i.toyId as string,
-        quantity: i.quantity,
-        unitPrice: price,
-        subtotal: price * i.quantity,
-      };
+      });
+
+      const now = new Date();
+      const day = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
+        now.getDate()
+      ).padStart(2, "0")}`;
+      const lastInvoice = countToday._max?.invoiceNumber;
+      const lastSeq = lastInvoice ? Number(lastInvoice.split("-").pop()) || 0 : 0;
+      const invoiceNumber = `INVDER-${day}-${String(lastSeq + 1 + seqOffset).padStart(4, "0")}`;
+
+      const shippingCost = data.shippingCost ?? 0;
+      const orderTotal = total + shippingCost;
+      const remaining =
+        data.dp != null && data.dp > 0
+          ? Math.max(0, orderTotal - data.dp)
+          : null;
+
+      const order = await tx.order.create({
+        data: {
+          invoiceNumber,
+          buyerId: data.buyerId,
+          batchId: data.batchId,
+          status: data.status,
+          total: orderTotal,
+          eta: data.eta,
+          dp: data.dp,
+          remaining,
+          shippingCost: data.shippingCost,
+          trackingNumber: data.trackingNumber,
+          paymentStatus: data.paymentStatus,
+          items: { create: items },
+        },
+      });
+
+      await applyStock(tx, entries);
+
+      return order;
     });
 
-    const now = new Date();
-    const day = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
-      now.getDate()
-    ).padStart(2, "0")}`;
-    const lastInvoice = countToday._max?.invoiceNumber;
-    const lastSeq = lastInvoice ? Number(lastInvoice.split("-").pop()) || 0 : 0;
-    const invoiceNumber = `INVDER-${day}-${String(lastSeq + 1).padStart(4, "0")}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const order = await run(attempt);
+      revalidatePath("/admin");
+      revalidatePath("/admin/orders");
+      revalidatePath("/dashboard");
+      return order;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2002" &&
+        Array.isArray(e.meta?.target) &&
+        (e.meta?.target as string[]).includes("invoiceNumber")
+      ) {
+        continue;
+      }
+      throw e;
+    }
+  }
 
-    const shippingCost = data.shippingCost ?? 0;
-    const orderTotal = total + shippingCost;
-    const remaining =
-      data.dp != null && data.dp > 0
-        ? Math.max(0, orderTotal - data.dp)
-        : null;
-
-    const order = await tx.order.create({
-      data: {
-        invoiceNumber,
-        buyerId: data.buyerId,
-        batchId: data.batchId,
-        status: data.status,
-        total: orderTotal,
-        eta: data.eta,
-        dp: data.dp,
-        remaining,
-        shippingCost: data.shippingCost,
-        trackingNumber: data.trackingNumber,
-        paymentStatus: data.paymentStatus,
-        items: { create: items },
-      },
-    });
-
-    await applyStock(tx, entries);
-
-    return order;
-  });
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/orders");
-  revalidatePath("/dashboard");
-  return order;
+  throw new Error("Tidak dapat dipulikate numero invoice, retry lagi.");
 }
 
 export async function updateOrder(id: string, input: z.infer<typeof orderSchema>) {
