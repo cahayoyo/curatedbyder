@@ -28,6 +28,10 @@ import {
 
 const PAGE_SIZE = 20;
 
+function effectiveRemaining(s: { remaining: number | null; dp: number | null; total: number }) {
+  return s.remaining ?? Math.max(0, s.total - (s.dp ?? 0));
+}
+
 type OrderSearchParams = {
   q?: string;
   page?: string;
@@ -284,7 +288,7 @@ async function OrdersList({
               soldAt: s.soldAt,
               total: s.total,
               dp: s.dp,
-              remaining: s.remaining,
+              remaining: effectiveRemaining(s),
               shippingCost: s.shippingCost,
               trackingNumber: s.trackingNumber,
               paymentStatus: s.paymentStatus,
@@ -390,7 +394,7 @@ async function OrdersList({
                   <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.remaining)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
                   <TableCell className="border-l border-input font-mono text-xs" rowSpan={s.items.length}>{s.trackingNumber || "—"}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>
@@ -398,7 +402,7 @@ async function OrdersList({
                       <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
                       {s.dp != null && s.paymentStatus !== "LUNAS" && (
                         <p className="text-xs text-muted-foreground">
-                          DP {formatIDR(s.dp)} / sisa {formatIDR(s.remaining)}
+                          DP {formatIDR(s.dp)} / sisa {formatIDR(effectiveRemaining(s))}
                         </p>
                       )}
                     </div>
@@ -416,7 +420,7 @@ async function OrdersList({
                           soldAt: s.soldAt,
                           total: s.total,
                           dp: s.dp,
-                          remaining: s.remaining,
+                          remaining: effectiveRemaining(s),
                           shippingCost: s.shippingCost,
                           trackingNumber: s.trackingNumber,
                           paymentStatus: s.paymentStatus,
