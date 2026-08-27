@@ -224,10 +224,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
 
       const shippingCost = data.shippingCost ?? 0;
       const orderTotal = total + shippingCost;
-      const remaining =
-        data.dp != null && data.dp > 0
-          ? Math.max(0, orderTotal - data.dp)
-          : null;
+      const remaining = Math.max(0, orderTotal - (data.dp ?? 0));
 
       const order = await tx.order.create({
         data: {
@@ -376,10 +373,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
 
     const shippingCost = data.shippingCost ?? 0;
     const orderTotal = total + shippingCost;
-    const remaining =
-      data.dp != null && data.dp > 0
-        ? Math.max(0, orderTotal - data.dp)
-        : null;
+    const remaining = Math.max(0, orderTotal - (data.dp ?? 0));
 
     await tx.order.update({
       where: { id },

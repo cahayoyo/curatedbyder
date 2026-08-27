@@ -260,8 +260,8 @@ export function OrderForm({
   const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
   const total = productTotal + shippingCostNum;
   const autoDp = Math.round(total * 0.3);
-  const effectiveDp = isEdit ? (dp ? Number(dp) : null) : total > 0 ? autoDp : null;
-  const remaining = effectiveDp ? Math.max(0, total - effectiveDp) : null;
+  const effectiveDp = isEdit ? (dp ? Number(dp) : 0) : total > 0 ? autoDp : 0;
+  const remaining = Math.max(0, total - effectiveDp);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
