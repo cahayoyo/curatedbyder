@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
+import { LOGO_BASE64 } from "@/lib/logo";
 import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import {
   Calculator,
@@ -122,7 +123,7 @@ const lines: string[] = [
 }
 
 function downloadPdf(order: OrderDTO) {
-  const doc = buildOrderPdf(order);
+  const doc = buildOrderPdf({ ...order, logoBase64: LOGO_BASE64 });
   doc.save(`pesanan-${order.invoiceNumber}.pdf`);
 }
 
