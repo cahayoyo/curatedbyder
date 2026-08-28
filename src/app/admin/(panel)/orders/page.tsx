@@ -49,6 +49,7 @@ const orderInclude = {
   buyer: { select: { id: true, name: true, phone: true, contact: true } },
   batch: { select: { id: true, name: true } },
   items: {
+    orderBy: { id: "asc" },
     include: {
       book: {
         select: {

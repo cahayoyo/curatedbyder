@@ -105,6 +105,7 @@ async function OrdersSection({
       buyer: { select: { name: true, phone: true, contact: true } },
       batch: { select: { name: true } },
       items: {
+        orderBy: { id: "asc" },
         include: {
           book: { select: { title: true, formats: true } },
           toy: { select: { title: true } },
