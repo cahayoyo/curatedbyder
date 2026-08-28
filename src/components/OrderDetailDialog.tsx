@@ -130,9 +130,7 @@ async function downloadPdf(order: OrderDTO) {
     logoBase64: LOGO_BASE64,
     items: order.items.map((it) => ({
       title: it.book.title,
-      tipe: it.kind === "MAINAN" ? "Mainan" : it.kind === "BUKU" ? "Buku" : "—",
       formats: it.book.formats,
-      status: it.book.status,
       batchName: it.batchName,
       eta: it.eta,
       quantity: it.quantity,
