@@ -15,13 +15,15 @@ const p = new PrismaClient();
     select: {
       quantity: true, unitPrice: true, subtotal: true,
       toy: { select: { title: true } },
-      order: { select: { invoiceNumber: true, buyer: { select: { name: true } }, batch: { select: { name: true } }, eta: true, total: true } },
+      batch: { select: { name: true } },
+      eta: true,
+      order: { select: { invoiceNumber: true, buyer: { select: { name: true } }, total: true } },
     },
     take: 8,
   });
   console.log("\nfirst 8 toy items:");
   for (const i of items)
-    console.log(`  ${i.order.invoiceNumber} | ${i.order.buyer.name} | ${i.toy?.title} | ${i.order.batch.name} | ${i.order.eta} | q=${i.quantity} u=${i.unitPrice} sub=${i.subtotal} total=${i.order.total}`);
+    console.log(`  ${i.order.invoiceNumber} | ${i.order.buyer.name} | ${i.toy?.title} | ${i.batch.name} | ${i.eta} | q=${i.quantity} u=${i.unitPrice} sub=${i.subtotal} total=${i.order.total}`);
 
   const byTitle = new Map<string, { q: number; o: number }>();
   const all = await p.orderItem.findMany({ where: { toy: { isNot: null } }, select: { quantity: true, toy: { select: { title: true } } } });

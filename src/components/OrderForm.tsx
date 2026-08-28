@@ -28,6 +28,8 @@ type LineItem = {
   kind: "book" | "toy";
   bookId: string;
   toyId: string;
+  batchId: string;
+  eta: string;
   quantity: string;
   unitPrice?: number;
 };
@@ -36,6 +38,8 @@ const emptyLine = (): LineItem => ({
   kind: "book",
   bookId: "",
   toyId: "",
+  batchId: "",
+  eta: "",
   quantity: "1",
 });
 
@@ -43,13 +47,18 @@ type OrderInitial = {
   id: string;
   invoiceNumber: string;
   buyerId: string;
-  batchId: string;
-  eta: string;
   dp: number | null;
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
-  items: { bookId?: string | null; toyId?: string | null; quantity: number }[];
+  items: {
+    bookId?: string | null;
+    toyId?: string | null;
+    batchId: string;
+    eta: string;
+    quantity: number;
+    unitPrice?: number | null;
+  }[];
 };
 
 const btn =
@@ -127,8 +136,6 @@ export function OrderForm({
   const isEdit = Boolean(initial?.id);
   const [pending, startTransition] = useTransition();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
-  const [batchId, setBatchId] = useState<string>(initial?.batchId ?? "");
-  const [eta, setEta] = useState(initial?.eta ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
   const [shippingCost, setShippingCost] = useState(
     initial?.shippingCost != null ? String(initial.shippingCost) : ""
@@ -145,12 +152,10 @@ export function OrderForm({
           kind: it.toyId ? ("toy" as const) : ("book" as const),
           bookId: it.bookId ?? "",
           toyId: it.toyId ?? "",
+          batchId: it.batchId,
+          eta: it.eta,
           quantity: String(it.quantity),
-          unitPrice:
-            it.toyId != null && it.toyId
-              ? toys.find((t) => t.id === it.toyId)?.price
-              : batchPrices.find((bp) => bp.batchId === initial.batchId && bp.bookId === it.bookId)?.price ??
-                books.find((b) => b.id === it.bookId)?.price,
+          unitPrice: it.unitPrice ?? undefined,
         }))
       : [emptyLine()]
   );
@@ -233,7 +238,7 @@ export function OrderForm({
 
   function bookPrice(item: LineItem) {
     if (item.unitPrice != null) return item.unitPrice;
-    const batchPrice = batchPrices.find((bp) => bp.batchId === batchId && bp.bookId === item.bookId);
+    const batchPrice = batchPrices.find((bp) => bp.batchId === item.batchId && bp.bookId === item.bookId);
     if (batchPrice) return batchPrice.price;
     return books.find((b) => b.id === item.bookId)?.price ?? 0;
   }
@@ -268,36 +273,36 @@ export function OrderForm({
       .map((i) => ({
         bookId: i.kind === "book" ? i.bookId : undefined,
         toyId: i.kind === "toy" ? i.toyId : undefined,
+        batchId: i.batchId,
+        eta: i.eta as
+          | "JAN"
+          | "FEB"
+          | "MAR"
+          | "APR"
+          | "MAY"
+          | "JUN"
+          | "JUL"
+          | "AUG"
+          | "SEP"
+          | "OCT"
+          | "NOV"
+          | "DEC",
         quantity: Number(i.quantity),
         unitPrice: itemPrice(i),
       }));
 
     if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
-    if (!batchId) return toast.error("Batch wajib dipilih");
-    if (!eta) return toast.error("ETA wajib dipilih");
     if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
     if (itemPayload.length === 0) return toast.error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
     if (hasEmptyProduct) return toast.error("Semua baris produk wajib diisi");
+    if (items.some((i) => !i.batchId)) return toast.error("Setiap baris produk wajib memilih batch");
+    if (items.some((i) => !i.eta)) return toast.error("Setiap baris produk wajib memilih ETA");
 
     startTransition(async () => {
       try {
         const payload = {
           buyerId,
-          batchId,
-          eta: eta as
-            | "JAN"
-            | "FEB"
-            | "MAR"
-            | "APR"
-            | "MAY"
-            | "JUN"
-            | "JUL"
-            | "AUG"
-            | "SEP"
-            | "OCT"
-            | "NOV"
-            | "DEC",
           dp: effectiveDp,
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
@@ -323,36 +328,6 @@ export function OrderForm({
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>Batch</Label>
-          <Select value={batchId} onValueChange={setBatchId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih batch" />
-            </SelectTrigger>
-            <SelectContent>
-              {batches.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>ETA</Label>
-          <Select value={eta} onValueChange={setEta}>
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih bulan" />
-            </SelectTrigger>
-            <SelectContent>
-              {ETAS.map((m) => (
-                <SelectItem key={m.value} value={m.value}>
-                  {m.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
           <Label>Nama</Label>
           <SearchSelect
             options={buyers.map((b) => ({ value: b.id, label: b.name }))}
@@ -368,7 +343,7 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_90px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_90px_110px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
           >
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Tipe</span>
@@ -439,6 +414,39 @@ export function OrderForm({
                   <span className="text-sm text-muted-foreground">—</span>
                 )}
               </div>
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Batch</span>
+              <Select
+                value={item.batchId}
+                onValueChange={(v) => updateItem(idx, { batchId: v, unitPrice: undefined })}
+              >
+                <SelectTrigger className="w-full min-w-0">
+                  <SelectValue placeholder="Pilih batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">ETA</span>
+              <Select value={item.eta} onValueChange={(v) => updateItem(idx, { eta: v })}>
+                <SelectTrigger className="w-full min-w-0">
+                  <SelectValue placeholder="Bulan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ETAS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Quantity</span>

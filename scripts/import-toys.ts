@@ -180,8 +180,6 @@ async function main() {
       data: {
         invoiceNumber,
         buyerId: userId,
-        batchId,
-        eta: r.eta as never,
         total: r.total,
         soldAt: today,
         dp: r.dp,
@@ -192,7 +190,9 @@ async function main() {
         items: {
           create: [
             {
-              toy: { connect: { id: toyId } },
+              toyId,
+              batchId,
+              eta: r.eta as never,
               quantity: r.qty,
               unitPrice: r.harga,
               subtotal: r.harga * r.qty,

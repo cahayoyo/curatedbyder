@@ -29,7 +29,7 @@ export default async function DashboardPage({
   const userId = session.user.id;
 
   const batches = await db.batch.findMany({
-    where: { orders: { some: { buyerId: userId } } },
+    where: { items: { some: { order: { buyerId: userId } } } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
@@ -82,13 +82,13 @@ async function OrdersSection({
   if (q) {
     where.OR = [
       { invoiceNumber: { contains: q, mode: "insensitive" as const } },
-      { batch: { name: { contains: q, mode: "insensitive" as const } } },
+      { items: { some: { batch: { name: { contains: q, mode: "insensitive" as const } } } } },
       { items: { some: { book: { title: { contains: q, mode: "insensitive" as const } } } } },
       { items: { some: { toy: { title: { contains: q, mode: "insensitive" as const } } } } },
     ];
   }
   if (batchId) {
-    where.batchId = batchId;
+    where.items = { some: { batchId } };
   }
   if (statusValid) {
     where.items = { some: { status: statusValid as OrderStatus } };
@@ -103,10 +103,10 @@ async function OrdersSection({
     where,
     include: {
       buyer: { select: { name: true, phone: true, contact: true } },
-      batch: { select: { name: true } },
       items: {
         orderBy: { id: "asc" },
         include: {
+          batch: { select: { name: true } },
           book: { select: { title: true, formats: true } },
           toy: { select: { title: true } },
         },
@@ -125,10 +125,8 @@ async function OrdersSection({
     soldAt: s.soldAt.toISOString(),
     dp: s.dp,
     remaining: s.remaining ?? Math.max(0, s.total - (s.dp ?? 0)),
-    eta: s.eta,
     shippingCost: s.shippingCost,
     trackingNumber: s.trackingNumber,
-    batchName: s.batch?.name ?? null,
     buyerName: s.buyer.name,
     buyerPhone: s.buyer.phone,
     buyerContact: s.buyer.contact,
@@ -137,6 +135,9 @@ async function OrdersSection({
       unitPrice: i.unitPrice,
       subtotal: i.quantity * i.unitPrice,
       status: i.status,
+      batchId: i.batchId,
+      batchName: i.batch?.name ?? null,
+      eta: i.eta,
       kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
       book: {
         title: i.book?.title ?? i.toy?.title ?? "—",

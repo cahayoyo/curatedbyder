@@ -194,8 +194,6 @@ async function main() {
       data: {
         invoiceNumber,
         buyerId: userId,
-        batchId,
-        eta: r.eta as never,
         total: r.total,
         soldAt: today,
         dp: r.dp,
@@ -203,7 +201,7 @@ async function main() {
         shippingCost: 0,
         trackingNumber: null,
         paymentStatus: payStatus as never,
-        items: { create: [{ bookId, quantity: r.qty, unitPrice: r.harga, subtotal: r.harga * r.qty, status: "ORDER_PLACED" as never }] },
+        items: { create: [{ bookId, batchId, eta: r.eta as never, quantity: r.qty, unitPrice: r.harga, subtotal: r.harga * r.qty, status: "ORDER_PLACED" as never }] },
       },
     });
     orderCreated++;

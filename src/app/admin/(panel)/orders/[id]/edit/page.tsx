@@ -6,7 +6,12 @@ export default async function EditOrderPage({ params }: { params: { id: string }
   const [order, buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.order.findUnique({
       where: { id: params.id },
-      include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
+      include: {
+        items: {
+          orderBy: { id: "asc" },
+          select: { bookId: true, toyId: true, batchId: true, eta: true, quantity: true, unitPrice: true },
+        },
+      },
     }),
     db.user.findMany({
       where: { role: "USER" },
@@ -56,8 +61,6 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           id: order.id,
           invoiceNumber: order.invoiceNumber,
           buyerId: order.buyerId,
-          batchId: order.batchId,
-          eta: order.eta,
           dp: order.dp,
           shippingCost: order.shippingCost,
           trackingNumber: order.trackingNumber,
@@ -65,7 +68,10 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           items: order.items.map((it) => ({
             bookId: it.bookId ?? "",
             toyId: it.toyId ?? "",
+            batchId: it.batchId,
+            eta: it.eta,
             quantity: it.quantity,
+            unitPrice: it.unitPrice,
           })),
         }}
       />

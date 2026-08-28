@@ -252,8 +252,6 @@ async function main() {
         data: {
           invoiceNumber,
           buyerId: userId,
-          batchId,
-          eta: r.eta as never,
           total: r.total,
           soldAt: today,
           dp: r.dp,
@@ -265,6 +263,8 @@ async function main() {
             create: [
               {
                 bookId,
+                batchId,
+                eta: r.eta as never,
                 quantity: qty,
                 unitPrice,
                 subtotal: subTotal,

@@ -47,10 +47,10 @@ type OrderSearchParams = {
 
 const orderInclude = {
   buyer: { select: { id: true, name: true, phone: true, contact: true } },
-  batch: { select: { id: true, name: true } },
   items: {
     orderBy: { id: "asc" },
     include: {
+      batch: { select: { id: true, name: true } },
       book: {
         select: {
           title: true,
@@ -75,6 +75,9 @@ type OrderItemDTO = {
   unitPrice: number;
   subtotal: number;
   status: string;
+  batchId: string;
+  batchName: string | null;
+  eta: Eta;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: {
     title: string;
@@ -92,11 +95,11 @@ function itemTitle(it: ItemOrToy): string {
   return it.book?.title ?? it.toy?.title ?? "—";
 }
 
-function itemFormats(orderBatchId: string | undefined, it: ItemOrToy): string[] {
+function itemFormats(it: ItemOrToy & { batchId?: string }): string[] {
   if (it.toy) return [];
   const src = it.book;
   if (!src) return [];
-  const bp = src.batchPrices.find((x) => x.batchId === orderBatchId);
+  const bp = src.batchPrices.find((x) => x.batchId === it.batchId);
   return bp ? bp.formats : src.formats;
 }
 
@@ -128,8 +131,16 @@ function ProductLabel({ it }: { it: ItemOrToy }) {
 }
 
 function toItemDTO(
-  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number; status: string },
-  orderBatchId: string | undefined
+  it: ItemOrToy & {
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+    status: string;
+    batchId: string;
+    eta: Eta;
+    batch: { id: string; name: string } | null;
+  }
 ): OrderItemDTO {
   return {
     id: it.id,
@@ -137,10 +148,13 @@ function toItemDTO(
     unitPrice: it.unitPrice,
     subtotal: it.subtotal,
     status: it.status,
+    batchId: it.batchId,
+    batchName: it.batch?.name ?? null,
+    eta: it.eta,
     kind: itemKind(it),
     book: {
       title: itemTitle(it),
-      formats: itemFormats(orderBatchId, it),
+      formats: itemFormats(it),
       status: itemStatus(it),
     },
   };
@@ -151,10 +165,6 @@ function orderByClause(
   d: "asc" | "desc"
 ): Prisma.OrderOrderByWithRelationInput {
   switch (s) {
-    case "batch":
-      return { batch: { name: d } };
-    case "eta":
-      return { eta: d };
     case "name":
       return { buyer: { name: d } };
     case "invoice":
@@ -225,14 +235,18 @@ async function OrdersList({
   if (paymentStatuses.length > 0) {
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
   }
+  const itemWhere: Prisma.OrderItemWhereInput = {};
   if (statusValid) {
-    where.items = { some: { status: statusValid as OrderStatus } };
+    itemWhere.status = statusValid as OrderStatus;
   }
   if (batchId) {
-    where.batchId = batchId;
+    itemWhere.batchId = batchId;
   }
   if (etaValid) {
-    where.eta = etaValid as Eta;
+    itemWhere.eta = etaValid as Eta;
+  }
+  if (Object.keys(itemWhere).length > 0) {
+    where.items = { some: itemWhere };
   }
   if (dateFrom || dateTo) {
     where.soldAt = {};
@@ -287,7 +301,6 @@ async function OrdersList({
             order={{
               id: s.id,
               invoiceNumber: s.invoiceNumber,
-              eta: s.eta,
               soldAt: s.soldAt,
               total: s.total,
               dp: s.dp,
@@ -295,9 +308,8 @@ async function OrdersList({
               shippingCost: s.shippingCost,
               trackingNumber: s.trackingNumber,
               paymentStatus: s.paymentStatus,
-              batch: s.batch,
               buyer: s.buyer,
-              items: s.items.map((it) => toItemDTO(it, s.batchId)),
+              items: s.items.map((it) => toItemDTO(it)),
             }}
             onDelete={deleteOrder.bind(null, s.id)}
           />
@@ -318,12 +330,6 @@ async function OrdersList({
                   <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" /><SortButton label="Invoice" column="invoice" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" /><SortButton label="Batch" column="batch" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /><SortButton label="ETA" column="eta" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" /><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
@@ -337,6 +343,12 @@ async function OrdersList({
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />Batch</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />ETA</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Item</span>
@@ -369,8 +381,6 @@ async function OrdersList({
               <Fragment key={s.id}>
                 <TableRow className="border-b border-input last:border-0">
                   <TableCell className="font-mono text-xs font-medium" rowSpan={s.items.length}>{s.invoiceNumber}</TableCell>
-                  <TableCell rowSpan={s.items.length}>{s.batch?.name || "—"}</TableCell>
-                  <TableCell rowSpan={s.items.length}>{etaLabel(s.eta)}</TableCell>
                   <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
                   <TableCell className="text-center text-xs">
                     <span className="inline-flex items-center">
@@ -380,8 +390,8 @@ async function OrdersList({
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-wrap items-center justify-center gap-1">
-                      {itemFormats(s.batchId, s.items[0]).length > 0
-                        ? itemFormats(s.batchId, s.items[0]).map((f) => (
+                      {itemFormats(s.items[0]).length > 0
+                        ? itemFormats(s.items[0]).map((f) => (
                             <span
                               key={f}
                               className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
@@ -394,6 +404,8 @@ async function OrdersList({
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
                   <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="text-center text-xs">{s.items[0].batch?.name || "—"}</TableCell>
+                  <TableCell className="text-center text-xs">{etaLabel(s.items[0].eta)}</TableCell>
                   <TableCell className="text-center">
                     <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
                   </TableCell>
@@ -418,7 +430,6 @@ async function OrdersList({
                         order={{
                           id: s.id,
                           invoiceNumber: s.invoiceNumber,
-                          eta: s.eta,
                           soldAt: s.soldAt,
                           total: s.total,
                           dp: s.dp,
@@ -426,9 +437,8 @@ async function OrdersList({
                           shippingCost: s.shippingCost,
                           trackingNumber: s.trackingNumber,
                           paymentStatus: s.paymentStatus,
-                          batch: s.batch,
                           buyer: s.buyer,
-                          items: s.items.map((it) => toItemDTO(it, s.batchId)),
+                          items: s.items.map((it) => toItemDTO(it)),
                         }}
                       />
                       <NavActionButton
@@ -457,8 +467,8 @@ async function OrdersList({
                   </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap items-center justify-center gap-1">
-                        {itemFormats(s.batchId, it).length > 0
-                          ? itemFormats(s.batchId, it).map((f) => (
+                        {itemFormats(it).length > 0
+                          ? itemFormats(it).map((f) => (
                               <span
                                 key={f}
                                 className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
@@ -471,6 +481,8 @@ async function OrdersList({
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>
                     <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell className="text-center text-xs">{it.batch?.name || "—"}</TableCell>
+                    <TableCell className="text-center text-xs">{etaLabel(it.eta)}</TableCell>
                     <TableCell className="text-center">
                       <StatusSelect itemId={it.id} current={it.status} />
                     </TableCell>
@@ -516,8 +528,8 @@ export default async function AdminOrdersPage({
       db.order.count(),
       db.batch.findMany({ orderBy: { name: "asc" } }),
       db.order.aggregate({ _sum: { total: true } }),
-      db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
+      db.orderItem.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { subtotal: true } }),
+      db.orderItem.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { subtotal: true } }),
       db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
       db.orderItem.groupBy({ by: ["status"], _count: { _all: true }, _sum: { subtotal: true } }),
     ]);
@@ -534,13 +546,13 @@ export default async function AdminOrdersPage({
       value: b.id,
       label: b.name,
       count: batchMap.get(b.id)?._count._all ?? 0,
-      total: batchMap.get(b.id)?._sum.total ?? 0,
+      total: batchMap.get(b.id)?._sum.subtotal ?? 0,
     })),
     byEta: ETAS.map((e) => ({
       value: e.value,
       label: e.label,
       count: etaMap.get(e.value)?._count._all ?? 0,
-      total: etaMap.get(e.value)?._sum.total ?? 0,
+      total: etaMap.get(e.value)?._sum.subtotal ?? 0,
     })),
     byPayment: PAYMENT_STATUSES.map((p) => ({
       value: p.value,

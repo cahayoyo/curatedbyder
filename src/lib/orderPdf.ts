@@ -8,9 +8,9 @@ type OrderPdfDTO = {
   soldAt: Date;
   logoBase64?: string;
   buyer: { name: string; phone: string | null; contact: string | null };
-  batch: { name: string } | null;
-  eta: string | null;
   items: {
+    batchName: string | null;
+    eta: string;
     book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
     quantity: number;
     unitPrice: number;
@@ -60,8 +60,6 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ["Pembeli", order.buyer.name],
     ["Phone", order.buyer.phone || "—"],
     ["Alamat", order.buyer.contact || "—"],
-    ["Batch", order.batch?.name || "—"],
-    ["ETA", etaLabel(order.eta)],
   ];
   infoRows.forEach(([label, value], i) => {
     infoText(doc, label, value, 28 + i * 5.2, labelW);
@@ -69,10 +67,12 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   autoTable(doc, {
     startY: 40 + infoRows.length * 5.2,
-    head: [["#", "Nama Produk", "Format", "Status", "Qty", "Harga", "Subtotal"]],
+    head: [["#", "Nama Produk", "Batch", "ETA", "Format", "Status", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
       it.book.title,
+      it.batchName ?? "—",
+      etaLabel(it.eta),
       it.book.formats.length ? it.book.formats.join(", ") : "—",
       it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok",
       String(it.quantity),
@@ -80,23 +80,26 @@ export function buildOrderPdf(order: OrderPdfDTO) {
       formatIDR(it.subtotal),
     ]),
     foot: [
-      ["", "", "", "", "", "DP", formatIDR(order.dp ?? 0)],
-      ["", "", "", "", "", "Sisa", formatIDR(order.remaining ?? 0)],
-      ["", "", "", "", "", "Ongkir", order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
-      ["", "", "", "", "", "Total", formatIDR(order.total)],
+      ["", "", "", "", "", "", "DP", "", formatIDR(order.dp ?? 0)],
+      ["", "", "", "", "", "", "Sisa", "", formatIDR(order.remaining ?? 0)],
+      ["", "", "", "", "", "", "Ongkir", "", order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
+      ["", "", "", "", "", "", "Total", "", formatIDR(order.total)],
     ],
     styles: { fontSize: 9, cellPadding: 2 },
     headStyles: { fillColor: [217, 122, 122] },
     footStyles: { fillColor: [255, 241, 238], fontStyle: "bold", halign: "right", textColor: [0, 0, 0] },
     columnStyles: {
       0: { cellWidth: 8 },
-      4: { cellWidth: 12, halign: "center" },
-      5: { cellWidth: 30, halign: "right" },
-      6: { cellWidth: 32, halign: "right" },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: 12 },
+      6: { cellWidth: 12, halign: "center" },
+      7: { cellWidth: 26, halign: "right" },
+      8: { cellWidth: 30, halign: "right" },
     },
     didParseCell: (data) => {
       if (data.section === "foot") {
-        data.cell.styles.halign = data.column.index >= 5 ? "right" : "center";
+        data.cell.styles.halign = data.column.index >= 6 ? "right" : "center";
       }
     },
     theme: "grid",
