@@ -9,12 +9,13 @@ const p = new PrismaClient();
       unitPrice: true,
       subtotal: true,
       bookId: true,
+      batchId: true,
+      eta: true,
+      batch: { select: { name: true } },
       order: {
         select: {
           id: true,
           invoiceNumber: true,
-          batch: { select: { name: true } },
-          eta: true,
           buyer: { select: { name: true, email: true } },
           soldAt: true,
         },
@@ -25,7 +26,7 @@ const p = new PrismaClient();
   console.log("Grow items:", items.length);
   for (const i of items)
     console.log(
-      `${i.order.invoiceNumber}\tbook=${(i.bookId ?? "").slice(0, 8)}\tunit=${i.unitPrice}\tqty=${i.quantity}\tbuyer=${i.order.buyer.name}\tbatch=${i.order.batch.name}\teta=${i.order.eta}`
+      `${i.order.invoiceNumber}\tbook=${(i.bookId ?? "").slice(0, 8)}\tunit=${i.unitPrice}\tqty=${i.quantity}\tbuyer=${i.order.buyer.name}\tbatch=${i.batch.name}\teta=${i.eta}`
     );
 
   const bp = await p.bookBatchPrice.findMany({

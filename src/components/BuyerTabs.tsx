@@ -37,7 +37,6 @@ import {
   Download,
   Eye,
   FileText,
-  Layers,
   ListOrdered,
   MapPin,
   MessageCircle,
@@ -59,6 +58,9 @@ type OrderItemDTO = {
   unitPrice: number;
   subtotal: number;
   status: string;
+  batchId: string;
+  batchName: string | null;
+  eta: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[] };
 };
@@ -71,10 +73,8 @@ export type OrderDTO = {
   soldAt: string;
   dp: number | null;
   remaining: number | null;
-  eta: string | null;
   shippingCost: number | null;
   trackingNumber: string | null;
-  batchName: string | null;
   buyerName: string;
   buyerPhone: string | null;
   buyerContact: string | null;
@@ -175,14 +175,8 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
           {order.buyerName}
         </InfoRow>
-        <InfoRow icon={<Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Batch:">
-          {order.batchName || "—"}
-        </InfoRow>
         <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="HP:">
           {order.buyerPhone || "—"}
-        </InfoRow>
-        <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="ETA:">
-          {etaLabel(order.eta)}
         </InfoRow>
       </div>
 
@@ -224,7 +218,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
                 </span>
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {it.quantity} × {formatIDR(it.unitPrice)}
+                {it.quantity} × {formatIDR(it.unitPrice)} · {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
             </div>
           </div>
@@ -320,16 +314,6 @@ function BuyerOrderDetail({
             <span className="ml-auto text-right font-medium">{order.buyerContact || "—"}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Batch</span>
-            <span className="ml-auto font-medium">{order.batchName || "—"}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">ETA</span>
-            <span className="ml-auto font-medium">{etaLabel(order.eta)}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
             <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Ongkir</span>
             <span className="ml-auto font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
@@ -373,6 +357,9 @@ function BuyerOrderDetail({
                 >
                   {STATUS_LABEL[it.status] || it.status}
                 </span>
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
                 <span>Qty: {it.quantity}</span>
@@ -514,14 +501,6 @@ function TrackCard({ order }: { order: OrderDTO }) {
       </div>
 
       <div className="mb-2 h-px w-full bg-black/15" />
-
-      {order.eta && (
-        <div className="flex items-center gap-1.5 text-sm">
-          <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="w-16 shrink-0 text-muted-foreground">ETA:</span>
-          <span className="text-black/80">{etaLabel(order.eta)}</span>
-        </div>
-      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-1 text-xs">
         {TRACK_STATUSES.map((sv, i) => {

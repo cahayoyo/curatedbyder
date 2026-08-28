@@ -18,7 +18,6 @@ import {
   Calculator,
   CalendarClock,
   Download,
-  Layers,
   ListOrdered,
   MapPin,
   MessageCircle,
@@ -37,6 +36,9 @@ type OrderItemDTO = {
   unitPrice: number;
   subtotal: number;
   status: string;
+  batchId: string;
+  batchName: string | null;
+  eta: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
 };
@@ -60,7 +62,6 @@ function ProductTag({ kind }: { kind?: string }) {
 export type OrderDTO = {
   id: string;
   invoiceNumber: string;
-  eta: string | null;
   soldAt: Date;
   total: number;
   dp: number | null;
@@ -68,7 +69,6 @@ export type OrderDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
-  batch: { id: string; name: string } | null;
   buyer: { id: string; name: string; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
 };
@@ -90,10 +90,8 @@ function getPeriod(date: Date): string {
 
 function buildWaText(order: OrderDTO): string {
   const period = getPeriod(new Date());
-  const batch = order.batch?.name ?? "—";
-  const eta = etaLabel(order.eta);
 const lines: string[] = [
-    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order Batch: *${batch}*, ETA: *${eta}*. Mohon diperiksa kembali ya kak \u{1F60A}\u{1F64F}\u{1F3FC}`,
+    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak \u{1F60A}\u{1F64F}\u{1F3FC}`,
     "",
     "*Detail Pesanan*",
   ];
@@ -101,6 +99,7 @@ const lines: string[] = [
     if (i > 0) lines.push("");
     const kindLabel = it.kind === "MAINAN" ? "Mainan" : "Buku";
     lines.push(`Nama Produk ${kindLabel} : ${it.book.title}`);
+    lines.push(`Batch : ${it.batchName ?? "—"} | ETA : ${etaLabel(it.eta)}`);
     lines.push(`Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`);
   });
   lines.push(
@@ -180,16 +179,6 @@ export function OrderDetailDialog({
             <span className="ml-auto text-right font-medium">{order.buyer.contact || "—"}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Batch</span>
-            <span className="ml-auto font-medium">{order.batch?.name || "—"}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">ETA</span>
-            <span className="ml-auto font-medium">{etaLabel(order.eta)}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
             <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Ongkir</span>
             <span className="ml-auto font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
@@ -234,14 +223,22 @@ export function OrderDetailDialog({
                 <span>Harga: {formatIDR(it.unitPrice)}</span>
                 <span className="text-right font-medium">{formatIDR(it.subtotal)}</span>
               </div>
-              <span
-                className={cn(
-                  "mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                  STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"
-                )}
-              >
-                {STATUS_LABEL[it.status] ?? it.status}
-              </span>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="inline-flex items-center rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                  {it.batchName ?? "—"}
+                </span>
+                <span className="inline-flex items-center rounded-full border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                  ETA {etaLabel(it.eta)}
+                </span>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                    STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"
+                  )}
+                >
+                  {STATUS_LABEL[it.status] ?? it.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>

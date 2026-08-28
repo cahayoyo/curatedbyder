@@ -25,9 +25,7 @@ import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog
 import {
   BookOpen,
   Calculator,
-  CalendarClock,
   Eye,
-  Layers,
   MoreVertical,
   Pencil,
   Phone,
@@ -143,14 +141,8 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
         <Row icon={<UserRound className="h-3.5 w-3.5 shrink-0" />} title="Nama Pembeli" detail={order.buyer.name} label="Nama:">
           {order.buyer.name}
         </Row>
-        <Row icon={<Layers className="h-3.5 w-3.5 shrink-0" />} title="Batch" detail={order.batch?.name || "—"} label="Batch:">
-          {order.batch?.name || "—"}
-        </Row>
         <Row icon={<Phone className="h-3.5 w-3.5 shrink-0" />} title="No. HP" detail={order.buyer.phone || "—"} label="HP:">
           {order.buyer.phone || "—"}
-        </Row>
-        <Row icon={<CalendarClock className="h-3.5 w-3.5 shrink-0" />} title="Eta" detail={etaLabel(order.eta)} label="ETA:">
-          {etaLabel(order.eta)}
         </Row>
       </div>
 
@@ -192,7 +184,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
                   : ""}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {it.quantity} × {formatIDR(it.unitPrice)}
+                {it.quantity} × {formatIDR(it.unitPrice)} · {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
               <span
                 className={cn(

@@ -13,8 +13,6 @@ import {
 
 const orderSchema = z.object({
   buyerId: z.string().min(1),
-  batchId: z.string().min(1),
-  eta: z.enum(ETA_TYPE),
   dp: z.number().int().min(0).optional().nullable(),
   shippingCost: z.number().int().min(0).optional().nullable(),
   trackingNumber: z
@@ -30,6 +28,8 @@ const orderSchema = z.object({
       z.object({
         bookId: z.string().optional().nullable(),
         toyId: z.string().optional().nullable(),
+        batchId: z.string().min(1),
+        eta: z.enum(ETA_TYPE),
         quantity: z.number().int().min(1),
         unitPrice: z.number().int().min(0).optional(),
       })
@@ -126,9 +126,9 @@ export async function deleteBatch(id: string) {
   const batch = await db.batch.findUnique({ where: { id } });
   if (!batch) throw new Error("Batch tidak ditemukan");
 
-  const orderCount = await db.order.count({ where: { batchId: id } });
-  if (orderCount > 0) {
-    throw new Error(`Batch "${batch.name}" masih dipakai ${orderCount} pesanan`);
+  const itemCount = await db.orderItem.count({ where: { batchId: id } });
+  if (itemCount > 0) {
+    throw new Error(`Batch "${batch.name}" masih dipakai ${itemCount} item pesanan`);
   }
 
   await db.batch.delete({ where: { id } });
@@ -144,6 +144,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
     db.$transaction(async (tx) => {
       const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
       const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
+      const itemBatchIds = Array.from(new Set(data.items.map((i) => i.batchId)));
       const [books, toys, batchPrices, countToday] = await Promise.all([
         tx.book.findMany({
           where: { id: { in: bookIds } },
@@ -154,8 +155,8 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
           select: { id: true, title: true, price: true, stock: true },
         }),
         tx.bookBatchPrice.findMany({
-          where: { batchId: data.batchId, bookId: { in: bookIds } },
-          select: { bookId: true, price: true },
+          where: { batchId: { in: itemBatchIds }, bookId: { in: bookIds } },
+          select: { batchId: true, bookId: true, price: true },
         }),
         tx.order.aggregate({
           where: {
@@ -168,10 +169,12 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
       ]);
       const bookMap = new Map(books.map((b) => [b.id, b]));
       const toyMap = new Map(toys.map((t) => [t.id, t]));
-      const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
+      const batchPriceMap = new Map(
+        batchPrices.map((bp) => [`${bp.batchId}:${bp.bookId}`, bp.price])
+      );
 
-      const effectiveBookPrice = (bookId: string, override?: number) =>
-        override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
+      const effectiveBookPrice = (batchId: string, bookId: string, override?: number) =>
+        override ?? batchPriceMap.get(`${batchId}:${bookId}`) ?? bookMap.get(bookId)?.price ?? 0;
       const effectiveToyPrice = (toyId: string, override?: number) =>
         override ?? toyMap.get(toyId)?.price ?? 0;
 
@@ -186,12 +189,14 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
           if (!book || book.stock < i.quantity) {
             throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
           }
-          const price = effectiveBookPrice(i.bookId, i.unitPrice);
+          const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
           total += price * i.quantity;
           entries.push({ bookId: i.bookId, amount: -i.quantity });
           return {
             bookId: i.bookId,
             toyId: null,
+            batchId: i.batchId,
+            eta: i.eta,
             quantity: i.quantity,
             unitPrice: price,
             subtotal: price * i.quantity,
@@ -207,6 +212,8 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         return {
           bookId: null,
           toyId: i.toyId as string,
+          batchId: i.batchId,
+          eta: i.eta,
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
@@ -229,9 +236,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         data: {
           invoiceNumber,
           buyerId: data.buyerId,
-          batchId: data.batchId,
           total: orderTotal,
-          eta: data.eta,
           dp: data.dp,
           remaining,
           shippingCost: data.shippingCost,
@@ -277,6 +282,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
   await db.$transaction(async (tx) => {
     const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
     const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
+    const itemBatchIds = Array.from(new Set(data.items.map((i) => i.batchId)));
     const [existing, books, toys, batchPrices] = await Promise.all([
       tx.order.findUnique({
         where: { id },
@@ -291,8 +297,8 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         select: { id: true, title: true, price: true, stock: true },
       }),
       tx.bookBatchPrice.findMany({
-        where: { batchId: data.batchId, bookId: { in: bookIds } },
-        select: { bookId: true, price: true },
+        where: { batchId: { in: itemBatchIds }, bookId: { in: bookIds } },
+        select: { batchId: true, bookId: true, price: true },
       }),
     ]);
     if (!existing) throw new Error("Order not found");
@@ -305,9 +311,11 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     );
     const bookMap = new Map(books.map((b) => [b.id, b]));
     const toyMap = new Map(toys.map((t) => [t.id, t]));
-    const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
-    const effectiveBookPrice = (bookId: string, override?: number) =>
-      override ?? batchPriceMap.get(bookId) ?? bookMap.get(bookId)?.price ?? 0;
+    const batchPriceMap = new Map(
+      batchPrices.map((bp) => [`${bp.batchId}:${bp.bookId}`, bp.price])
+    );
+    const effectiveBookPrice = (batchId: string, bookId: string, override?: number) =>
+      override ?? batchPriceMap.get(`${batchId}:${bookId}`) ?? bookMap.get(bookId)?.price ?? 0;
     const effectiveToyPrice = (toyId: string, override?: number) =>
       override ?? toyMap.get(toyId)?.price ?? 0;
 
@@ -315,11 +323,14 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     const createItems: {
       bookId: string | null;
       toyId: string | null;
+      batchId: string;
+      eta: (typeof ETA_TYPE)[number];
       quantity: number;
       unitPrice: number;
       subtotal: number;
       status: (typeof STATUS_TYPE)[number];
-    }[] = [];    const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
+    }[] = [];
+    const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
 
     for (const i of data.items) {
       if (i.unitPrice == null) {
@@ -334,11 +345,13 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         if (diff > 0 && book.stock < diff) {
           throw new Error(`Not enough stock for ${book.title}`);
         }
-        const price = effectiveBookPrice(i.bookId, i.unitPrice);
+        const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
         total += price * i.quantity;
         createItems.push({
           bookId: i.bookId,
           toyId: null,
+          batchId: i.batchId,
+          eta: i.eta,
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
@@ -356,6 +369,8 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         createItems.push({
           bookId: null,
           toyId: i.toyId as string,
+          batchId: i.batchId,
+          eta: i.eta,
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
@@ -382,8 +397,6 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       where: { id },
       data: {
         buyerId: data.buyerId,
-        batchId: data.batchId,
-        eta: data.eta,
         dp: data.dp,
         remaining,
         shippingCost: data.shippingCost,

@@ -16,9 +16,10 @@ export async function GET(
     where: { id },
     include: {
       buyer: { select: { name: true, phone: true, contact: true } },
-      batch: { select: { name: true } },
       items: {
+        orderBy: { id: "asc" },
         include: {
+          batch: { select: { name: true } },
           book: { select: { title: true, formats: true, status: true } },
           toy: { select: { title: true, status: true } },
         },
@@ -37,6 +38,8 @@ export async function GET(
       quantity: it.quantity,
       unitPrice: it.unitPrice,
       subtotal: it.subtotal,
+      batchName: it.batch?.name ?? null,
+      eta: it.eta,
       book: {
         title: it.book?.title ?? it.toy?.title ?? "—",
         formats: it.book?.formats ?? [],
