@@ -48,29 +48,32 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   const logo = order.logoBase64;
   let titleX = margin;
   if (logo) {
-    doc.addImage(`data:image/jpeg;base64,${logo}`, "JPEG", margin, 9, 10, 10);
-    titleX = margin + 13;
+    doc.addImage(`data:image/jpeg;base64,${logo}`, "JPEG", margin, 9, 18, 18);
+    titleX = margin + 22;
   }
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Detail Pesanan", titleX, 17);
+  doc.text("Detail Pesanan", titleX, 20);
 
   doc.setFontSize(10);
   const infoRowsLeft: [string, string][] = [
     ["Invoice", order.invoiceNumber],
     ["Pembeli", order.buyer.name],
+    ["Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus],
   ];
   const infoRowsRight: [string, string][] = [
     ["Tanggal", dateLabel(order.soldAt)],
     ["No HP", order.buyer.phone || "—"],
+    ["No Resi", order.trackingNumber || "--"],
   ];
   const rightX = 105;
+  const INFO_Y = 31;
   infoRowsLeft.forEach(([label, value], i) => {
-    infoText(doc, label, value, 28 + i * 5.2, labelW);
+    infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
   });
   infoRowsRight.forEach(([label, value], i) => {
-    infoText(doc, label, value, 28 + i * 5.2, labelW, rightX);
+    infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
   });
 
   autoTable(doc, {
@@ -118,12 +121,14 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     theme: "grid",
   });
 
-  const lastY = (doc as unknown as { lastAutoTable: { finalY: number } })
-    .lastAutoTable.finalY + 14;
-
-  doc.setFontSize(10);
-  infoText(doc, "Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus, lastY, labelW);
-  infoText(doc, "No Resi", order.trackingNumber || "--", lastY + 6, labelW);
+  const pageH = doc.internal.pageSize.getHeight();
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFillColor(235, 235, 235);
+  doc.rect(0, pageH - 12, pageW, 12, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(217, 122, 122);
+  doc.text("curatedbyder.store", pageW / 2, pageH - 4.5, { align: "center" });
 
   return doc;
 }
