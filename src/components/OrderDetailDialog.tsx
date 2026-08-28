@@ -90,18 +90,13 @@ function getPeriod(date: Date): string {
 
 function buildWaText(order: OrderDTO): string {
   const period = getPeriod(new Date());
-const lines: string[] = [
+  const pdfLink = `${window.location.origin}/api/download/orders/${order.id}`;
+  const lines: string[] = [
     `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak 😊🙏🏼`,
     "",
     "*Detail Pesanan*",
+    `Link PDF Invoice Order : ${pdfLink}`,
   ];
-  order.items.forEach((it, i) => {
-    if (i > 0) lines.push("");
-    const kindLabel = it.kind === "MAINAN" ? "Mainan" : "Buku";
-    lines.push(`Nama Produk ${kindLabel} : ${it.book.title}`);
-    lines.push(`Batch : ${it.batchName ?? "—"} | ETA : ${etaLabel(it.eta)}`);
-    lines.push(`Quantity : ${it.quantity} x ${formatIDR(it.unitPrice)}`);
-  });
   lines.push(
     "",
     `Invoice : ${order.invoiceNumber}`,
