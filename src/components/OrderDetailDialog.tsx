@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { buildOrderPdf } from "@/lib/orderPdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
-import { LOGO_BASE64 } from "@/lib/logo";
 import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import {
   Calculator,
@@ -122,7 +120,11 @@ const lines: string[] = [
   return lines.join("\n");
 }
 
-function downloadPdf(order: OrderDTO) {
+async function downloadPdf(order: OrderDTO) {
+  const [{ buildOrderPdf }, { LOGO_BASE64 }] = await Promise.all([
+    import("@/lib/orderPdf"),
+    import("@/lib/logo"),
+  ]);
   const doc = buildOrderPdf({ ...order, logoBase64: LOGO_BASE64 });
   doc.save(`pesanan-${order.invoiceNumber}.pdf`);
 }

@@ -22,7 +22,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-export type GroupTotalEntry = {
+type GroupTotalEntry = {
   value: string;
   label: string;
   count: number;

@@ -27,7 +27,7 @@ type SessionLike = {
   };
 } | null;
 
-export function isAdmin(session: SessionLike): boolean {
+function isAdmin(session: SessionLike): boolean {
   return session?.user?.role === "SUPER_ADMIN";
 }
 

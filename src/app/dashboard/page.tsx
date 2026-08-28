@@ -124,7 +124,7 @@ async function OrdersSection({
     total: s.total,
     soldAt: s.soldAt.toISOString(),
     dp: s.dp,
-    remaining: s.remaining,
+    remaining: s.remaining ?? Math.max(0, s.total - (s.dp ?? 0)),
     eta: s.eta,
     shippingCost: s.shippingCost,
     trackingNumber: s.trackingNumber,

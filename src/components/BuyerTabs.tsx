@@ -28,8 +28,7 @@ import {
   FORMAT_BADGE,
   etaLabel,
 } from "@/lib/orderOptions";
-import { formatIDR } from "@/lib/format";
-import { dateLabel } from "@/lib/format";
+import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
 import {
   Calculator,

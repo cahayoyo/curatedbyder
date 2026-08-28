@@ -268,7 +268,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
     }
   }
 
-  throw new Error("Tidak dapat dipulikate numero invoice, retry lagi.");
+  throw new Error("Gagal membuat nomor invoice, coba lagi.");
 }
 
 export async function updateOrder(id: string, input: z.infer<typeof orderSchema>) {
