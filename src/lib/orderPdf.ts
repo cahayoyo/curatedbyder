@@ -73,7 +73,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ["No Resi", order.trackingNumber || "--"],
   ];
   const rightX = 105;
-  const INFO_Y = 36;
+  const INFO_Y = 40;
   infoRowsLeft.forEach(([label, value], i) => {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
   });
