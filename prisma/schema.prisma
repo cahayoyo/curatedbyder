@@ -59,7 +59,7 @@ enum StockStatus {
 model Batch {
   id         String          @id @default(cuid())
   name       String          @unique
-  orders     Order[]
+  items      OrderItem[]
   bookPrices BookBatchPrice[]
   toyPrices  ToyBatchPrice[]
 }
@@ -140,9 +140,6 @@ model Order {
   buyer          User          @relation(fields: [buyerId], references: [id])
   total          Int
   soldAt         DateTime      @default(now())
-  batchId        String
-  batch          Batch         @relation(fields: [batchId], references: [id])
-  eta            Eta
   dp             Int?
   remaining      Int?
   shippingCost   Int?
@@ -163,8 +160,14 @@ model OrderItem {
   book      Book?       @relation(fields: [bookId], references: [id])
   toyId     String?
   toy       Toy?        @relation(fields: [toyId], references: [id])
+  batchId   String
+  batch     Batch       @relation(fields: [batchId], references: [id])
+  eta       Eta
   quantity  Int
   unitPrice Int
   subtotal  Int
   status    OrderStatus @default(ORDER_PLACED)
+
+  @@index([batchId])
+  @@index([eta])
 }
