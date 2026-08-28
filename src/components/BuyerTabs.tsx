@@ -58,6 +58,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[] };
 };
@@ -220,6 +221,11 @@ function OrderCard({ order }: { order: OrderDTO }) {
                       </span>
                     ))
                   : ""}
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                >
+                  {STATUS_LABEL[it.status] || it.status}
+                </span>
               </p>
               <p className="text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)}
@@ -371,6 +377,11 @@ function BuyerOrderDetail({
                       </span>
                     ))
                   : ""}
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                >
+                  {STATUS_LABEL[it.status] || it.status}
+                </span>
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
                 <span>Qty: {it.quantity}</span>

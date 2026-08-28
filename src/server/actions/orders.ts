@@ -9,6 +9,7 @@ import {
   STATUS_TYPE,
   ETA_TYPE,
   PAYMENT_TYPE,
+  deriveOrderStatus,
 } from "@/lib/orderOptions";
 
 const orderSchema = z.object({
@@ -196,6 +197,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
             quantity: i.quantity,
             unitPrice: price,
             subtotal: price * i.quantity,
+            status: data.status,
           };
         }
         const toy = toyMap.get(i.toyId as string);
@@ -211,6 +213,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
+          status: data.status,
         };
       });
 
@@ -317,6 +320,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       quantity: number;
       unitPrice: number;
       subtotal: number;
+      status: (typeof STATUS_TYPE)[number];
     }[] = [];
     const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
 
@@ -341,6 +345,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
+          status: data.status,
         });
         if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
       } else {
@@ -357,6 +362,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
+          status: data.status,
         });
         if (diff !== 0) stockChanges.push({ toyId: i.toyId as string, amount: -diff });
       }
@@ -403,16 +409,35 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
   revalidatePath("/dashboard");
 }
 
-export async function updateOrderStatus(id: string, status: string) {
+export async function updateOrderItemStatus(itemId: string, status: string) {
   await requireAdmin();
 
   const valid = z.enum(STATUS_TYPE).parse(status);
-  const order = await db.order.update({ where: { id }, data: { status: valid } });
+  const derived = await db.$transaction(async (tx) => {
+    const item = await tx.orderItem.findUnique({
+      where: { id: itemId },
+      select: { orderId: true },
+    });
+    if (!item) throw new Error("Item tidak ditemukan");
+
+    await tx.orderItem.update({ where: { id: itemId }, data: { status: valid } });
+
+    const items = await tx.orderItem.findMany({
+      where: { orderId: item.orderId },
+      select: { status: true },
+    });
+    const orderStatus = deriveOrderStatus(items.map((it) => it.status)) as (typeof STATUS_TYPE)[number];
+    await tx.order.update({
+      where: { id: item.orderId },
+      data: { status: orderStatus },
+    });
+    return orderStatus;
+  });
 
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
-  return order;
+  return derived;
 }
 
 export async function updatePaymentStatus(id: string, paymentStatus: string) {

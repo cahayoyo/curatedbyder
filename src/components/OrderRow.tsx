@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateOrderStatus, updatePaymentStatus } from "@/server/actions/orders";
+import { updateOrderItemStatus, updatePaymentStatus } from "@/server/actions/orders";
 import {
   Select,
   SelectContent,
@@ -10,19 +10,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUSES, PAYMENT_STATUSES, STATUS_BADGE, PAYMENT_BADGE } from "@/lib/orderOptions";
+import {
+  STATUSES,
+  PAYMENT_STATUSES,
+  STATUS_BADGE,
+  STATUS_LABEL,
+  PAYMENT_BADGE,
+} from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function StatusSelect({ orderId, current }: { orderId: string; current: string }) {
+export function OrderStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-9 items-center whitespace-nowrap rounded-md border px-3 text-sm font-medium",
+        STATUS_BADGE[status] ?? "border-gray-300 bg-gray-100 text-gray-700"
+      )}
+    >
+      {STATUS_LABEL[status] ?? status}
+    </span>
+  );
+}
+
+export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function onChange(value: string) {
     startTransition(async () => {
       try {
-        await updateOrderStatus(orderId, value);
-        toast.success("Status updated");
+        await updateOrderItemStatus(itemId, value);
+        toast.success("Status item updated");
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to update");

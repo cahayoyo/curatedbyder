@@ -136,6 +136,7 @@ async function OrdersSection({
       quantity: i.quantity,
       unitPrice: i.unitPrice,
       subtotal: i.quantity * i.unitPrice,
+      status: i.status,
       kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
       book: {
         title: i.book?.title ?? i.toy?.title ?? "—",

@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, STATUS_BADGE, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { cn } from "@/lib/utils";
 import {
   Calculator,
   CalendarClock,
@@ -36,6 +37,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
 };
@@ -239,6 +241,14 @@ export function OrderDetailDialog({
                 <span>Harga: {formatIDR(it.unitPrice)}</span>
                 <span className="text-right font-medium">{formatIDR(it.subtotal)}</span>
               </div>
+              <span
+                className={cn(
+                  "mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                  STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"
+                )}
+              >
+                {STATUS_LABEL[it.status] ?? it.status}
+              </span>
             </div>
           ))}
         </div>

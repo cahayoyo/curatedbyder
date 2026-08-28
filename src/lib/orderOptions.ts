@@ -62,6 +62,13 @@ export const STATUS_TYPE = [
   "SHIPPED_TO_CUSTOMER",
   "ORDER_DELIVERED",
 ] as const;
+
+export function deriveOrderStatus(itemStatuses: readonly string[]): string {
+  for (const s of STATUS_TYPE) {
+    if (itemStatuses.includes(s)) return s;
+  }
+  return itemStatuses[0] ?? "ORDER_PLACED";
+}
 export const ETA_TYPE = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",

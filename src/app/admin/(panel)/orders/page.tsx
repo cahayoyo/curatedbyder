@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { Fragment, Suspense } from "react";
 import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
-import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
+import { StatusSelect, PaymentStatusSelect, OrderStatusBadge } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
 import { ManageBatchDialog } from "@/components/ManageBatchDialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
@@ -73,6 +73,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: {
     title: string;
@@ -126,7 +127,7 @@ function ProductLabel({ it }: { it: ItemOrToy }) {
 }
 
 function toItemDTO(
-  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number },
+  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number; status: string },
   orderBatchId: string | undefined
 ): OrderItemDTO {
   return {
@@ -134,6 +135,7 @@ function toItemDTO(
     quantity: it.quantity,
     unitPrice: it.unitPrice,
     subtotal: it.subtotal,
+    status: it.status,
     kind: itemKind(it),
     book: {
       title: itemTitle(it),
@@ -336,6 +338,9 @@ async function OrdersList({
               <TableHead className="text-center font-bold">
                   <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Item</span>
+                </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" /><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
@@ -392,6 +397,9 @@ async function OrdersList({
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
                   <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="text-center">
+                    <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
+                  </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
@@ -408,7 +416,7 @@ async function OrdersList({
                     </div>
                   </TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>
-                    <StatusSelect orderId={s.id} current={s.status} />
+                    <OrderStatusBadge status={s.status} />
                   </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
                     <div className="flex justify-center gap-2">
@@ -470,13 +478,16 @@ async function OrdersList({
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>
                     <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell className="text-center">
+                      <StatusSelect itemId={it.id} current={it.status} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </Fragment>
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={16} className="text-center text-muted-foreground">
+                <TableCell colSpan={17} className="text-center text-muted-foreground">
                   Belum ada pesanan.
                 </TableCell>
               </TableRow>
