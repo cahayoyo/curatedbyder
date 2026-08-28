@@ -261,7 +261,6 @@ async function main() {
           shippingCost: 0,
           trackingNumber: null,
           paymentStatus: payStatus as never,
-          status: orderStatus as never,
           items: {
             create: [
               {
@@ -269,6 +268,7 @@ async function main() {
                 quantity: qty,
                 unitPrice,
                 subtotal: subTotal,
+                status: orderStatus as never,
               },
             ],
           },
