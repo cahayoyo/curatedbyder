@@ -158,14 +158,15 @@ model Order {
 }
 
 model OrderItem {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   orderId   String
-  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   bookId    String?
-  book      Book?  @relation(fields: [bookId], references: [id])
+  book      Book?       @relation(fields: [bookId], references: [id])
   toyId     String?
-  toy       Toy?   @relation(fields: [toyId], references: [id])
+  toy       Toy?        @relation(fields: [toyId], references: [id])
   quantity  Int
   unitPrice Int
   subtotal  Int
+  status    OrderStatus @default(ORDER_PLACED)
 }
