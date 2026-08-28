@@ -45,16 +45,21 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFontSize(10);
   const labelW = doc.getTextWidth("Status Bayar");
 
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
   const logo = order.logoBase64;
-  let titleX = margin;
   if (logo) {
-    doc.addImage(`data:image/jpeg;base64,${logo}`, "JPEG", margin, 9, 18, 18);
-    titleX = margin + 22;
+    doc.addImage(`data:image/jpeg;base64,${logo}`, "JPEG", margin, 9, 22, 22);
   }
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Detail Pesanan", titleX, 20);
+  doc.text("Detail Pesanan", pageW - margin, 22, { align: "right" });
+
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.line(margin, 33.5, pageW - margin, 33.5);
 
   doc.setFontSize(10);
   const infoRowsLeft: [string, string][] = [
@@ -68,7 +73,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ["No Resi", order.trackingNumber || "--"],
   ];
   const rightX = 105;
-  const INFO_Y = 31;
+  const INFO_Y = 36;
   infoRowsLeft.forEach(([label, value], i) => {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
   });
@@ -121,8 +126,6 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     theme: "grid",
   });
 
-  const pageH = doc.internal.pageSize.getHeight();
-  const pageW = doc.internal.pageSize.getWidth();
   doc.setFillColor(235, 235, 235);
   doc.rect(0, pageH - 12, pageW, 12, "F");
   doc.setFont("helvetica", "bold");
