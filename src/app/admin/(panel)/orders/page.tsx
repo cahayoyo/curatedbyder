@@ -388,8 +388,6 @@ async function OrdersList({
                       <ProductLabel it={s.items[0]} />
                     </span>
                   </TableCell>
-                  <TableCell className="text-center text-xs">{s.items[0].batch?.name || "—"}</TableCell>
-                  <TableCell className="text-center text-xs">{etaLabel(s.items[0].eta)}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-wrap items-center justify-center gap-1">
                       {itemFormats(s.items[0]).length > 0
@@ -406,6 +404,8 @@ async function OrdersList({
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
                   <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="text-center text-xs">{s.items[0].batch?.name || "—"}</TableCell>
+                  <TableCell className="text-center text-xs">{etaLabel(s.items[0].eta)}</TableCell>
                   <TableCell className="text-center">
                     <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
                   </TableCell>
@@ -465,8 +465,6 @@ async function OrdersList({
                       <ProductLabel it={it} />
                     </span>
                   </TableCell>
-                    <TableCell className="text-center text-xs">{it.batch?.name || "—"}</TableCell>
-                    <TableCell className="text-center text-xs">{etaLabel(it.eta)}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap items-center justify-center gap-1">
                         {itemFormats(it).length > 0
@@ -483,6 +481,8 @@ async function OrdersList({
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>
                     <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell className="text-center text-xs">{it.batch?.name || "—"}</TableCell>
+                    <TableCell className="text-center text-xs">{etaLabel(it.eta)}</TableCell>
                     <TableCell className="text-center">
                       <StatusSelect itemId={it.id} current={it.status} />
                     </TableCell>
@@ -492,7 +492,7 @@ async function OrdersList({
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={17} className="text-center text-muted-foreground">
+                <TableCell colSpan={16} className="text-center text-muted-foreground">
                   Belum ada pesanan.
                 </TableCell>
               </TableRow>
