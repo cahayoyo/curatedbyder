@@ -23,7 +23,7 @@ export default async function LoginPage() {
           <Image
             src={logo}
             alt="CuratedByDer logo"
-            className="h-14 w-14 rounded-full object-cover ring-2 ring-white/70 shadow"
+            className="h-20 w-20 rounded-full object-cover ring-2 ring-white/70 shadow"
             priority
           />
           <h1 className="text-4xl font-extrabold tracking-tight text-black sm:text-5xl">
