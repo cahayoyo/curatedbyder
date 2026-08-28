@@ -69,7 +69,7 @@ export type OrderDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
-  buyer: { id: string; name: string; phone: string | null; contact: string | null };
+  buyer: { id: string; name: string; username: string | null; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
 };
 
@@ -105,8 +105,10 @@ const lines: string[] = [
   lines.push(
     "",
     `Invoice : ${order.invoiceNumber}`,
-    `Total : ${formatIDR(order.total)}`,
+    `DP : ${order.dp != null ? formatIDR(order.dp) : "--"}`,
+    `Sisa : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
+    `Total : ${formatIDR(order.total)}`,
     `No Resi : ${order.trackingNumber || "--"}`,
     `Alamat : ${order.buyer.contact || "—"}`,
     "",
@@ -115,6 +117,10 @@ const lines: string[] = [
     "JAGO 103600160006 Adera Nurul",
     "",
     "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak \u{1F970}",
+    "",
+    "Silahkan akses curatedbyder.store untuk cek history order, pembayaran, dan pengiriman",
+    `Username : ${order.buyer.username || "--"}`,
+    `No HP : ${order.buyer.phone || "--"}`,
   );
   return lines.join("\n");
 }

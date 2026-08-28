@@ -46,7 +46,7 @@ type OrderSearchParams = {
 };
 
 const orderInclude = {
-  buyer: { select: { id: true, name: true, phone: true, contact: true } },
+  buyer: { select: { id: true, name: true, username: true, phone: true, contact: true } },
   items: {
     orderBy: { id: "asc" },
     include: {
