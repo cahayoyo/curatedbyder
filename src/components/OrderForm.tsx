@@ -310,11 +310,19 @@ export function OrderForm({
           items: itemPayload,
         };
         if (initial?.id) {
-          await updateOrder(initial.id, payload);
+          const res = await updateOrder(initial.id, payload);
+          if (!res.ok) {
+            toast.error(res.error);
+            return;
+          }
           toast.success("Order diubah");
         } else {
-          const order = await createOrder(payload);
-          toast.success(`Order recorded: ${order.invoiceNumber}`);
+          const res = await createOrder(payload);
+          if (!res.ok) {
+            toast.error(res.error);
+            return;
+          }
+          toast.success(`Order recorded: ${res.data.invoiceNumber}`);
         }
         router.push("/admin/orders");
         router.refresh();

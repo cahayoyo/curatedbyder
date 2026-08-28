@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import type { ActionResult } from "@/lib/actionResult";
 
 export function ConfirmDeleteButton({
   title,
@@ -31,7 +32,7 @@ export function ConfirmDeleteButton({
   size?: "sm" | "icon";
   pendingLabel?: string;
   successMessage?: string;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => Promise<void | ActionResult> | void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -40,7 +41,11 @@ export function ConfirmDeleteButton({
   function handleDelete() {
     startTransition(async () => {
       try {
-        await onConfirm();
+        const res = await onConfirm();
+        if (res && !res.ok) {
+          toast.error(res.error);
+          return;
+        }
         setOpen(false);
         toast.success(successMessage);
         router.refresh();

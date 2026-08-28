@@ -201,15 +201,23 @@ export function BookForm({
 
         if (initial?.id) {
           const r = rows[0];
-          await updateBook(initial.id, bookPayload(r));
+          const res = await updateBook(initial.id, bookPayload(r));
+          if (!res.ok) {
+            toast.error(res.error);
+            return;
+          }
           await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
           toast.success("Buku diubah");
         } else {
           for (const r of rows) {
-            const book = await createBook(bookPayload(r));
+            const res = await createBook(bookPayload(r));
+            if (!res.ok) {
+              toast.error(res.error);
+              return;
+            }
             const entries = entriesFor(r);
             if (entries.length > 0) {
-              await setBookBatchPrices({ bookId: book.id, entries });
+              await setBookBatchPrices({ bookId: res.data.id, entries });
             }
           }
           toast.success(`${rows.length} buku berhasil terbuat`);

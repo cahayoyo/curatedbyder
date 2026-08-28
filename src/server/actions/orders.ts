@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma, type Order } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
 import {
   STATUS_TYPE,
   ETA_TYPE,
@@ -120,7 +121,7 @@ export async function updateBatch(id: string, name: string) {
   return { ok: true as const };
 }
 
-export async function deleteBatch(id: string) {
+export async function deleteBatch(id: string): Promise<ActionResult> {
   await requireAdmin();
 
   const batch = await db.batch.findUnique({ where: { id } });
@@ -128,14 +129,17 @@ export async function deleteBatch(id: string) {
 
   const itemCount = await db.orderItem.count({ where: { batchId: id } });
   if (itemCount > 0) {
-    throw new Error(`Batch "${batch.name}" masih dipakai ${itemCount} item pesanan`);
+    return { ok: false, error: `Batch "${batch.name}" masih dipakai ${itemCount} item pesanan` };
   }
 
   await db.batch.delete({ where: { id } });
   revalidatePath("/admin/orders");
+  return { ok: true };
 }
 
-export async function createOrder(input: z.infer<typeof orderSchema>) {
+export async function createOrder(
+  input: z.infer<typeof orderSchema>
+): Promise<ActionResultWithData<Order>> {
   await requireAdmin();
 
   const data = orderSchema.parse(input);
@@ -182,12 +186,12 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
       const entries: { bookId?: string; toyId?: string; amount: number }[] = [];
       const items = data.items.map((i) => {
         if (i.unitPrice == null) {
-          throw new Error(`Harga wajib diisi untuk setiap item`);
+          throw new UserInputError(`Harga wajib diisi untuk setiap item`);
         }
         if (i.bookId) {
           const book = bookMap.get(i.bookId);
           if (!book || book.stock < i.quantity) {
-            throw new Error(`Not enough stock for ${book?.title ?? i.bookId}`);
+            throw new UserInputError(`Not enough stock for ${book?.title ?? i.bookId}`);
           }
           const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
           total += price * i.quantity;
@@ -204,7 +208,7 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
         }
         const toy = toyMap.get(i.toyId as string);
         if (!toy || toy.stock < i.quantity) {
-          throw new Error(`Not enough stock for ${toy?.title ?? i.toyId}`);
+          throw new UserInputError(`Not enough stock for ${toy?.title ?? i.toyId}`);
         }
         const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
         total += price * i.quantity;
@@ -257,8 +261,11 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
       revalidatePath("/admin");
       revalidatePath("/admin/orders");
       revalidatePath("/dashboard");
-      return order;
+      return { ok: true, data: order };
     } catch (e) {
+      if (e instanceof UserInputError) {
+        return { ok: false, error: e.message };
+      }
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === "P2002" &&
@@ -271,15 +278,19 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
     }
   }
 
-  throw new Error("Gagal membuat nomor invoice, coba lagi.");
+  return { ok: false, error: "Gagal membuat nomor invoice, coba lagi." };
 }
 
-export async function updateOrder(id: string, input: z.infer<typeof orderSchema>) {
+export async function updateOrder(
+  id: string,
+  input: z.infer<typeof orderSchema>
+): Promise<ActionResult> {
   await requireAdmin();
 
   const data = orderSchema.parse(input);
 
-  await db.$transaction(async (tx) => {
+  try {
+    await db.$transaction(async (tx) => {
     const bookIds = data.items.filter((i) => i.bookId).map((i) => i.bookId as string);
     const toyIds = data.items.filter((i) => i.toyId).map((i) => i.toyId as string);
     const itemBatchIds = Array.from(new Set(data.items.map((i) => i.batchId)));
@@ -334,16 +345,16 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
 
     for (const i of data.items) {
       if (i.unitPrice == null) {
-        throw new Error(`Harga wajib diisi untuk setiap item`);
+        throw new UserInputError(`Harga wajib diisi untuk setiap item`);
       }
       const key = i.bookId ?? i.toyId ?? "";
       const oldQty = oldMap.get(key) ?? 0;
       const diff = i.quantity - oldQty;
       if (i.bookId) {
         const book = bookMap.get(i.bookId);
-        if (!book) throw new Error(`Buku tidak ditemukan: ${i.bookId}`);
+        if (!book) throw new UserInputError(`Buku tidak ditemukan: ${i.bookId}`);
         if (diff > 0 && book.stock < diff) {
-          throw new Error(`Not enough stock for ${book.title}`);
+          throw new UserInputError(`Not enough stock for ${book.title}`);
         }
         const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
         total += price * i.quantity;
@@ -360,9 +371,9 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
       } else {
         const toy = toyMap.get(i.toyId as string);
-        if (!toy) throw new Error(`Mainan tidak ditemukan: ${i.toyId}`);
+        if (!toy) throw new UserInputError(`Mainan tidak ditemukan: ${i.toyId}`);
         if (diff > 0 && toy.stock < diff) {
-          throw new Error(`Not enough stock for ${toy.title}`);
+          throw new UserInputError(`Not enough stock for ${toy.title}`);
         }
         const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
         total += price * i.quantity;
@@ -411,11 +422,16 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     });
 
     await applyStock(tx, stockChanges);
-  });
+    });
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    throw e;
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
+  return { ok: true };
 }
 
 export async function updateOrderItemStatus(itemId: string, status: string) {

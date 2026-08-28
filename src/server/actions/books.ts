@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma, type Book } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
 import { FORMAT_TYPE, BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
 const bookSchema = z.object({
@@ -23,19 +24,23 @@ function orNull(v: string | undefined | null): string | null {
   return t ? t : null;
 }
 
-async function ensureUniqueTitle(title: string, excludeId?: string) {
+async function ensureUniqueTitle(title: string, excludeId?: string): Promise<string | null> {
   const existing = await db.book.findUnique({ where: { title } });
   if (existing && existing.id !== excludeId) {
-    throw new Error("Judul buku sudah digunakan, gunakan judul lain.");
+    return "Judul buku sudah digunakan, gunakan judul lain.";
   }
+  return null;
 }
 
-export async function createBook(input: z.infer<typeof bookSchema>) {
+export async function createBook(
+  input: z.infer<typeof bookSchema>
+): Promise<ActionResultWithData<Book>> {
   await requireAdmin();
 
 
   const data = bookSchema.parse(input);
-  await ensureUniqueTitle(data.title);
+  const dupError = await ensureUniqueTitle(data.title);
+  if (dupError) return { ok: false, error: dupError };
 
   try {
     const book = await db.book.create({
@@ -51,21 +56,25 @@ export async function createBook(input: z.infer<typeof bookSchema>) {
       },
     });
     revalidatePath("/admin/books");
-    return book;
+    return { ok: true, data: book };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new Error("Judul buku sudah digunakan, gunakan judul lain.");
+      return { ok: false, error: "Judul buku sudah digunakan, gunakan judul lain." };
     }
     throw e;
   }
 }
 
-export async function updateBook(id: string, input: z.infer<typeof bookSchema>) {
+export async function updateBook(
+  id: string,
+  input: z.infer<typeof bookSchema>
+): Promise<ActionResultWithData<Book>> {
   await requireAdmin();
 
 
   const data = bookSchema.parse(input);
-  await ensureUniqueTitle(data.title, id);
+  const dupError = await ensureUniqueTitle(data.title, id);
+  if (dupError) return { ok: false, error: dupError };
 
   try {
     const book = await db.book.update({
@@ -82,26 +91,27 @@ export async function updateBook(id: string, input: z.infer<typeof bookSchema>) 
       },
     });
     revalidatePath("/admin/books");
-    return book;
+    return { ok: true, data: book };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new Error("Judul buku sudah digunakan, gunakan judul lain.");
+      return { ok: false, error: "Judul buku sudah digunakan, gunakan judul lain." };
     }
     throw e;
   }
 }
 
-export async function deleteBook(id: string) {
+export async function deleteBook(id: string): Promise<ActionResult> {
   await requireAdmin();
 
 
   const sold = await db.orderItem.count({ where: { bookId: id } });
   if (sold > 0) {
-    throw new Error("Buku ini sudah pernah terjual dan tidak bisa dihapus.");
+    return { ok: false, error: "Buku ini sudah pernah terjual dan tidak bisa dihapus." };
   }
 
   await db.book.delete({ where: { id } });
   revalidatePath("/admin/books");
+  return { ok: true };
 }
 
 const bookBatchPriceSchema = z.object({
