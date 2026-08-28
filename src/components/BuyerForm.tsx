@@ -63,19 +63,27 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
       try {
         if (initial?.id) {
           const r = rows[0];
-          await updateBuyer(initial.id, {
+          const res = await updateBuyer(initial.id, {
             name: r.name,
             phone: r.phone,
             contact: r.contact || null,
           });
+          if (!res.ok) {
+            toast.error(res.error);
+            return;
+          }
           toast.success("Pembeli diubah");
         } else {
           for (const r of rows) {
-            await createBuyer({
+            const res = await createBuyer({
               name: r.name,
               phone: r.phone,
               contact: r.contact || null,
             });
+            if (!res.ok) {
+              toast.error(res.error);
+              return;
+            }
           }
           toast.success(`${rows.length} pembeli buat`);
         }

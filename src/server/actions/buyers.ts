@@ -5,6 +5,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { generateUsername } from "@/lib/username";
+import type { User } from "@prisma/client";
+import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
 
 const buyerSchema = z.object({
   name: z.string().min(2),
@@ -12,7 +14,9 @@ const buyerSchema = z.object({
   contact: z.string().optional().nullable(),
 });
 
-export async function createBuyer(input: z.infer<typeof buyerSchema>) {
+export async function createBuyer(
+  input: z.infer<typeof buyerSchema>
+): Promise<ActionResultWithData<User>> {
   await requireAdmin();
 
   const data = buyerSchema.parse(input);
@@ -23,8 +27,9 @@ export async function createBuyer(input: z.infer<typeof buyerSchema>) {
       return db.user.findUnique({ where: { username } });
     })(),
   ]);
-  if (existingByPhone) throw new Error("A buyer with this phone already exists");
-  if (existingByUsername) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+  if (existingByPhone) return { ok: false, error: "Nomor telepon sudah dipakai pembeli lain" };
+  if (existingByUsername)
+    return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
   const buyer = await db.user.create({
     data: {
@@ -38,10 +43,13 @@ export async function createBuyer(input: z.infer<typeof buyerSchema>) {
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
-  return buyer;
+  return { ok: true, data: buyer };
 }
 
-export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>) {
+export async function updateBuyer(
+  id: string,
+  input: z.infer<typeof buyerSchema>
+): Promise<ActionResultWithData<User>> {
   await requireAdmin();
 
   const data = buyerSchema.parse(input);
@@ -50,8 +58,9 @@ export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>
     db.user.findFirst({ where: { phone: data.phone, NOT: { id } } }),
     db.user.findFirst({ where: { username, NOT: { id } } }),
   ]);
-  if (existingByPhone) throw new Error("A buyer with this phone already exists");
-  if (existingByUsername) throw new Error("Username sudah dipakai, ubah nama atau nomor telepon");
+  if (existingByPhone) return { ok: false, error: "Nomor telepon sudah dipakai pembeli lain" };
+  if (existingByUsername)
+    return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
   const buyer = await db.user.update({
     where: { id },
@@ -60,21 +69,23 @@ export async function updateBuyer(id: string, input: z.infer<typeof buyerSchema>
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
-  return buyer;
+  return { ok: true, data: buyer };
 }
 
-export async function deleteBuyer(id: string) {
+export async function deleteBuyer(id: string): Promise<ActionResult> {
   await requireAdmin();
 
   const sold = await db.order.count({ where: { buyerId: id } });
   if (sold > 0) {
     const buyer = await db.user.findUnique({ where: { id } });
-    throw new Error(
-      `${buyer?.name ?? "Pembeli"} sudah pernah transaksi dan tidak bisa dihapus`
-    );
+    return {
+      ok: false,
+      error: `${buyer?.name ?? "Pembeli"} sudah pernah transaksi dan tidak bisa dihapus`,
+    };
   }
 
   await db.user.delete({ where: { id } });
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
+  return { ok: true };
 }

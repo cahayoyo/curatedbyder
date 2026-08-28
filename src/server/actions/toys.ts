@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma, type Toy } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { ActionResultWithData } from "@/lib/actionResult";
 import { BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
 const toySchema = z.object({
@@ -22,18 +23,22 @@ function orNull(v: string | undefined | null): string | null {
   return t ? t : null;
 }
 
-async function ensureUniqueTitle(title: string, excludeId?: string) {
+async function ensureUniqueTitle(title: string, excludeId?: string): Promise<string | null> {
   const existing = await db.toy.findUnique({ where: { title } });
   if (existing && existing.id !== excludeId) {
-    throw new Error("Judul mainan sudah digunakan, gunakan judul lain.");
+    return "Judul mainan sudah digunakan, gunakan judul lain.";
   }
+  return null;
 }
 
-export async function createToy(input: z.infer<typeof toySchema>) {
+export async function createToy(
+  input: z.infer<typeof toySchema>
+): Promise<ActionResultWithData<Toy>> {
   await requireAdmin();
 
   const data = toySchema.parse(input);
-  await ensureUniqueTitle(data.title);
+  const dupError = await ensureUniqueTitle(data.title);
+  if (dupError) return { ok: false, error: dupError };
 
   try {
     const toy = await db.toy.create({
@@ -48,20 +53,24 @@ export async function createToy(input: z.infer<typeof toySchema>) {
       },
     });
     revalidatePath("/admin/toys");
-    return toy;
+    return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new Error("Judul mainan sudah digunakan, gunakan judul lain.");
+      return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
     throw e;
   }
 }
 
-export async function updateToy(id: string, input: z.infer<typeof toySchema>) {
+export async function updateToy(
+  id: string,
+  input: z.infer<typeof toySchema>
+): Promise<ActionResultWithData<Toy>> {
   await requireAdmin();
 
   const data = toySchema.parse(input);
-  await ensureUniqueTitle(data.title, id);
+  const dupError = await ensureUniqueTitle(data.title, id);
+  if (dupError) return { ok: false, error: dupError };
 
   try {
     const toy = await db.toy.update({
@@ -77,10 +86,10 @@ export async function updateToy(id: string, input: z.infer<typeof toySchema>) {
       },
     });
     revalidatePath("/admin/toys");
-    return toy;
+    return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new Error("Judul mainan sudah digunakan, gunakan judul lain.");
+      return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
     throw e;
   }

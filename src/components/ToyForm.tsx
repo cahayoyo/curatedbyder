@@ -157,15 +157,23 @@ export function ToyForm({
 
         if (initial?.id) {
           const r = rows[0];
-          await updateToy(initial.id, toyPayload(r));
+          const res = await updateToy(initial.id, toyPayload(r));
+          if (!res.ok) {
+            toast.error(res.error);
+            return;
+          }
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
           toast.success("Mainan diubah");
         } else {
           for (const r of rows) {
-            const toy = await createToy(toyPayload(r));
+            const res = await createToy(toyPayload(r));
+            if (!res.ok) {
+              toast.error(res.error);
+              return;
+            }
             const entries = entriesFor(r);
             if (entries.length > 0) {
-              await setToyBatchPrices({ toyId: toy.id, entries });
+              await setToyBatchPrices({ toyId: res.data.id, entries });
             }
           }
           toast.success(`${rows.length} mainan berhasil dibuat`);
