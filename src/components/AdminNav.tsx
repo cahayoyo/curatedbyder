@@ -57,7 +57,7 @@ export function AdminNav() {
                 }}
                 className={cn(
                   "cursor-pointer text-black/80 hover:bg-black/10 focus:bg-black/10 focus:text-black",
-                  isActive(pathname, l.href) && "bg-[#D97A7A] font-semibold text-black"
+                  isActive(pathname, l.href) && "bg-[#D97A7A] font-semibold text-white"
                 )}
               >
                 <span className="flex w-full items-center gap-2">
@@ -80,7 +80,7 @@ export function AdminNav() {
               href={l.href}
               className={cn(
                 "flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm text-black/70 transition-colors hover:bg-black/10 hover:text-black",
-                active && "bg-[#D97A7A] font-semibold text-black shadow-sm"
+                active && "bg-[#D97A7A] font-semibold text-white shadow-sm"
               )}
             >
               <l.icon className="h-4 w-4" />
