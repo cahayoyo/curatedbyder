@@ -45,7 +45,7 @@ export function PhotoCarousel() {
   }
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), 3000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), 2500);
     return () => clearInterval(id);
   }, [count]);
 

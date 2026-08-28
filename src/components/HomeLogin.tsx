@@ -59,7 +59,7 @@ export function HomeLogin() {
     <div className="w-full max-w-sm space-y-6">
       <form
         onSubmit={onSubmit}
-        className="relative space-y-3 overflow-hidden rounded-xl border bg-white/10 p-5 shadow-sm backdrop-blur-sm"
+        className="relative space-y-3 overflow-hidden rounded-xl border bg-[#F6F1E7] p-5 shadow-sm"
       >
         {BOOK_ACCENTS.map((a, i) => (
           <BookOpen
