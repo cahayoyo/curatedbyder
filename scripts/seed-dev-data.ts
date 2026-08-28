@@ -129,7 +129,6 @@ async function main() {
         invoiceNumber,
         buyerId: buyers[o.buyerIdx].id,
         batchId: batch.id,
-        status: o.status,
         eta: o.eta,
         total,
         dp: o.dp,
@@ -140,8 +139,8 @@ async function main() {
         soldAt: o.soldAt,
         items: {
           create: [
-            { bookId: book.id, toyId: null, quantity: o.bookQty, unitPrice: book.price, subtotal: bookSub },
-            { bookId: null, toyId: toy.id, quantity: o.toyQty, unitPrice: toy.price, subtotal: toySub },
+            { bookId: book.id, toyId: null, quantity: o.bookQty, unitPrice: book.price, subtotal: bookSub, status: o.status },
+            { bookId: null, toyId: toy.id, quantity: o.toyQty, unitPrice: toy.price, subtotal: toySub, status: o.status },
           ],
         },
       },

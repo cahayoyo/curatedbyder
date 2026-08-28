@@ -49,6 +49,7 @@ const orderInclude = {
   buyer: { select: { id: true, name: true, phone: true, contact: true } },
   batch: { select: { id: true, name: true } },
   items: {
+    orderBy: { id: "asc" },
     include: {
       book: {
         select: {
@@ -73,6 +74,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: {
     title: string;
@@ -126,7 +128,7 @@ function ProductLabel({ it }: { it: ItemOrToy }) {
 }
 
 function toItemDTO(
-  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number },
+  it: ItemOrToy & { id: string; quantity: number; unitPrice: number; subtotal: number; status: string },
   orderBatchId: string | undefined
 ): OrderItemDTO {
   return {
@@ -134,6 +136,7 @@ function toItemDTO(
     quantity: it.quantity,
     unitPrice: it.unitPrice,
     subtotal: it.subtotal,
+    status: it.status,
     kind: itemKind(it),
     book: {
       title: itemTitle(it),
@@ -223,7 +226,7 @@ async function OrdersList({
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
   }
   if (statusValid) {
-    where.status = statusValid as OrderStatus;
+    where.items = { some: { status: statusValid as OrderStatus } };
   }
   if (batchId) {
     where.batchId = batchId;
@@ -292,7 +295,6 @@ async function OrdersList({
               shippingCost: s.shippingCost,
               trackingNumber: s.trackingNumber,
               paymentStatus: s.paymentStatus,
-              status: s.status,
               batch: s.batch,
               buyer: s.buyer,
               items: s.items.map((it) => toItemDTO(it, s.batchId)),
@@ -336,6 +338,9 @@ async function OrdersList({
               <TableHead className="text-center font-bold">
                   <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Item</span>
+                </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" /><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
@@ -353,9 +358,6 @@ async function OrdersList({
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Pesanan</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
@@ -392,6 +394,9 @@ async function OrdersList({
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
                   <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell className="text-center">
+                    <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
+                  </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
@@ -407,9 +412,6 @@ async function OrdersList({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
-                    <StatusSelect orderId={s.id} current={s.status} />
-                  </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
                     <div className="flex justify-center gap-2">
                       <OrderViewButton
@@ -424,7 +426,6 @@ async function OrdersList({
                           shippingCost: s.shippingCost,
                           trackingNumber: s.trackingNumber,
                           paymentStatus: s.paymentStatus,
-                          status: s.status,
                           batch: s.batch,
                           buyer: s.buyer,
                           items: s.items.map((it) => toItemDTO(it, s.batchId)),
@@ -470,6 +471,9 @@ async function OrdersList({
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>
                     <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell className="text-center">
+                      <StatusSelect itemId={it.id} current={it.status} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </Fragment>
@@ -515,7 +519,7 @@ export default async function AdminOrdersPage({
       db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
       db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
       db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
+      db.orderItem.groupBy({ by: ["status"], _count: { _all: true }, _sum: { subtotal: true } }),
     ]);
 
   const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
@@ -548,7 +552,7 @@ export default async function AdminOrdersPage({
       value: s.value,
       label: s.label,
       count: statusMap.get(s.value)?._count._all ?? 0,
-      total: statusMap.get(s.value)?._sum.total ?? 0,
+      total: statusMap.get(s.value)?._sum.subtotal ?? 0,
     })),
   };
 

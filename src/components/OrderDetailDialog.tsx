@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { STATUS_LABEL, PAYMENT_LABEL, STATUS_BADGE, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { cn } from "@/lib/utils";
 import {
   Calculator,
   CalendarClock,
@@ -22,7 +23,6 @@ import {
   MapPin,
   MessageCircle,
   Package,
-  PackageCheck,
   Phone,
   PiggyBank,
   ShieldCheck,
@@ -36,6 +36,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
 };
@@ -67,7 +68,6 @@ export type OrderDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
-  status: string;
   batch: { id: string; name: string } | null;
   buyer: { id: string; name: string; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
@@ -200,11 +200,6 @@ export function OrderDetailDialog({
             <span className="ml-auto text-right font-mono font-medium">{order.trackingNumber || "—"}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Status Pesanan</span>
-            <span className="ml-auto font-medium">{STATUS_LABEL[order.status] || order.status}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Status Pembayaran</span>
             <span className="ml-auto font-medium">{PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}</span>
@@ -239,6 +234,14 @@ export function OrderDetailDialog({
                 <span>Harga: {formatIDR(it.unitPrice)}</span>
                 <span className="text-right font-medium">{formatIDR(it.subtotal)}</span>
               </div>
+              <span
+                className={cn(
+                  "mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                  STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"
+                )}
+              >
+                {STATUS_LABEL[it.status] ?? it.status}
+              </span>
             </div>
           ))}
         </div>

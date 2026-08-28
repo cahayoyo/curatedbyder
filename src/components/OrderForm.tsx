@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ETAS, STATUSES, PAYMENT_STATUSES, FORMAT_BADGE } from "@/lib/orderOptions";
+import { ETAS, PAYMENT_STATUSES, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,6 @@ type OrderInitial = {
   invoiceNumber: string;
   buyerId: string;
   batchId: string;
-  status: string;
   eta: string;
   dp: number | null;
   shippingCost: number | null;
@@ -140,7 +139,6 @@ export function OrderForm({
   const [paymentStatus, setPaymentStatus] = useState<string>(
     initial?.paymentStatus ?? "NO_PAYMENT"
   );
-  const [status, setStatus] = useState<string>(initial?.status ?? "ORDER_PLACED");
   const [items, setItems] = useState<LineItem[]>(
     initial?.items?.length
       ? initial.items.map((it) => ({
@@ -278,7 +276,6 @@ export function OrderForm({
     if (!batchId) return toast.error("Batch wajib dipilih");
     if (!eta) return toast.error("ETA wajib dipilih");
     if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
-    if (!status) return toast.error("Status order wajib dipilih");
     if (itemPayload.length === 0) return toast.error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
     if (hasEmptyProduct) return toast.error("Semua baris produk wajib diisi");
@@ -305,13 +302,6 @@ export function OrderForm({
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
           paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
-          status: status as
-            | "ORDER_PLACED"
-            | "SHIPPING_TO_INDONESIA"
-            | "ARRIVED_IN_INDONESIA"
-            | "ARRIVED_AT_WAREHOUSE"
-            | "SHIPPED_TO_CUSTOMER"
-            | "ORDER_DELIVERED",
           items: itemPayload,
         };
         if (initial?.id) {
@@ -565,21 +555,6 @@ export function OrderForm({
               {PAYMENT_STATUSES.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
                   {p.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Status Pesanan</Label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUSES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
                 </SelectItem>
               ))}
             </SelectContent>

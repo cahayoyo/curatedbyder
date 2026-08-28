@@ -57,7 +57,6 @@ export default async function EditOrderPage({ params }: { params: { id: string }
           invoiceNumber: order.invoiceNumber,
           buyerId: order.buyerId,
           batchId: order.batchId,
-          status: order.status,
           eta: order.eta,
           dp: order.dp,
           shippingCost: order.shippingCost,

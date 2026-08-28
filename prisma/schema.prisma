@@ -138,7 +138,6 @@ model Order {
   invoiceNumber  String        @unique
   buyerId        String
   buyer          User          @relation(fields: [buyerId], references: [id])
-  status         OrderStatus   @default(ORDER_PLACED)
   total          Int
   soldAt         DateTime      @default(now())
   batchId        String
@@ -154,18 +153,18 @@ model Order {
 
   @@index([soldAt])
   @@index([buyerId, soldAt])
-  @@index([status])
 }
 
 model OrderItem {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   orderId   String
-  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   bookId    String?
-  book      Book?  @relation(fields: [bookId], references: [id])
+  book      Book?       @relation(fields: [bookId], references: [id])
   toyId     String?
-  toy       Toy?   @relation(fields: [toyId], references: [id])
+  toy       Toy?        @relation(fields: [toyId], references: [id])
   quantity  Int
   unitPrice Int
   subtotal  Int
+  status    OrderStatus @default(ORDER_PLACED)
 }

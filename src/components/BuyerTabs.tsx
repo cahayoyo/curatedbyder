@@ -27,6 +27,7 @@ import {
   STATUS_BADGE,
   FORMAT_BADGE,
   etaLabel,
+  STATUSES,
 } from "@/lib/orderOptions";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
@@ -42,7 +43,6 @@ import {
   MessageCircle,
   MoreVertical,
   Package,
-  PackageCheck,
   Phone,
   PiggyBank,
   ReceiptText,
@@ -58,6 +58,7 @@ type OrderItemDTO = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  status: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
   book: { title: string; formats: string[] };
 };
@@ -65,7 +66,6 @@ type OrderItemDTO = {
 export type OrderDTO = {
   id: string;
   invoiceNumber: string;
-  status: string;
   paymentStatus: string;
   total: number;
   soldAt: string;
@@ -83,14 +83,11 @@ export type OrderDTO = {
 
 const ADMIN_WA = "6281381346059";
 
-function BadgeGroup({ status, payment }: { status: string; payment: string }) {
+function BadgeGroup({ payment }: { payment: string }) {
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-1.5">
       <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${PAYMENT_BADGE[payment] ?? ""}`}>
         {PAYMENT_LABEL[payment] || payment}
-      </Badge>
-      <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${STATUS_BADGE[status] ?? ""}`}>
-        {STATUS_LABEL[status] || status}
       </Badge>
     </div>
   );
@@ -147,7 +144,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
           <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
-          <BadgeGroup status={order.status} payment={order.paymentStatus} />
+          <BadgeGroup payment={order.paymentStatus} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -220,6 +217,11 @@ function OrderCard({ order }: { order: OrderDTO }) {
                       </span>
                     ))
                   : ""}
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                >
+                  {STATUS_LABEL[it.status] || it.status}
+                </span>
               </p>
               <p className="text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)}
@@ -338,11 +340,6 @@ function BuyerOrderDetail({
             <span className="ml-auto text-right font-mono font-medium">{order.trackingNumber || "—"}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Status Pesanan</span>
-            <span className="ml-auto font-medium">{STATUS_LABEL[order.status] || order.status}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Status Pembayaran</span>
             <span className="ml-auto font-medium">{PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}</span>
@@ -371,6 +368,11 @@ function BuyerOrderDetail({
                       </span>
                     ))
                   : ""}
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                >
+                  {STATUS_LABEL[it.status] || it.status}
+                </span>
               </p>
               <div className="mt-1 grid grid-cols-3 gap-1 text-xs">
                 <span>Qty: {it.quantity}</span>
@@ -496,7 +498,8 @@ function PaymentCard({ order }: { order: OrderDTO }) {
 }
 
 function TrackCard({ order }: { order: OrderDTO }) {
-  const done = TRACK_STATUSES.findIndex((x) => x === order.status);
+  const current = STATUSES.find((s) => order.items.some((it) => it.status === s.value))?.value ?? "ORDER_PLACED";
+  const done = TRACK_STATUSES.findIndex((x) => x === current);
 
   return (
     <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
@@ -507,7 +510,7 @@ function TrackCard({ order }: { order: OrderDTO }) {
           </span>
           <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
         </span>
-        <BadgeGroup status={order.status} payment={order.paymentStatus} />
+        <BadgeGroup payment={order.paymentStatus} />
       </div>
 
       <div className="mb-2 h-px w-full bg-black/15" />

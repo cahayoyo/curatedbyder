@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateOrderStatus, updatePaymentStatus } from "@/server/actions/orders";
+import { updateOrderItemStatus, updatePaymentStatus } from "@/server/actions/orders";
 import {
   Select,
   SelectContent,
@@ -10,19 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUSES, PAYMENT_STATUSES, STATUS_BADGE, PAYMENT_BADGE } from "@/lib/orderOptions";
+import {
+  STATUSES,
+  PAYMENT_STATUSES,
+  STATUS_BADGE,
+  PAYMENT_BADGE,
+} from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function StatusSelect({ orderId, current }: { orderId: string; current: string }) {
+export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function onChange(value: string) {
     startTransition(async () => {
       try {
-        await updateOrderStatus(orderId, value);
-        toast.success("Status updated");
+        await updateOrderItemStatus(itemId, value);
+        toast.success("Status item updated");
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to update");

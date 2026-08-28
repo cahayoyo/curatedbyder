@@ -40,7 +40,7 @@ export default async function AdminOverviewPage() {
       db.order.aggregate({
         _sum: { total: true, dp: true, remaining: true },
       }),
-      db.order.groupBy({
+      db.orderItem.groupBy({
         by: ["status"],
         _count: { _all: true },
       }),
