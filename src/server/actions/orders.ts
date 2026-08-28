@@ -9,7 +9,6 @@ import {
   STATUS_TYPE,
   ETA_TYPE,
   PAYMENT_TYPE,
-  deriveOrderStatus,
 } from "@/lib/orderOptions";
 
 const orderSchema = z.object({
@@ -26,7 +25,6 @@ const orderSchema = z.object({
     .nullable()
     .transform((v) => (v ? v : null)),
   paymentStatus: z.enum(PAYMENT_TYPE),
-  status: z.enum(STATUS_TYPE),
   items: z
     .array(
       z.object({
@@ -197,7 +195,6 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
             quantity: i.quantity,
             unitPrice: price,
             subtotal: price * i.quantity,
-            status: data.status,
           };
         }
         const toy = toyMap.get(i.toyId as string);
@@ -213,7 +210,6 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
-          status: data.status,
         };
       });
 
@@ -234,7 +230,6 @@ export async function createOrder(input: z.infer<typeof orderSchema>) {
           invoiceNumber,
           buyerId: data.buyerId,
           batchId: data.batchId,
-          status: data.status,
           total: orderTotal,
           eta: data.eta,
           dp: data.dp,
@@ -285,7 +280,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     const [existing, books, toys, batchPrices] = await Promise.all([
       tx.order.findUnique({
         where: { id },
-        include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
+        include: { items: { select: { bookId: true, toyId: true, quantity: true, status: true } } },
       }),
       tx.book.findMany({
         where: { id: { in: bookIds } },
@@ -305,6 +300,9 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
     const oldMap = new Map(
       existing.items.map((it) => [it.bookId ?? it.toyId ?? "", it.quantity])
     );
+    const oldStatusMap = new Map(
+      existing.items.map((it) => [it.bookId ?? it.toyId ?? "", it.status])
+    );
     const bookMap = new Map(books.map((b) => [b.id, b]));
     const toyMap = new Map(toys.map((t) => [t.id, t]));
     const batchPriceMap = new Map(batchPrices.map((bp) => [bp.bookId, bp.price]));
@@ -321,8 +319,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
       unitPrice: number;
       subtotal: number;
       status: (typeof STATUS_TYPE)[number];
-    }[] = [];
-    const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
+    }[] = [];    const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
 
     for (const i of data.items) {
       if (i.unitPrice == null) {
@@ -345,7 +342,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
-          status: data.status,
+          status: oldStatusMap.get(key) ?? "ORDER_PLACED",
         });
         if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
       } else {
@@ -362,7 +359,7 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
-          status: data.status,
+          status: oldStatusMap.get(key) ?? "ORDER_PLACED",
         });
         if (diff !== 0) stockChanges.push({ toyId: i.toyId as string, amount: -diff });
       }
@@ -393,7 +390,6 @@ export async function updateOrder(id: string, input: z.infer<typeof orderSchema>
         trackingNumber: data.trackingNumber,
         paymentStatus: data.paymentStatus,
         total: orderTotal,
-        status: data.status,
         items: {
           deleteMany: {},
           create: createItems,
@@ -413,31 +409,12 @@ export async function updateOrderItemStatus(itemId: string, status: string) {
   await requireAdmin();
 
   const valid = z.enum(STATUS_TYPE).parse(status);
-  const derived = await db.$transaction(async (tx) => {
-    const item = await tx.orderItem.findUnique({
-      where: { id: itemId },
-      select: { orderId: true },
-    });
-    if (!item) throw new Error("Item tidak ditemukan");
-
-    await tx.orderItem.update({ where: { id: itemId }, data: { status: valid } });
-
-    const items = await tx.orderItem.findMany({
-      where: { orderId: item.orderId },
-      select: { status: true },
-    });
-    const orderStatus = deriveOrderStatus(items.map((it) => it.status)) as (typeof STATUS_TYPE)[number];
-    await tx.order.update({
-      where: { id: item.orderId },
-      data: { status: orderStatus },
-    });
-    return orderStatus;
-  });
+  await db.orderItem.update({ where: { id: itemId }, data: { status: valid } });
 
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
-  return derived;
+  return valid;
 }
 
 export async function updatePaymentStatus(id: string, paymentStatus: string) {

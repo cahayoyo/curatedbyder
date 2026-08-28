@@ -14,24 +14,10 @@ import {
   STATUSES,
   PAYMENT_STATUSES,
   STATUS_BADGE,
-  STATUS_LABEL,
   PAYMENT_BADGE,
 } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-export function OrderStatusBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-9 items-center whitespace-nowrap rounded-md border px-3 text-sm font-medium",
-        STATUS_BADGE[status] ?? "border-gray-300 bg-gray-100 text-gray-700"
-      )}
-    >
-      {STATUS_LABEL[status] ?? status}
-    </span>
-  );
-}
 
 export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
   const router = useRouter();

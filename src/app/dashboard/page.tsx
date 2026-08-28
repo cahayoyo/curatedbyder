@@ -91,7 +91,7 @@ async function OrdersSection({
     where.batchId = batchId;
   }
   if (statusValid) {
-    where.status = statusValid as OrderStatus;
+    where.items = { some: { status: statusValid as OrderStatus } };
   }
   if (paymentStatuses.length > 0) {
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
@@ -120,7 +120,6 @@ async function OrdersSection({
   const dto: OrderDTO[] = orders.map((s) => ({
     id: s.id,
     invoiceNumber: s.invoiceNumber,
-    status: s.status,
     paymentStatus: s.paymentStatus,
     total: s.total,
     soldAt: s.soldAt.toISOString(),

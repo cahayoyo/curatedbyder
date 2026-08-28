@@ -129,7 +129,6 @@ async function main() {
         invoiceNumber,
         buyerId: buyers[o.buyerIdx].id,
         batchId: batch.id,
-        status: o.status,
         eta: o.eta,
         total,
         dp: o.dp,

@@ -23,7 +23,6 @@ import {
   MapPin,
   MessageCircle,
   Package,
-  PackageCheck,
   Phone,
   PiggyBank,
   ShieldCheck,
@@ -69,7 +68,6 @@ export type OrderDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
-  status: string;
   batch: { id: string; name: string } | null;
   buyer: { id: string; name: string; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
@@ -200,11 +198,6 @@ export function OrderDetailDialog({
             <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">No Resi</span>
             <span className="ml-auto text-right font-mono font-medium">{order.trackingNumber || "—"}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <PackageCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Status Pesanan</span>
-            <span className="ml-auto font-medium">{STATUS_LABEL[order.status] || order.status}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

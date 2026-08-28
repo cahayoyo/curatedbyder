@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { Fragment, Suspense } from "react";
 import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
-import { StatusSelect, PaymentStatusSelect, OrderStatusBadge } from "@/components/OrderRow";
+import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
 import { ManageBatchDialog } from "@/components/ManageBatchDialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
@@ -226,7 +226,7 @@ async function OrdersList({
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
   }
   if (statusValid) {
-    where.status = statusValid as OrderStatus;
+    where.items = { some: { status: statusValid as OrderStatus } };
   }
   if (batchId) {
     where.batchId = batchId;
@@ -295,7 +295,6 @@ async function OrdersList({
               shippingCost: s.shippingCost,
               trackingNumber: s.trackingNumber,
               paymentStatus: s.paymentStatus,
-              status: s.status,
               batch: s.batch,
               buyer: s.buyer,
               items: s.items.map((it) => toItemDTO(it, s.batchId)),
@@ -360,9 +359,6 @@ async function OrdersList({
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Pesanan</span>
-                </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
                 </TableHead>
@@ -416,9 +412,6 @@ async function OrdersList({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
-                    <OrderStatusBadge status={s.status} />
-                  </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
                     <div className="flex justify-center gap-2">
                       <OrderViewButton
@@ -433,7 +426,6 @@ async function OrdersList({
                           shippingCost: s.shippingCost,
                           trackingNumber: s.trackingNumber,
                           paymentStatus: s.paymentStatus,
-                          status: s.status,
                           batch: s.batch,
                           buyer: s.buyer,
                           items: s.items.map((it) => toItemDTO(it, s.batchId)),
@@ -488,7 +480,7 @@ async function OrdersList({
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={17} className="text-center text-muted-foreground">
+                <TableCell colSpan={16} className="text-center text-muted-foreground">
                   Belum ada pesanan.
                 </TableCell>
               </TableRow>
@@ -527,7 +519,7 @@ export default async function AdminOrdersPage({
       db.order.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { total: true } }),
       db.order.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { total: true } }),
       db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
-      db.order.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
+      db.orderItem.groupBy({ by: ["status"], _count: { _all: true }, _sum: { subtotal: true } }),
     ]);
 
   const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
@@ -560,7 +552,7 @@ export default async function AdminOrdersPage({
       value: s.value,
       label: s.label,
       count: statusMap.get(s.value)?._count._all ?? 0,
-      total: statusMap.get(s.value)?._sum.total ?? 0,
+      total: statusMap.get(s.value)?._sum.subtotal ?? 0,
     })),
   };
 

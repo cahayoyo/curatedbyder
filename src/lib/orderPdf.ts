@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatIDR, dateLabel } from "@/lib/format";
-import { STATUS_LABEL, PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
+import { PAYMENT_LABEL, etaLabel } from "@/lib/orderOptions";
 
 type OrderPdfDTO = {
   invoiceNumber: string;
@@ -22,7 +22,6 @@ type OrderPdfDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
-  status: string;
 };
 
 const LABEL_X = 14;
@@ -108,8 +107,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   doc.setFontSize(10);
   infoText(doc, "Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus, lastY, labelW);
-  infoText(doc, "Status Order", STATUS_LABEL[order.status] || order.status, lastY + 6, labelW);
-  infoText(doc, "No Resi", order.trackingNumber || "--", lastY + 12, labelW);
+  infoText(doc, "No Resi", order.trackingNumber || "--", lastY + 6, labelW);
 
   return doc;
 }
