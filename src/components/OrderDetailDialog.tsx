@@ -94,8 +94,8 @@ function buildWaText(order: OrderDTO): string {
   const lines: string[] = [
     `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak 😊🙏🏼`,
     "",
-    "*Detail Pesanan*",
-    `Link PDF Invoice Order : ${pdfLink}`,
+    "*Detail Pesanan (Link PDF) :*",
+    pdfLink,
   ];
   lines.push(
     "",
