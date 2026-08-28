@@ -59,16 +59,18 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
     startTransition(async () => {
       try {
         let created = 0;
+        let firstError: string | null = null;
         for (const n of names) {
           const res = await createBatch(n);
           if (res.ok) created++;
+          else firstError ??= res.error;
         }
         if (created > 0) {
           toast.success(`${created} batch berhasil dibuat`);
           setFields([""]);
           router.refresh();
         } else {
-          toast.error("Tidak ada batch baru yang dibuat (mungkin sudah ada)");
+          toast.error(firstError ?? "Tidak ada batch baru yang dibuat (mungkin sudah ada)");
         }
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Gagal membuat batch");
