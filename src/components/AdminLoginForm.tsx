@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export function AdminLoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldError, setFieldError] = useState<{ email?: boolean; password?: boolean }>({});
 
   function onFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -78,14 +79,22 @@ export function AdminLoginForm() {
               <Input
                 id="login-password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 autoComplete="current-password"
                 placeholder="******"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`pl-9 pr-10 placeholder:text-[#b5b5b5] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.password}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {fieldError.password && (
               <p className="text-xs font-medium text-red-600">Password salah!</p>
