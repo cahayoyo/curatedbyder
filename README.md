@@ -1,24 +1,47 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Local Development
+
+Database lokal terpisah dari production (Neon project dev vs prod). Struktur tabel dibagikan lewat Prisma migrations yang di-commit ke git; data tidak pernah ikut.
+
+### Setup awal
+
+1. Copy `.env.example` ke `.env`, isi:
+   - `DATABASE_URL` — Neon dev **pooled** URL (host mengandung `-pooler`)
+   - `DIRECT_URL` — Neon dev **direct** URL (tanpa `-pooler`), dipakai untuk migrasi
+   - `NEXTAUTH_URL=http://localhost:3000`, `NEXTAUTH_SECRET` (bebas, beda dari prod)
+   - `UPLOADTHING_TOKEN` (app dev terpisah), `ADMIN_SEED="email|password|nama"`
+2. Apply schema + seed:
+
+```bash
+npm run db:migrate   # apply/create migrations (guardrail anti-prod aktif)
+npm run db:seed      # buat admin dari ADMIN_SEED
+npx tsx scripts/seed-sample-data.ts   # data katalog contoh (opsional)
+```
+
+### Workflow perubahan schema
+
+```bash
+npm run db:migrate   # 1. ubah prisma/schema.prisma, lalu buat migration
+git commit           # 2. commit file migration yang dibuat
+git push             # 3. Vercel otomatis menjalankan `prisma migrate deploy` saat build
+```
+
+Migrasi diterapkan ke struktur DB prod saat deploy — data prod tidak tersentuh.
+
+### Guardrail
+
+`npm run db:migrate` dan `npm run db:seed` menolak jalan jika `DATABASE_URL` menunjuk ke DB production (cek host di `scripts/check-db-target.mjs`). Bypass darurat: `SKIP_DB_GUARD=1`.
+
 ## Getting Started
 
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 

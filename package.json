@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
+    "db:migrate": "node scripts/check-db-target.mjs && prisma migrate dev",
+    "db:seed": "node scripts/check-db-target.mjs && prisma db seed",
     "db:deploy": "prisma migrate deploy",
+    "vercel-build": "prisma migrate deploy && next build",
     "postinstall": "prisma generate"
   },
   "prisma": {
