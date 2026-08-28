@@ -38,13 +38,12 @@ export async function GET(
       quantity: it.quantity,
       unitPrice: it.unitPrice,
       subtotal: it.subtotal,
+      title: it.book?.title ?? it.toy?.title ?? "—",
+      tipe: it.book ? "Buku" : it.toy ? "Mainan" : "—",
+      formats: it.book?.formats ?? [],
+      status: (it.book ?? it.toy)?.status ?? "PRE_ORDER",
       batchName: it.batch?.name ?? null,
       eta: it.eta,
-      book: {
-        title: it.book?.title ?? it.toy?.title ?? "—",
-        formats: it.book?.formats ?? [],
-        status: (it.book ?? it.toy)?.status ?? "PRE_ORDER",
-      },
     })),
   };
 

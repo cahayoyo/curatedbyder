@@ -9,9 +9,12 @@ type OrderPdfDTO = {
   logoBase64?: string;
   buyer: { name: string; phone: string | null };
   items: {
+    title: string;
+    tipe: string;
+    formats: string[];
+    status: string;
     batchName: string | null;
     eta: string;
-    book: { title: string; formats: string[] };
     quantity: number;
     unitPrice: number;
     subtotal: number;
@@ -72,22 +75,24 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   autoTable(doc, {
     startY: 40 + infoRowsLeft.length * 5.2,
-    head: [["#", "Nama Produk", "Batch", "ETA", "Format", "Qty", "Harga", "Subtotal"]],
+    head: [["#", "Nama Produk", "Tipe", "Format", "Batch", "ETA", "Status Pesanan", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
-      it.book.title,
+      it.title,
+      it.tipe,
+      it.formats.length ? it.formats.join(", ") : "—",
       it.batchName ?? "—",
       etaLabel(it.eta),
-      it.book.formats.length ? it.book.formats.join(", ") : "—",
+      it.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok",
       String(it.quantity),
       formatIDR(it.unitPrice),
       formatIDR(it.subtotal),
     ]),
     foot: [
-      [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
-      [{ content: "Sisa", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
-      [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
-      [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
+      [{ content: "DP", colSpan: 9, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
+      [{ content: "Sisa", colSpan: 9, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
+      [{ content: "Ongkir", colSpan: 9, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
+      [{ content: "Total", colSpan: 9, styles: { halign: "right" } }, formatIDR(order.total)],
     ],
     styles: { fontSize: 9, cellPadding: 2, lineColor: [0, 0, 0], lineWidth: 0.1 },
     headStyles: { fillColor: [217, 122, 122], lineColor: [0, 0, 0], lineWidth: 0.1 },
@@ -101,12 +106,14 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     },
     columnStyles: {
       0: { cellWidth: 8 },
-      2: { cellWidth: 22 },
-      3: { cellWidth: 20 },
-      4: { cellWidth: 12 },
-      5: { cellWidth: 12, halign: "center" },
-      6: { cellWidth: 26, halign: "right" },
-      7: { cellWidth: 30, halign: "right" },
+      2: { cellWidth: 16 },
+      3: { cellWidth: 16 },
+      4: { cellWidth: 18 },
+      5: { cellWidth: 17 },
+      6: { cellWidth: 22 },
+      7: { cellWidth: 9, halign: "center" },
+      8: { cellWidth: 23, halign: "right" },
+      9: { cellWidth: 27, halign: "right" },
     },
     theme: "grid",
   });
