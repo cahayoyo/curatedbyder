@@ -7,7 +7,7 @@ type OrderPdfDTO = {
   invoiceNumber: string;
   soldAt: Date;
   logoBase64?: string;
-  buyer: { name: string; phone: string | null; contact: string | null };
+  buyer: { name: string; phone: string | null };
   items: {
     batchName: string | null;
     eta: string;
@@ -27,11 +27,11 @@ type OrderPdfDTO = {
 const LABEL_X = 14;
 const VALUE_GAP = 3;
 
-function infoText(doc: jsPDF, label: string, value: string, y: number, labelW: number) {
+function infoText(doc: jsPDF, label: string, value: string, y: number, labelW: number, x = LABEL_X) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(label, LABEL_X, y);
-  doc.text(`: ${value}`, LABEL_X + labelW + VALUE_GAP, y);
+  doc.text(label, x, y);
+  doc.text(`: ${value}`, x + labelW + VALUE_GAP, y);
 }
 
 export function buildOrderPdf(order: OrderPdfDTO) {
@@ -54,19 +54,24 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.text("Detail Pesanan", titleX, 17);
 
   doc.setFontSize(10);
-  const infoRows: [string, string][] = [
+  const infoRowsLeft: [string, string][] = [
     ["Invoice", order.invoiceNumber],
-    ["Tanggal", dateLabel(order.soldAt)],
     ["Pembeli", order.buyer.name],
-    ["Phone", order.buyer.phone || "—"],
-    ["Alamat", order.buyer.contact || "—"],
   ];
-  infoRows.forEach(([label, value], i) => {
+  const infoRowsRight: [string, string][] = [
+    ["Tanggal", dateLabel(order.soldAt)],
+    ["No HP", order.buyer.phone || "—"],
+  ];
+  const rightX = 105;
+  infoRowsLeft.forEach(([label, value], i) => {
     infoText(doc, label, value, 28 + i * 5.2, labelW);
+  });
+  infoRowsRight.forEach(([label, value], i) => {
+    infoText(doc, label, value, 28 + i * 5.2, labelW, rightX);
   });
 
   autoTable(doc, {
-    startY: 40 + infoRows.length * 5.2,
+    startY: 40 + infoRowsLeft.length * 5.2,
     head: [["#", "Nama Produk", "Batch", "ETA", "Format", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
