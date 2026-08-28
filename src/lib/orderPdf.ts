@@ -11,7 +11,7 @@ type OrderPdfDTO = {
   items: {
     batchName: string | null;
     eta: string;
-    book: { title: string; formats: string[]; status: "READY_STOCK" | "PRE_ORDER" };
+    book: { title: string; formats: string[] };
     quantity: number;
     unitPrice: number;
     subtotal: number;
@@ -49,7 +49,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     titleX = margin + 13;
   }
 
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text("Detail Pesanan", titleX, 17);
 
@@ -67,40 +67,41 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   autoTable(doc, {
     startY: 40 + infoRows.length * 5.2,
-    head: [["#", "Nama Produk", "Batch", "ETA", "Format", "Status", "Qty", "Harga", "Subtotal"]],
+    head: [["#", "Nama Produk", "Batch", "ETA", "Format", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
       it.book.title,
       it.batchName ?? "—",
       etaLabel(it.eta),
       it.book.formats.length ? it.book.formats.join(", ") : "—",
-      it.book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok",
       String(it.quantity),
       formatIDR(it.unitPrice),
       formatIDR(it.subtotal),
     ]),
     foot: [
-      ["", "", "", "", "", "", "DP", "", formatIDR(order.dp ?? 0)],
-      ["", "", "", "", "", "", "Sisa", "", formatIDR(order.remaining ?? 0)],
-      ["", "", "", "", "", "", "Ongkir", "", order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
-      ["", "", "", "", "", "", "Total", "", formatIDR(order.total)],
+      [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
+      [{ content: "Sisa", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
+      [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
+      [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
     ],
-    styles: { fontSize: 9, cellPadding: 2 },
-    headStyles: { fillColor: [217, 122, 122] },
-    footStyles: { fillColor: [255, 241, 238], fontStyle: "bold", halign: "right", textColor: [0, 0, 0] },
+    styles: { fontSize: 9, cellPadding: 2, lineColor: [0, 0, 0], lineWidth: 0.1 },
+    headStyles: { fillColor: [217, 122, 122], lineColor: [0, 0, 0], lineWidth: 0.1 },
+    footStyles: {
+      fillColor: [255, 241, 238],
+      fontStyle: "bold",
+      halign: "right",
+      textColor: [0, 0, 0],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+    },
     columnStyles: {
       0: { cellWidth: 8 },
       2: { cellWidth: 22 },
       3: { cellWidth: 20 },
       4: { cellWidth: 12 },
-      6: { cellWidth: 12, halign: "center" },
-      7: { cellWidth: 26, halign: "right" },
-      8: { cellWidth: 30, halign: "right" },
-    },
-    didParseCell: (data) => {
-      if (data.section === "foot") {
-        data.cell.styles.halign = data.column.index >= 6 ? "right" : "center";
-      }
+      5: { cellWidth: 12, halign: "center" },
+      6: { cellWidth: 26, halign: "right" },
+      7: { cellWidth: 30, halign: "right" },
     },
     theme: "grid",
   });
