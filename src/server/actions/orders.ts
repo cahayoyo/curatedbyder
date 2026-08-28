@@ -87,9 +87,9 @@ export async function createBatch(name: string) {
   await requireAdmin();
 
   const batchName = name.trim().toUpperCase();
-  if (!batchName) throw new Error("Nama batch tidak boleh kosong");
-  if (!/^[A-Z0-9]+$/.test(batchName)) {
-    throw new Error("Nama batch hanya boleh huruf/angka (mis. BATCH3)");
+  if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
+  if (!/^[A-Z0-9]+( [A-Z0-9]+)*$/.test(batchName)) {
+    return { ok: false as const, error: "Nama batch hanya boleh huruf/angka/spasi (mis. READY STOCK)" };
   }
 
   const existing = await db.batch.findUnique({ where: { name: batchName } });
@@ -105,9 +105,9 @@ export async function updateBatch(id: string, name: string) {
   await requireAdmin();
 
   const batchName = name.trim().toUpperCase();
-  if (!batchName) throw new Error("Nama batch tidak boleh kosong");
-  if (!/^[A-Z0-9]+$/.test(batchName)) {
-    throw new Error("Nama batch hanya boleh huruf/angka (mis. BATCH3)");
+  if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
+  if (!/^[A-Z0-9]+( [A-Z0-9]+)*$/.test(batchName)) {
+    return { ok: false as const, error: "Nama batch hanya boleh huruf/angka/spasi (mis. READY STOCK)" };
   }
 
   const existing = await db.batch.findFirst({

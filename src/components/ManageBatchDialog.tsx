@@ -59,16 +59,18 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
     startTransition(async () => {
       try {
         let created = 0;
+        let firstError: string | null = null;
         for (const n of names) {
           const res = await createBatch(n);
           if (res.ok) created++;
+          else firstError ??= res.error;
         }
         if (created > 0) {
           toast.success(`${created} batch berhasil dibuat`);
           setFields([""]);
           router.refresh();
         } else {
-          toast.error("Tidak ada batch baru yang dibuat (mungkin sudah ada)");
+          toast.error(firstError ?? "Tidak ada batch baru yang dibuat (mungkin sudah ada)");
         }
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Gagal membuat batch");
@@ -160,9 +162,33 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           Tambah
         </Button>
 
+        <div className="my-1 h-px w-full bg-black/15" />
+
+        <DialogFooter className="flex-row gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setOpen(false);
+              setFields([""]);
+              cancelEdit();
+            }}
+            className="flex-1 border border-input bg-transparent"
+          >
+            Tutup
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={pending}
+            className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+          >
+            {pending ? "Membuat..." : "Buat Batch"}
+          </Button>
+        </DialogFooter>
+
+        <div className="my-1 h-px w-full bg-black/15" />
+
         {batches.length > 0 && (
           <>
-            <div className="my-1 h-px w-full bg-black/15" />
             <p className="text-sm font-semibold">Batch yang Ada</p>
             <div className="space-y-2">
               {batches.map((b) => (
@@ -224,31 +250,8 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                 </div>
               ))}
             </div>
-
-            <div className="my-1 h-px w-full bg-black/15" />
           </>
         )}
-
-        <DialogFooter className="flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setOpen(false);
-              setFields([""]);
-              cancelEdit();
-            }}
-            className="flex-1 border border-input bg-transparent"
-          >
-            Tutup
-          </Button>
-          <Button
-            onClick={handleCreate}
-            disabled={pending}
-            className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
-          >
-            {pending ? "Membuat..." : "Buat Batch"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
