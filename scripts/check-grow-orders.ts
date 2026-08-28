@@ -17,7 +17,6 @@ const p = new PrismaClient();
           eta: true,
           buyer: { select: { name: true, email: true } },
           soldAt: true,
-          status: true,
         },
       },
     },

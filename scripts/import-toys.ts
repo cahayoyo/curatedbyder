@@ -189,7 +189,6 @@ async function main() {
         shippingCost: 0,
         trackingNumber: null,
         paymentStatus: payStatus as never,
-        status: "ORDER_PLACED" as never,
         items: {
           create: [
             {
@@ -197,6 +196,7 @@ async function main() {
               quantity: r.qty,
               unitPrice: r.harga,
               subtotal: r.harga * r.qty,
+              status: "ORDER_PLACED" as never,
             },
           ],
         },
