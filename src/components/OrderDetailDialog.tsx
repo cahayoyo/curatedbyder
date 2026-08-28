@@ -91,7 +91,7 @@ function getPeriod(date: Date): string {
 function buildWaText(order: OrderDTO): string {
   const period = getPeriod(new Date());
 const lines: string[] = [
-    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak \u{1F60A}\u{1F64F}\u{1F3FC}`,
+    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak 😊🙏🏼`,
     "",
     "*Detail Pesanan*",
   ];
@@ -116,7 +116,7 @@ const lines: string[] = [
     "BCA 8990789330 Adera Nurul",
     "JAGO 103600160006 Adera Nurul",
     "",
-    "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak \u{1F970}",
+    "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak 🥰",
     "",
     "Silahkan akses curatedbyder.store untuk cek history order, pembayaran, dan pengiriman",
     `Username : ${order.buyer.username || "--"}`,
