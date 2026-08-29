@@ -521,15 +521,11 @@ async function OrdersList({
   );
 }
 
-export default async function AdminOrdersPage({
-  searchParams,
-}: {
-  searchParams: OrderSearchParams;
-}) {
-  const [totalOrders, batches, sums, byBatch, byEta, byPayment, byStatus] =
+async function OrdersSummary() {
+  const [batches, totalOrders, sums, byBatch, byEta, byPayment, byStatus] =
     await Promise.all([
-      db.order.count(),
       db.batch.findMany({ orderBy: { name: "asc" } }),
+      db.order.count(),
       db.order.aggregate({ _sum: { total: true } }),
       db.orderItem.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { subtotal: true } }),
       db.orderItem.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { subtotal: true } }),
@@ -571,6 +567,16 @@ export default async function AdminOrdersPage({
     })),
   };
 
+  return <OrderSummaryAccordion {...summaryData} />;
+}
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: OrderSearchParams;
+}) {
+  const batches = await db.batch.findMany({ orderBy: { name: "asc" } });
+
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
@@ -591,7 +597,9 @@ export default async function AdminOrdersPage({
           </div>
         </div>
 
-        <OrderSummaryAccordion {...summaryData} />
+        <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
+          <OrdersSummary />
+        </Suspense>
 
         <div className="flex items-start gap-2">
           <OrderFilter basePath="/admin/orders" batches={batches} />

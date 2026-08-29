@@ -22,7 +22,7 @@ const SWIPE_THRESHOLD = 50;
 
 export function PhotoCarousel() {
   const [index, setIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+  const [loadedSlides, setLoadedSlides] = useState<ReadonlySet<number>>(new Set());
   const [dragX, setDragX] = useState<number | null>(null);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -102,7 +102,7 @@ export function PhotoCarousel() {
       onPointerLeave={onPointerLeave}
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#FED6D6]">
-        {!loaded && (
+        {!loadedSlides.has(index) && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
         <div
@@ -124,7 +124,14 @@ export function PhotoCarousel() {
                 fill
                 sizes="100vw"
                 className="object-contain"
-                onLoad={() => setLoaded(true)}
+                onLoad={() =>
+                  setLoadedSlides((prev) => {
+                    if (prev.has(i)) return prev;
+                    const nextSet = new Set(prev);
+                    nextSet.add(i);
+                    return nextSet;
+                  })
+                }
                 priority={i === 0}
                 loading={i === 0 ? "eager" : "lazy"}
                 draggable={false}
