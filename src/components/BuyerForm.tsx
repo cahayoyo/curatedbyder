@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2, AtSign } from "lucide-react";
 import { generateUsername } from "@/lib/username";
 
@@ -32,6 +33,7 @@ const cancelBtn =
 export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
   const [rows, setRows] = useState<BuyerRow[]>(() =>
     initial
       ? [
@@ -72,7 +74,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             toast.error(res.error);
             return;
           }
-          toast.success("Pembeli diubah");
+          success(`${r.name.trim()} berhasil diubah!`);
         } else {
           for (const r of rows) {
             const res = await createBuyer({
@@ -85,7 +87,11 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               return;
             }
           }
-          toast.success(`${rows.length} pembeli buat`);
+          success(
+            rows.length === 1
+              ? `${rows[0].name.trim()} berhasil dibuat!`
+              : `${rows.length} pembeli berhasil dibuat!`,
+          );
         }
         router.push("/admin/buyers");
         router.refresh();

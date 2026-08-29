@@ -143,7 +143,7 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
                     <ConfirmDeleteButton
                       title="Konfirmasi Hapus"
                       description={`Apakah anda benar ingin menghapus pembeli "${b.name}"?`}
-                      successMessage="Pembeli dihapus"
+                      successMessage={`${b.name} berhasil dihapus!`}
                       onConfirm={deleteBuyer.bind(null, b.id)}
                     />
                   </div>

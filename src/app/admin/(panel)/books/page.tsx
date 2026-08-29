@@ -411,7 +411,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                               <ConfirmDeleteButton
                                 title="Konfirmasi Hapus"
                                 description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
-                                successMessage="Buku dihapus"
+                                successMessage={`${b.title} berhasil dihapus!`}
                                 onConfirm={deleteBook.bind(null, b.id)}
                               />
                             </div>

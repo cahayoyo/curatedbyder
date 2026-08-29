@@ -18,6 +18,7 @@ import {
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Layers2, Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 
 type Batch = { id: string; name: string };
 
@@ -29,6 +30,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const { success } = useSuccessModal();
 
   function addField() {
     setFields((f) => [...f, ""]);
@@ -66,7 +68,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           else firstError ??= res.error;
         }
         if (created > 0) {
-          toast.success(`${created} batch berhasil dibuat`);
+          success(`${created} batch berhasil dibuat`);
           setFields([""]);
           router.refresh();
         } else {
@@ -90,7 +92,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           toast.error(res.error);
           return;
         }
-        toast.success("Batch diubah");
+        success("Batch diubah");
         cancelEdit();
         router.refresh();
       } catch (e) {
@@ -241,7 +243,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                           description={`Apakah anda benar ingin menghapus batch "${b.name}"?`}
                           triggerLabel=""
                           size="icon"
-                          successMessage="Batch dihapus"
+                          successMessage={`${b.name} berhasil dihapus!`}
                           onConfirm={() => deleteBatch(b.id)}
                         />
                       </div>

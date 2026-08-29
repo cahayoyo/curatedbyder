@@ -454,7 +454,7 @@ async function OrdersList({
                       <ConfirmDeleteButton
                         title="Konfirmasi Hapus"
                         description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
-                        successMessage="Order dihapus"
+                        successMessage={`${s.invoiceNumber} berhasil dihapus!`}
                         onConfirm={deleteOrder.bind(null, s.id)}
                       />
                     </div>

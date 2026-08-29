@@ -374,7 +374,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                               <ConfirmDeleteButton
                                 title="Konfirmasi Hapus"
                                 description={`Apakah anda benar ingin menghapus mainan "${b.title}"?`}
-                                successMessage="Mainan dihapus"
+                                successMessage={`${b.title} berhasil dihapus!`}
                                 onConfirm={deleteToy.bind(null, b.id)}
                               />
                             </div>

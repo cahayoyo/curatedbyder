@@ -14,6 +14,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ActionResult } from "@/lib/actionResult";
+import { useSuccessModal } from "@/components/SuccessModal";
 
 export function ConfirmDeleteButton({
   title,
@@ -37,6 +38,7 @@ export function ConfirmDeleteButton({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
 
   function handleDelete() {
     startTransition(async () => {
@@ -47,7 +49,7 @@ export function ConfirmDeleteButton({
           return;
         }
         setOpen(false);
-        toast.success(successMessage);
+        success(successMessage);
         router.refresh();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Gagal menghapus");
