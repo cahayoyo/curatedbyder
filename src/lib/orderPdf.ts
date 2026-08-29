@@ -81,7 +81,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
   });
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("Transfer hanya melalui rekening :", margin, BANK_Y);
   doc.text("BCA 8990789330 Adera Nurul", margin, BANK_Y + 5.2);
