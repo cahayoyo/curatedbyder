@@ -28,7 +28,7 @@ export const PAYMENT_BADGE: Record<string, string> = {
 };
 
 export const STATUS_BADGE: Record<string, string> = {
-  ORDER_PLACED: "border-gray-300 bg-gray-100 text-gray-700",
+  ORDER_PLACED: "border-teal-300 bg-teal-100 text-teal-800",
   SHIPPING_TO_INDONESIA: "border-sky-300 bg-sky-100 text-sky-800",
   ARRIVED_IN_INDONESIA: "border-indigo-300 bg-indigo-100 text-indigo-800",
   ARRIVED_AT_WAREHOUSE: "border-violet-300 bg-violet-100 text-violet-800",
