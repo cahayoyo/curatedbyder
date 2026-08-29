@@ -423,7 +423,7 @@ export function OrderForm({
                 )}
               </div>
             </div>
-            <div className="space-y-1 sm:col-span-2 sm:col-start-1 sm:row-start-2">
+            <div className="space-y-1 sm:col-span-2 sm:col-start-1 sm:row-start-2 sm:w-fit sm:min-w-[228px]">
               <span className="text-xs text-muted-foreground">Batch</span>
               <Select
                 value={item.batchId}
