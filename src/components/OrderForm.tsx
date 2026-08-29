@@ -501,10 +501,36 @@ export function OrderForm({
         </Button>
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Ongkir</Label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+              Rp
+            </span>
+            <Input
+              inputMode="numeric"
+              className="pl-10 placeholder:text-black/30"
+              value={shippingCost ? formatRp(shippingCost) : ""}
+              onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
+              placeholder="Masukkan ongkir..."
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Nomor Resi</Label>
+          <Input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="Masukkan nomor resi..."
+          />
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>Total</Label>
-          <Input readOnly value={formatIDR(total)} className="bg-black/5" />
+          <Label>Sisa Tagihan</Label>
+          <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
         </div>
         <div className="space-y-1.5">
           <Label>
@@ -531,34 +557,8 @@ export function OrderForm({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Sisa Tagihan</Label>
-          <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Ongkir</Label>
-          <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
-              Rp
-            </span>
-            <Input
-              inputMode="numeric"
-              className="pl-10 placeholder:text-black/30"
-              value={shippingCost ? formatRp(shippingCost) : ""}
-              onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
-              placeholder="Masukkan ongkir..."
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Nomor Resi</Label>
-          <Input
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Masukkan nomor resi..."
-          />
+          <Label>Total</Label>
+          <Input readOnly value={formatIDR(total)} className="bg-black/5" />
         </div>
       </div>
 
