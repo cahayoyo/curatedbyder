@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { OrderForm } from "@/components/OrderForm";
+import { ShoppingCart } from "lucide-react";
 
 export default async function EditOrderPage({ params }: { params: { id: string } }) {
   const [order, buyers, books, toys, batches, batchPrices] = await Promise.all([
@@ -39,7 +40,10 @@ export default async function EditOrderPage({ params }: { params: { id: string }
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
-      <h2 className="text-2xl font-bold">Ubah Pesanan: {order.invoiceNumber}</h2>
+      <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <ShoppingCart className="h-6 w-6" />
+        Ubah Pesanan: {order.invoiceNumber}
+      </h2>
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({
