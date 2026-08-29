@@ -92,7 +92,7 @@ function buildWaText(order: OrderDTO): string {
   const period = getPeriod(new Date());
   const pdfLink = `${window.location.origin}/api/download/orders/${order.id}`;
   const lines: string[] = [
-    `Selamat ${period}, Kak ${order.buyer.name}. Berikut rekap order. Mohon diperiksa kembali ya kak 😊🙏🏼`,
+    `Selamat ${period}, Kak ${order.buyer.name}. Izin share invoice pelunasan orderan kakak. Mohon diperiksa kembali ya kak 😊🙏🏼`,
     "",
     "*Detail Pesanan (Link PDF) :*",
     pdfLink,
@@ -103,15 +103,13 @@ function buildWaText(order: OrderDTO): string {
     `DP : ${order.dp != null ? formatIDR(order.dp) : "--"}`,
     `Sisa : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
-    `Total : ${formatIDR(order.total)}`,
-    `No Resi : ${order.trackingNumber || "--"}`,
-    `Alamat : ${order.buyer.contact || "—"}`,
+    `*Total : ${formatIDR(order.total)}*`,
     "",
     "Transfer hanya melalui rekening :",
     "BCA 8990789330 Adera Nurul",
     "JAGO 103600160006 Adera Nurul",
     "",
-    "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak 🥰",
+    "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak 🤗",
     "",
     "Silahkan akses curatedbyder.store untuk cek history order, pembayaran, dan pengiriman",
     `Username : ${order.buyer.username || "--"}`,
