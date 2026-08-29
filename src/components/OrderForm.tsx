@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ETAS, PAYMENT_STATUSES, FORMAT_BADGE } from "@/lib/orderOptions";
+import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -566,7 +566,12 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label>Status Pembayaran</Label>
           <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-            <SelectTrigger>
+            <SelectTrigger
+              className={cn(
+                "font-medium",
+                PAYMENT_BADGE[paymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
+              )}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
