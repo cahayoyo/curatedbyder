@@ -217,7 +217,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                         type="button"
                         size="icon"
                         onClick={cancelEdit}
-                        className="h-9 w-9 shrink-0 rounded-full border-0 bg-gray-600 text-white transition-colors hover:bg-gray-700"
+                        className="h-9 w-9 shrink-0 rounded-full border-0 bg-[#4B5563] text-white transition-colors hover:bg-[#374151]"
                         aria-label="Batalkan edit"
                       >
                         <X className="h-4 w-4" />
