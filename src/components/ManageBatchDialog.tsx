@@ -243,7 +243,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                           description={`Apakah anda benar ingin menghapus batch "${b.name}"?`}
                           triggerLabel=""
                           size="icon"
-                          successMessage="Batch dihapus"
+                          successMessage={`${b.name} berhasil dihapus!`}
                           onConfirm={() => deleteBatch(b.id)}
                         />
                       </div>

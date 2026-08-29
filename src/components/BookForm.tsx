@@ -209,7 +209,7 @@ export function BookForm({
             return;
           }
           await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
-          success("Buku diubah");
+          success(`${r.title.trim()} berhasil diubah!`);
         } else {
           for (const r of rows) {
             const res = await createBook(bookPayload(r));
@@ -222,7 +222,7 @@ export function BookForm({
               await setBookBatchPrices({ bookId: res.data.id, entries });
             }
           }
-          success(`${rows.length} buku berhasil terbuat`);
+          success("Buku berhasil dibuat!");
         }
         router.push("/admin/books");
         router.refresh();

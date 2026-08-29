@@ -160,7 +160,7 @@ export function ToyForm({
             return;
           }
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
-          success("Mainan diubah");
+          success(`${r.title.trim()} berhasil diubah!`);
         } else {
           for (const r of rows) {
             const res = await createToy(toyPayload(r));
@@ -173,7 +173,7 @@ export function ToyForm({
               await setToyBatchPrices({ toyId: res.data.id, entries });
             }
           }
-          success(`${rows.length} mainan berhasil dibuat`);
+          success("Mainan berhasil dibuat!");
         }
         router.push("/admin/toys");
         router.refresh();

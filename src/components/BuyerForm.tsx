@@ -74,7 +74,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             toast.error(res.error);
             return;
           }
-          success("Pembeli diubah");
+          success(`${r.name.trim()} berhasil diubah!`);
         } else {
           for (const r of rows) {
             const res = await createBuyer({
@@ -87,7 +87,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               return;
             }
           }
-          success(`${rows.length} pembeli buat`);
+          success("Pembeli berhasil dibuat!");
         }
         router.push("/admin/buyers");
         router.refresh();

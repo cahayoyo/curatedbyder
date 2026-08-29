@@ -317,14 +317,14 @@ export function OrderForm({
             toast.error(res.error);
             return;
           }
-          success("Order diubah");
+          success(`${initial?.invoiceNumber} berhasil diubah!`);
         } else {
           const res = await createOrder(payload);
           if (!res.ok) {
             toast.error(res.error);
             return;
           }
-          success(`Order recorded: ${res.data.invoiceNumber}`);
+          success("Transaksi berhasil dibuat!");
         }
         router.push("/admin/orders");
         router.refresh();

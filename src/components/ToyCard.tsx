@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { ActionResult } from "@/lib/actionResult";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,9 +91,30 @@ function CardThumb({ toy }: { toy: ToyDTO }) {
   );
 }
 
-export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }) {
+export function ToyCard({
+  toy,
+  onDelete,
+}: {
+  toy: ToyDTO;
+  onDelete: () => Promise<ActionResult | void> | void;
+}) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { success } = useSuccessModal();
+
+  async function handleDelete() {
+    setDeleteOpen(false);
+    try {
+      const res = await onDelete();
+      if (res && !res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      success(`${toy.title} berhasil dihapus!`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+    }
+  }
 
   return (
     <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
@@ -187,10 +211,7 @@ export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }
               Batal
             </Button>
             <Button
-              onClick={() => {
-                setDeleteOpen(false);
-                onDelete();
-              }}
+              onClick={handleDelete}
               className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
             >
               Hapus

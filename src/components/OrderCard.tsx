@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { ActionResult } from "@/lib/actionResult";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -77,11 +80,32 @@ function Row({ icon, title, detail, label, children }: { icon: React.ReactNode; 
   );
 }
 
-export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () => void }) {
+export function OrderCard({
+  order,
+  onDelete,
+}: {
+  order: OrderDTO;
+  onDelete: () => Promise<ActionResult | void> | void;
+}) {
   const router = useRouter();
   const [detailOpen, setDetailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { success } = useSuccessModal();
   const totalItems = order.items.reduce((n, it) => n + it.quantity, 0);
+
+  async function handleDelete() {
+    setDeleteOpen(false);
+    try {
+      const res = await onDelete();
+      if (res && !res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      success(`${order.invoiceNumber} berhasil dihapus!`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+    }
+  }
 
   return (
     <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
@@ -273,10 +297,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
               Batal
             </Button>
             <Button
-              onClick={() => {
-                setDeleteOpen(false);
-                onDelete();
-              }}
+              onClick={handleDelete}
               className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
             >
               Hapus
