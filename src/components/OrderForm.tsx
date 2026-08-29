@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -591,6 +591,7 @@ export function OrderForm({
           disabled={pending}
           className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
+          <Save className="h-4 w-4" />
           {pending ? "Menyimpan..." : initial?.id ? "Ubah Pesanan" : "Buat Pesanan"}
         </Button>
         <Button
@@ -599,6 +600,7 @@ export function OrderForm({
           onClick={() => router.back()}
           className={cn("flex-1 border border-input", btn)}
         >
+          <X className="h-4 w-4" />
           Batal
         </Button>
       </div>
