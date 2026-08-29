@@ -102,7 +102,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ]),
     foot: [
       [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
-      [{ content: "Sisa", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
+      [{ content: "Sisa Tagihan", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
       [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
     ],

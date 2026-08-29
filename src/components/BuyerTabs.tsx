@@ -238,7 +238,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <SummaryCol icon={<Wallet className="h-3.5 w-3.5" />} title="DP">
           {formatIDR(order.dp ?? 0)}
         </SummaryCol>
-        <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa">
+        <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa Tagihan">
           {formatIDR(order.remaining ?? 0)}
         </SummaryCol>
         <SummaryCol icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
@@ -387,7 +387,7 @@ function BuyerOrderDetail({
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <PiggyBank className="h-3.5 w-3.5" />
-              Sisa
+              Sisa Tagihan
             </span>
             <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
           </div>
@@ -460,7 +460,7 @@ function PaymentCard({ order }: { order: OrderDTO }) {
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <PiggyBank className="h-3.5 w-3.5" />
-            Sisa
+            Sisa Tagihan
           </span>
           <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
         </div>

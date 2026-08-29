@@ -360,7 +360,7 @@ async function OrdersList({
                   <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /><SortButton label="DP" column="dp" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" /><SortButton label="Remaining" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" /><SortButton label="Sisa Tagihan" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" />Ongkir</span>
@@ -419,7 +419,7 @@ async function OrdersList({
                       <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
                       {s.dp != null && s.paymentStatus !== "LUNAS" && (
                         <p className="text-xs text-muted-foreground">
-                          DP {formatIDR(s.dp)} / sisa {formatIDR(effectiveRemaining(s))}
+                          DP {formatIDR(s.dp)} / Sisa Tagihan {formatIDR(effectiveRemaining(s))}
                         </p>
                       )}
                     </div>

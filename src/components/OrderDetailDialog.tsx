@@ -100,7 +100,7 @@ function buildWaText(order: OrderDTO): string {
     "",
     `Invoice : ${order.invoiceNumber}`,
     `DP : ${order.dp != null ? formatIDR(order.dp) : "--"}`,
-    `Sisa : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
+    `Sisa Tagihan : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
     `*Total : ${formatIDR(order.total)}*`,
     "",
@@ -264,7 +264,7 @@ export function OrderDetailDialog({
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <PiggyBank className="h-3.5 w-3.5" />
-              Sisa
+              Sisa Tagihan
             </span>
             <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
           </div>
