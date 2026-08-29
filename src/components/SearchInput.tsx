@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 export function SearchInput({
   basePath,
@@ -44,6 +44,14 @@ export function SearchInput({
     };
   }, []);
 
+  function clear() {
+    setValue("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(paramKey);
+    params.delete("page");
+    router.replace(`${basePath}?${params.toString()}`);
+  }
+
   return (
     <div className="relative">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -51,8 +59,18 @@ export function SearchInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`pl-10 placeholder:text-xs placeholder:text-black/30 ${placeholderClassName}`}
+        className={`pl-10 pr-9 placeholder:text-xs placeholder:text-black/30 ${placeholderClassName}`}
       />
+      {value && (
+        <button
+          type="button"
+          onClick={clear}
+          aria-label="Clear search"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
