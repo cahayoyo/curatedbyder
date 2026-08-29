@@ -230,21 +230,21 @@ export function OrderCard({
       {/* Divider */}
       <div className="mt-2 h-px w-full bg-black/15" />
 
-      {/* Price summary: label on top, value below */}
-      <div className="mt-2 flex flex-wrap items-start justify-center gap-x-8 gap-y-2 text-sm">
-        <div className="flex flex-col items-center gap-0.5">
+      {/* Price summary: label on top, value below; mobile = 2 rows, desktop = 1 row */}
+      <div className="mt-2 grid grid-cols-4 items-start justify-items-center gap-x-4 gap-y-2 text-sm md:grid-cols-6">
+        <div className="col-span-2 flex flex-col items-center gap-0.5 md:col-span-1">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Boxes className="h-3.5 w-3.5" />
+            <span>Total Barang</span>
+          </div>
+          <span className="font-semibold">{totalItems}</span>
+        </div>
+        <div className="col-span-2 flex flex-col items-center gap-0.5 md:col-span-1">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Package className="h-3.5 w-3.5" />
             <span>No Resi</span>
           </div>
           <span className="font-mono text-xs font-semibold">{order.trackingNumber || "--"}</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Truck className="h-3.5 w-3.5" />
-            <span>Ongkir</span>
-          </div>
-          <span className="font-semibold">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -262,10 +262,10 @@ export function OrderCard({
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Boxes className="h-3.5 w-3.5" />
-            <span>Total Barang</span>
+            <Truck className="h-3.5 w-3.5" />
+            <span>Ongkir</span>
           </div>
-          <span className="font-semibold">{totalItems}</span>
+          <span className="font-semibold">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
