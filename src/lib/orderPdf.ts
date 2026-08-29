@@ -72,12 +72,13 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   ];
   const rightX = 105;
   const INFO_Y = 40;
-  const BANK_Y = INFO_Y + infoRowsLeft.length * 5.2;
+  const ROW3_GAP = 2;
+  const BANK_Y = INFO_Y + infoRowsLeft.length * 5.2 + ROW3_GAP;
   infoRowsLeft.forEach(([label, value], i) => {
-    infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
+    infoText(doc, label, value, INFO_Y + i * 5.2 + (i === 2 ? ROW3_GAP : 0), labelW);
   });
   infoRowsRight.forEach(([label, value], i) => {
-    infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
+    infoText(doc, label, value, INFO_Y + i * 5.2 + (i === 2 ? ROW3_GAP : 0), labelW, rightX);
   });
 
   doc.setFont("helvetica", "normal");
