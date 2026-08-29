@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { ImageIcon, X } from "lucide-react";
 
 export function BookImagePicker({
@@ -17,13 +18,14 @@ export function BookImagePicker({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
+  const { success } = useSuccessModal();
 
   const { startUpload, isUploading } = useUploadThing("bookImage", {
     onUploadProgress: (p) => setProgress(p),
     onClientUploadComplete: (res) => {
       const url = res[0]?.url ?? "";
       if (url) onChange(url);
-      toast.success("Gambar berhasil diunggah");
+      success("Gambar berhasil diunggah");
     },
     onUploadError: (err) => {
       toast.error(err instanceof Error ? err.message : "Gagal mengunggah gambar");

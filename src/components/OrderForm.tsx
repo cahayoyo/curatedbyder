@@ -16,6 +16,7 @@ import {
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { cn } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
 
@@ -135,6 +136,7 @@ export function OrderForm({
   const router = useRouter();
   const isEdit = Boolean(initial?.id);
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
   const [shippingCost, setShippingCost] = useState(
@@ -315,14 +317,14 @@ export function OrderForm({
             toast.error(res.error);
             return;
           }
-          toast.success("Order diubah");
+          success("Order diubah");
         } else {
           const res = await createOrder(payload);
           if (!res.ok) {
             toast.error(res.error);
             return;
           }
-          toast.success(`Order recorded: ${res.data.invoiceNumber}`);
+          success(`Order recorded: ${res.data.invoiceNumber}`);
         }
         router.push("/admin/orders");
         router.refresh();

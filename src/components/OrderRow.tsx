@@ -18,16 +18,18 @@ import {
 } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 
 export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
 
   function onChange(value: string) {
     startTransition(async () => {
       try {
         await updateOrderItemStatus(itemId, value);
-        toast.success("Status item updated");
+        success("Status item updated");
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to update");
@@ -65,12 +67,13 @@ export function PaymentStatusSelect({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
 
   function onChange(value: string) {
     startTransition(async () => {
       try {
         await updatePaymentStatus(orderId, value);
-        toast.success("Payment updated");
+        success("Payment updated");
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to update");

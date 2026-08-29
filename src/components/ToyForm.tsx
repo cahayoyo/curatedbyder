@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BOOK_STATUSES } from "@/lib/orderOptions";
@@ -64,6 +65,7 @@ export function ToyForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
   const [rows, setRows] = useState<ToyRow[]>(() =>
     initial
       ? [
@@ -158,7 +160,7 @@ export function ToyForm({
             return;
           }
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
-          toast.success("Mainan diubah");
+          success("Mainan diubah");
         } else {
           for (const r of rows) {
             const res = await createToy(toyPayload(r));
@@ -171,7 +173,7 @@ export function ToyForm({
               await setToyBatchPrices({ toyId: res.data.id, entries });
             }
           }
-          toast.success(`${rows.length} mainan berhasil dibuat`);
+          success(`${rows.length} mainan berhasil dibuat`);
         }
         router.push("/admin/toys");
         router.refresh();

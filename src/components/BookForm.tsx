@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FORMATS, BOOK_STATUSES } from "@/lib/orderOptions";
@@ -70,6 +71,7 @@ export function BookForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { success } = useSuccessModal();
   const [rows, setRows] = useState<BookRow[]>(() =>
     initial
       ? [
@@ -207,7 +209,7 @@ export function BookForm({
             return;
           }
           await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
-          toast.success("Buku diubah");
+          success("Buku diubah");
         } else {
           for (const r of rows) {
             const res = await createBook(bookPayload(r));
@@ -220,7 +222,7 @@ export function BookForm({
               await setBookBatchPrices({ bookId: res.data.id, entries });
             }
           }
-          toast.success(`${rows.length} buku berhasil terbuat`);
+          success(`${rows.length} buku berhasil terbuat`);
         }
         router.push("/admin/books");
         router.refresh();

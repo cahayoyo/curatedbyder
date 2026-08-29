@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { SuccessModalProvider } from "@/components/SuccessModal";
 import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        {children}
+        <SuccessModalProvider>
+          {children}
+        </SuccessModalProvider>
         <Toaster richColors />
         <Analytics />
       </body>
