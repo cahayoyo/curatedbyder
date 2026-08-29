@@ -25,6 +25,7 @@ import {
   CircleCheckBig,
   PackageCheck,
   Clock,
+  ShoppingCart,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -42,7 +43,7 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
-type BookSearchParams = { q?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+type BookSearchParams = { q?: string; bookQ?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
 function parseFilters(searchParams: BookSearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -132,6 +133,59 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
           Total Buku Pre Order
         </p>
         <p className="text-2xl font-bold">{preOrderCount}</p>
+      </div>
+    </div>
+  );
+}
+
+async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams }) {
+  const bookQ = (searchParams?.bookQ ?? "").trim();
+  if (!bookQ) return null;
+
+  const books = await db.book.findMany({
+    where: { title: { contains: bookQ, mode: "insensitive" } },
+    orderBy: { title: "asc" },
+    take: 5,
+  });
+
+  const orderCounts = new Map<string, number>();
+  if (books.length > 0) {
+    const items = await db.orderItem.findMany({
+      where: { bookId: { in: books.map((b) => b.id) } },
+      select: { bookId: true, orderId: true },
+    });
+    const seen = new Map<string, Set<string>>();
+    for (const item of items) {
+      if (!item.bookId) continue;
+      const set = seen.get(item.bookId) ?? new Set<string>();
+      set.add(item.orderId);
+      seen.set(item.bookId, set);
+    }
+    for (const b of books) orderCounts.set(b.id, seen.get(b.id)?.size ?? 0);
+  }
+
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+        <ShoppingCart className="h-4 w-4" />
+        Cek Pesanan Buku
+      </p>
+      <div className="w-full md:w-1/2">
+        <SearchInput basePath="/admin/books" paramKey="bookQ" placeholder="Masukkan judul buku..." />
+      </div>
+      <div className="mt-3 rounded-lg border p-4">
+        {books.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Buku tidak ditemukan</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {books.map((b) => (
+              <li key={b.id} className="flex justify-between">
+                <span>{b.title}</span>
+                <span className="font-medium">{orderCounts.get(b.id) ?? 0} pesanan</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -428,6 +482,10 @@ export default function AdminBooksPage({
             <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
           </div>
         </div>
+
+        <Suspense fallback={null}>
+          <BookOrderCount searchParams={searchParams} />
+        </Suspense>
       </div>
 
       <Suspense fallback={<ListLoader />}>

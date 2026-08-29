@@ -9,19 +9,21 @@ export function SearchInput({
   basePath,
   placeholder,
   placeholderClassName = "",
+  paramKey = "q",
 }: {
   basePath: string;
   placeholder: string;
   placeholderClassName?: string;
+  paramKey?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const [value, setValue] = useState(searchParams.get(paramKey) ?? "");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setValue(searchParams.get("q") ?? "");
-  }, [searchParams]);
+    setValue(searchParams.get(paramKey) ?? "");
+  }, [searchParams, paramKey]);
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
@@ -29,8 +31,8 @@ export function SearchInput({
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
-      if (v) params.set("q", v);
-      else params.delete("q");
+      if (v) params.set(paramKey, v);
+      else params.delete(paramKey);
       params.delete("page");
       router.replace(`${basePath}?${params.toString()}`);
     }, 350);

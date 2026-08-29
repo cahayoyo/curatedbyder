@@ -22,6 +22,7 @@ import {
   CircleCheckBig,
   PackageCheck,
   Clock,
+  ShoppingCart,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -38,7 +39,7 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
-type ToySearchParams = { q?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+type ToySearchParams = { q?: string; toyQ?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
 function parseFilters(searchParams: ToySearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -126,6 +127,59 @@ async function ToysStats({ searchParams }: { searchParams: ToySearchParams }) {
           Total Mainan Pre Order
         </p>
         <p className="text-2xl font-bold">{preOrderCount}</p>
+      </div>
+    </div>
+  );
+}
+
+async function ToyOrderCount({ searchParams }: { searchParams: ToySearchParams }) {
+  const toyQ = (searchParams?.toyQ ?? "").trim();
+  if (!toyQ) return null;
+
+  const toys = await db.toy.findMany({
+    where: { title: { contains: toyQ, mode: "insensitive" } },
+    orderBy: { title: "asc" },
+    take: 5,
+  });
+
+  const orderCounts = new Map<string, number>();
+  if (toys.length > 0) {
+    const items = await db.orderItem.findMany({
+      where: { toyId: { in: toys.map((t) => t.id) } },
+      select: { toyId: true, orderId: true },
+    });
+    const seen = new Map<string, Set<string>>();
+    for (const item of items) {
+      if (!item.toyId) continue;
+      const set = seen.get(item.toyId) ?? new Set<string>();
+      set.add(item.orderId);
+      seen.set(item.toyId, set);
+    }
+    for (const t of toys) orderCounts.set(t.id, seen.get(t.id)?.size ?? 0);
+  }
+
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+        <ShoppingCart className="h-4 w-4" />
+        Cek Pesanan Mainan
+      </p>
+      <div className="w-full md:w-1/2">
+        <SearchInput basePath="/admin/toys" paramKey="toyQ" placeholder="Masukkan nama mainan..." />
+      </div>
+      <div className="mt-3 rounded-lg border p-4">
+        {toys.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Mainan tidak ditemukan</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {toys.map((t) => (
+              <li key={t.id} className="flex justify-between">
+                <span>{t.title}</span>
+                <span className="font-medium">{orderCounts.get(t.id) ?? 0} pesanan</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -391,6 +445,10 @@ export default function AdminToysPage({
             <SearchInput basePath="/admin/toys" placeholder="Cari judul..." />
           </div>
         </div>
+
+        <Suspense fallback={null}>
+          <ToyOrderCount searchParams={searchParams} />
+        </Suspense>
       </div>
 
       <Suspense fallback={<ListLoader />}>
