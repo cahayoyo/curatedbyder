@@ -32,6 +32,7 @@ import {
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
 import {
+  Boxes,
   Calculator,
   CalendarClock,
   Download,
@@ -239,6 +240,9 @@ function OrderCard({ order }: { order: OrderDTO }) {
         </SummaryCol>
         <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa">
           {formatIDR(order.remaining ?? 0)}
+        </SummaryCol>
+        <SummaryCol icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
+          {order.items.reduce((n, it) => n + it.quantity, 0)}
         </SummaryCol>
         <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
           {formatIDR(order.total)}

@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { OrderDetailDialog, type OrderDTO } from "@/components/OrderDetailDialog";
 import {
   BookOpen,
+  Boxes,
   Calculator,
   Eye,
   MoreVertical,
@@ -80,6 +81,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
   const router = useRouter();
   const [detailOpen, setDetailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const totalItems = order.items.reduce((n, it) => n + it.quantity, 0);
 
   return (
     <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
@@ -233,6 +235,13 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
             <span>Sisa</span>
           </div>
           <span className="font-semibold">{formatIDR(order.remaining ?? 0)}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Boxes className="h-3.5 w-3.5" />
+            <span>Total Barang</span>
+          </div>
+          <span className="font-semibold">{totalItems}</span>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
