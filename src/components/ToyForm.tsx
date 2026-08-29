@@ -173,7 +173,11 @@ export function ToyForm({
               await setToyBatchPrices({ toyId: res.data.id, entries });
             }
           }
-          success("Mainan berhasil dibuat!");
+          success(
+            rows.length === 1
+              ? `${rows[0].title.trim()} berhasil dibuat!`
+              : `${rows.length} mainan berhasil dibuat!`,
+          );
         }
         router.push("/admin/toys");
         router.refresh();

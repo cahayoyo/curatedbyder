@@ -87,7 +87,11 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               return;
             }
           }
-          success("Pembeli berhasil dibuat!");
+          success(
+            rows.length === 1
+              ? `${rows[0].name.trim()} berhasil dibuat!`
+              : `${rows.length} pembeli berhasil dibuat!`,
+          );
         }
         router.push("/admin/buyers");
         router.refresh();

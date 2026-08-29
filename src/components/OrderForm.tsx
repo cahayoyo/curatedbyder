@@ -324,7 +324,7 @@ export function OrderForm({
             toast.error(res.error);
             return;
           }
-          success("Transaksi berhasil dibuat!");
+          success(`${res.data.invoiceNumber} berhasil dibuat!`);
         }
         router.push("/admin/orders");
         router.refresh();

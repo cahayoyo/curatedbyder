@@ -222,7 +222,11 @@ export function BookForm({
               await setBookBatchPrices({ bookId: res.data.id, entries });
             }
           }
-          success("Buku berhasil dibuat!");
+          success(
+            rows.length === 1
+              ? `${rows[0].title.trim()} berhasil dibuat!`
+              : `${rows.length} buku berhasil dibuat!`,
+          );
         }
         router.push("/admin/books");
         router.refresh();
