@@ -94,7 +94,7 @@ export function BookFilter({ basePath }: { basePath: string }) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-black p-3 shadow-md md:left-1/2 md:-translate-x-1/2"
+            className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-black p-3 shadow-md"
             style={{ backgroundColor: "#F6F1E7" }}
           >
             <p className="mb-2 text-sm font-semibold">Status Stok</p>
