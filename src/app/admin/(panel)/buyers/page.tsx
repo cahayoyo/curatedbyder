@@ -207,7 +207,7 @@ export default async function AdminBuyersPage({
           </div>
         </div>
 
-        <div className="w-full md:max-w-md">
+        <div className="w-full md:grid md:grid-cols-2 md:gap-4">
           <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
         </div>
       </div>
