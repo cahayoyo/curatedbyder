@@ -351,7 +351,7 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
           >
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Tipe</span>
