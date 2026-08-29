@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -154,8 +153,6 @@ export function OrderDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -289,38 +286,29 @@ export function OrderDetailDialog({
         </div>
 
         <DialogFooter className="flex-row gap-2">
-          <Button
-            onClick={() => {
-              onOpenChange(false);
-              router.push(`/admin/orders/${order.id}/edit`);
-            }}
-            className="flex-1"
-          >
-            Ubah
-          </Button>
           <Button onClick={() => downloadPdf(order)} className="flex-1">
             <Download className="h-4 w-4" />
             Download PDF
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="flex-1 border border-input bg-transparent"
-          >
-            Tutup
-          </Button>
+          {order.buyer.phone && (
+            <button
+              type="button"
+              onClick={() => openWa(order)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Hubungi Pembeli
+            </button>
+          )}
         </DialogFooter>
 
-        {order.buyer.phone && (
-          <button
-            type="button"
-            onClick={() => openWa(order)}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Hubungi Pembeli
-          </button>
-        )}
+        <Button
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          className="mt-2 w-full border border-input bg-transparent"
+        >
+          Tutup
+        </Button>
       </DialogContent>
     </Dialog>
   );
