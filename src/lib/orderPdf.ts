@@ -72,6 +72,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   ];
   const rightX = 105;
   const INFO_Y = 40;
+  const BANK_Y = INFO_Y + infoRowsLeft.length * 5.2;
   infoRowsLeft.forEach(([label, value], i) => {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
   });
@@ -79,8 +80,13 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
   });
 
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text("BCA 8990789330 Adera Nurul", margin, BANK_Y);
+  doc.text("JAGO 103600160006 Adera Nurul", margin, BANK_Y + 5.2);
+
   autoTable(doc, {
-    startY: 40 + infoRowsLeft.length * 5.2,
+    startY: BANK_Y + 2 * 5.2,
     head: [["#", "Nama Produk", "Format", "Batch", "ETA", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
