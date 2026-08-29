@@ -140,13 +140,14 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
 
 async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams }) {
   const bookQ = (searchParams?.bookQ ?? "").trim();
-  if (!bookQ) return null;
 
-  const books = await db.book.findMany({
-    where: { title: { contains: bookQ, mode: "insensitive" } },
-    orderBy: { title: "asc" },
-    take: 5,
-  });
+  const books = bookQ
+    ? await db.book.findMany({
+        where: { title: { contains: bookQ, mode: "insensitive" } },
+        orderBy: { title: "asc" },
+        take: 5,
+      })
+    : [];
 
   const orderCounts = new Map<string, number>();
   if (books.length > 0) {
@@ -173,20 +174,22 @@ async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams
       <div className="w-full md:w-1/2">
         <SearchInput basePath="/admin/books" paramKey="bookQ" placeholder="Masukkan judul buku..." />
       </div>
-      <div className="mt-3 rounded-lg border p-4">
-        {books.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Buku tidak ditemukan</p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {books.map((b) => (
-              <li key={b.id} className="flex justify-between">
-                <span>{b.title}</span>
-                <span className="font-medium">{orderCounts.get(b.id) ?? 0} pesanan</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {bookQ && (
+        <div className="mt-3 rounded-lg border p-4">
+          {books.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Buku tidak ditemukan</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {books.map((b) => (
+                <li key={b.id} className="flex justify-between">
+                  <span>{b.title}</span>
+                  <span className="font-medium">{orderCounts.get(b.id) ?? 0} pesanan</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }

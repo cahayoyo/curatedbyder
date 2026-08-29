@@ -134,13 +134,14 @@ async function ToysStats({ searchParams }: { searchParams: ToySearchParams }) {
 
 async function ToyOrderCount({ searchParams }: { searchParams: ToySearchParams }) {
   const toyQ = (searchParams?.toyQ ?? "").trim();
-  if (!toyQ) return null;
 
-  const toys = await db.toy.findMany({
-    where: { title: { contains: toyQ, mode: "insensitive" } },
-    orderBy: { title: "asc" },
-    take: 5,
-  });
+  const toys = toyQ
+    ? await db.toy.findMany({
+        where: { title: { contains: toyQ, mode: "insensitive" } },
+        orderBy: { title: "asc" },
+        take: 5,
+      })
+    : [];
 
   const orderCounts = new Map<string, number>();
   if (toys.length > 0) {
@@ -167,20 +168,22 @@ async function ToyOrderCount({ searchParams }: { searchParams: ToySearchParams }
       <div className="w-full md:w-1/2">
         <SearchInput basePath="/admin/toys" paramKey="toyQ" placeholder="Masukkan nama mainan..." />
       </div>
-      <div className="mt-3 rounded-lg border p-4">
-        {toys.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Mainan tidak ditemukan</p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {toys.map((t) => (
-              <li key={t.id} className="flex justify-between">
-                <span>{t.title}</span>
-                <span className="font-medium">{orderCounts.get(t.id) ?? 0} pesanan</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {toyQ && (
+        <div className="mt-3 rounded-lg border p-4">
+          {toys.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Mainan tidak ditemukan</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {toys.map((t) => (
+                <li key={t.id} className="flex justify-between">
+                  <span>{t.title}</span>
+                  <span className="font-medium">{orderCounts.get(t.id) ?? 0} pesanan</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
