@@ -83,11 +83,12 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text("BCA 8990789330 Adera Nurul", margin, BANK_Y);
-  doc.text("JAGO 103600160006 Adera Nurul", margin, BANK_Y + 5.2);
+  doc.text("Transfer hanya melalui rekening :", margin, BANK_Y);
+  doc.text("BCA 8990789330 Adera Nurul", margin, BANK_Y + 5.2);
+  doc.text("JAGO 103600160006 Adera Nurul", margin, BANK_Y + 2 * 5.2);
 
   autoTable(doc, {
-    startY: BANK_Y + 2 * 5.2,
+    startY: BANK_Y + 3 * 5.2,
     head: [["#", "Nama Produk", "Format", "Batch", "ETA", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
