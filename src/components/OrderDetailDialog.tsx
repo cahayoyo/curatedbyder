@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -154,8 +153,6 @@ export function OrderDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -289,15 +286,6 @@ export function OrderDetailDialog({
         </div>
 
         <DialogFooter className="flex-row gap-2">
-          <Button
-            onClick={() => {
-              onOpenChange(false);
-              router.push(`/admin/orders/${order.id}/edit`);
-            }}
-            className="flex-1"
-          >
-            Ubah
-          </Button>
           <Button onClick={() => downloadPdf(order)} className="flex-1">
             <Download className="h-4 w-4" />
             Download PDF

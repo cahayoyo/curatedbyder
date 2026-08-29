@@ -399,7 +399,7 @@ async function OrdersList({
                               {f}
                             </span>
                           ))
-                        : ""}
+                        : "--"}
                     </div>
                   </TableCell>
                   <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
@@ -476,7 +476,7 @@ async function OrdersList({
                                 {f}
                               </span>
                             ))
-                          : ""}
+                          : "--"}
                       </div>
                     </TableCell>
                     <TableCell className="text-center text-xs">{it.quantity}</TableCell>
