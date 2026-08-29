@@ -33,7 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems] =
+  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems, topToyItems] =
     await Promise.all([
       db.order.count(),
       db.order.count({ where: { items: { some: { book: { isNot: null } } } } }),
@@ -54,6 +54,13 @@ export default async function AdminOverviewPage() {
         orderBy: { _sum: { quantity: "desc" } },
         take: 5,
       }),
+      db.orderItem.groupBy({
+        by: ["toyId"],
+        where: { toyId: { not: null } },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 5,
+      }),
     ]);
 
   const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
@@ -65,6 +72,14 @@ export default async function AdminOverviewPage() {
     ? await db.book.findMany({ where: { id: { in: topBookIds } } })
     : [];
   const topBookMap = new Map(topBooks.map((b) => [b.id, b]));
+
+  const topToyIds = topToyItems
+    .map((t) => t.toyId)
+    .filter((id): id is string => id !== null);
+  const topToys = topToyIds.length
+    ? await db.toy.findMany({ where: { id: { in: topToyIds } } })
+    : [];
+  const topToyMap = new Map(topToys.map((t) => [t.id, t]));
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -203,6 +218,34 @@ export default async function AdminOverviewPage() {
                   <li key={item.bookId} className="flex justify-between">
                     <span>
                       {i + 1}. {book.title}
+                    </span>
+                    <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+      </div>
+
+      {/* Top 5 most-purchased toys */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <ToyBrick className="h-4 w-4" />
+          Mainan Terlaris
+        </p>
+        <div className="rounded-lg border p-4">
+          {topToyItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada penjualan mainan</p>
+          ) : (
+            <ol className="space-y-1 text-sm">
+              {topToyItems.map((item, i) => {
+                const toy = item.toyId ? topToyMap.get(item.toyId) : undefined;
+                if (!toy) return null;
+                return (
+                  <li key={item.toyId} className="flex justify-between">
+                    <span>
+                      {i + 1}. {toy.title}
                     </span>
                     <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
                   </li>
