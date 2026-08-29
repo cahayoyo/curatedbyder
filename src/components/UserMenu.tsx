@@ -36,8 +36,8 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
         >
           <UserRound className="h-5 w-5" />
           <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-background" />
-          <span className="flex flex-col items-start leading-tight">
-            <span className="text-sm font-semibold">{name || "Account"}</span>
+          <span className="flex min-w-0 flex-col items-start leading-tight">
+            <span className="max-w-28 truncate text-sm font-semibold">{name || "Account"}</span>
             <span className="text-[11px] font-medium opacity-70">{isAdmin ? "ADMIN" : role || "USER"}</span>
           </span>
         </Button>
