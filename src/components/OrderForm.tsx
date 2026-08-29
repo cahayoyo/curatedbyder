@@ -529,7 +529,7 @@ export function OrderForm({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Remaining</Label>
+          <Label>Sisa Tagihan</Label>
           <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
         </div>
       </div>

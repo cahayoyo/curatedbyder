@@ -232,7 +232,7 @@ export function OrderCard({ order, onDelete }: { order: OrderDTO; onDelete: () =
         <div className="flex flex-col items-center gap-0.5">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <PiggyBank className="h-3.5 w-3.5" />
-            <span>Sisa</span>
+            <span>Sisa Tagihan</span>
           </div>
           <span className="font-semibold">{formatIDR(order.remaining ?? 0)}</span>
         </div>

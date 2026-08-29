@@ -108,7 +108,7 @@ export default async function AdminOverviewPage() {
           <p className="text-2xl font-bold">{formatIDR(financial._sum.total ?? 0)}</p>
         </div>
 
-        {/* DP + Remaining side by side */}
+        {/* DP + Sisa Tagihan side by side */}
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div className="rounded-lg border p-4">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -120,7 +120,7 @@ export default async function AdminOverviewPage() {
           <div className="rounded-lg border p-4">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <PiggyBank className="h-4 w-4" />
-              Total Remaining Payment
+              Total Sisa Tagihan
             </p>
             <p className="text-2xl font-bold">{formatIDR(financial._sum.remaining ?? 0)}</p>
           </div>
