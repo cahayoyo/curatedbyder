@@ -351,7 +351,7 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_90px_110px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:border-0 sm:bg-transparent sm:p-0"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
           >
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Tipe</span>
@@ -423,38 +423,40 @@ export function OrderForm({
                 )}
               </div>
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Batch</span>
-              <Select
-                value={item.batchId}
-                onValueChange={(v) => updateItem(idx, { batchId: v, unitPrice: undefined })}
-              >
-                <SelectTrigger className="w-full min-w-0">
-                  <SelectValue placeholder="Pilih batch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {batches.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">ETA</span>
-              <Select value={item.eta} onValueChange={(v) => updateItem(idx, { eta: v })}>
-                <SelectTrigger className="w-full min-w-0">
-                  <SelectValue placeholder="Bulan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ETAS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2 sm:col-span-6 sm:col-start-1 sm:row-start-2 sm:flex sm:items-end sm:gap-2 sm:space-y-0">
+              <div className="space-y-1 sm:w-fit sm:min-w-[228px]">
+                <span className="text-xs text-muted-foreground">Batch</span>
+                <Select
+                  value={item.batchId}
+                  onValueChange={(v) => updateItem(idx, { batchId: v, unitPrice: undefined })}
+                >
+                  <SelectTrigger className="w-full min-w-0">
+                    <SelectValue placeholder="Pilih batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {batches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">ETA</span>
+                <Select value={item.eta} onValueChange={(v) => updateItem(idx, { eta: v })}>
+                  <SelectTrigger className="w-full min-w-0">
+                    <SelectValue placeholder="Bulan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ETAS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground">Quantity</span>
