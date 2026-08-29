@@ -423,7 +423,7 @@ export function OrderForm({
                 )}
               </div>
             </div>
-            <div className="space-y-2 sm:col-span-6 sm:col-start-1 sm:row-start-2 sm:flex sm:items-end sm:space-y-0">
+            <div className="space-y-2 sm:col-span-6 sm:col-start-1 sm:row-start-2 sm:flex sm:items-end sm:gap-2 sm:space-y-0">
               <div className="space-y-1 sm:w-fit sm:min-w-[228px]">
                 <span className="text-xs text-muted-foreground">Batch</span>
                 <Select
