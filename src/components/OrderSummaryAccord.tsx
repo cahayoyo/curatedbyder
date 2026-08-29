@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { formatIDR } from "@/lib/format";
+import { MONTH_LABELS } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -32,19 +33,33 @@ type GroupTotalEntry = {
 export type OrderSummaryDTO = {
   totalOrders: number;
   grandTotal: number;
+  grandTotalByMonth: number[];
   byBatch: GroupTotalEntry[];
   byEta: GroupTotalEntry[];
   byPayment: GroupTotalEntry[];
   byStatus: GroupTotalEntry[];
 };
 
-function Stat({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) {
+function Stat({
+  icon,
+  title,
+  value,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="rounded-lg border p-3">
-      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        {icon}
-        {title}
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          {icon}
+          {title}
+        </p>
+        {action}
+      </div>
       <p className="mt-1 text-xl font-bold">{value}</p>
     </div>
   );
@@ -102,6 +117,9 @@ function GroupSection({
 
 export function OrderSummaryAccordion(data: OrderSummaryDTO) {
   const [open, setOpen] = useState(false);
+  const [month, setMonth] = useState("all");
+  const revenue =
+    month === "all" ? data.grandTotal : data.grandTotalByMonth[Number(month)] ?? 0;
 
   return (
     <div className="rounded-lg border">
@@ -130,7 +148,22 @@ export function OrderSummaryAccordion(data: OrderSummaryDTO) {
             <Stat
               icon={<Coins className="h-4 w-4" />}
               title="Total Pendapatan"
-              value={formatIDR(data.grandTotal)}
+              value={formatIDR(revenue)}
+              action={
+                <Select value={month} onValueChange={setMonth}>
+                  <SelectTrigger className="h-7 w-28 shrink-0 text-xs" aria-label="Periode pendapatan">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua</SelectItem>
+                    {MONTH_LABELS.map((m, i) => (
+                      <SelectItem key={m} value={String(i)}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              }
             />
           </div>
 

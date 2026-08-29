@@ -522,16 +522,22 @@ async function OrdersList({
 }
 
 async function OrdersSummary() {
-  const [batches, totalOrders, sums, byBatch, byEta, byPayment, byStatus] =
+  const [batches, orders, byBatch, byEta, byPayment, byStatus] =
     await Promise.all([
       db.batch.findMany({ orderBy: { name: "asc" } }),
-      db.order.count(),
-      db.order.aggregate({ _sum: { total: true } }),
+      db.order.findMany({ select: { createdAt: true, total: true } }),
       db.orderItem.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { subtotal: true } }),
       db.orderItem.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { subtotal: true } }),
       db.order.groupBy({ by: ["paymentStatus"], _count: { _all: true }, _sum: { total: true } }),
       db.orderItem.groupBy({ by: ["status"], _count: { _all: true }, _sum: { subtotal: true } }),
     ]);
+
+  const grandTotalByMonth = new Array<number>(12).fill(0);
+  let grandTotal = 0;
+  for (const o of orders) {
+    grandTotal += o.total;
+    grandTotalByMonth[o.createdAt.getMonth()] += o.total;
+  }
 
   const batchMap = new Map(byBatch.map((b) => [b.batchId, b]));
   const etaMap = new Map(byEta.map((e) => [e.eta, e]));
@@ -539,8 +545,9 @@ async function OrdersSummary() {
   const statusMap = new Map(byStatus.map((s) => [s.status, s]));
 
   const summaryData: OrderSummaryDTO = {
-    totalOrders,
-    grandTotal: sums._sum.total ?? 0,
+    totalOrders: orders.length,
+    grandTotal,
+    grandTotalByMonth,
     byBatch: batches.map((b) => ({
       value: b.id,
       label: b.name,

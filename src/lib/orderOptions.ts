@@ -85,6 +85,21 @@ export const ETAS = [
   { value: "DEC", label: "Desember" },
 ] as const;
 
+export const MONTH_LABELS = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+] as const;
+
 export const FORMATS = [
   { value: "HC", label: "HC" },
   { value: "PB", label: "PB" },
