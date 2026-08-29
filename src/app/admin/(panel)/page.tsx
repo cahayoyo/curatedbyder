@@ -11,6 +11,7 @@ import {
   BookOpen,
   TrendingUp,
   ToyBrick,
+  Trophy,
 } from "lucide-react";
 
 const FULL_STATUSES = [
@@ -32,7 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks] =
+  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems] =
     await Promise.all([
       db.order.count(),
       db.order.count({ where: { items: { some: { book: { isNot: null } } } } }),
@@ -46,9 +47,24 @@ export default async function AdminOverviewPage() {
       }),
       db.user.count({ where: { role: "USER" } }),
       db.book.count(),
+      db.orderItem.groupBy({
+        by: ["bookId"],
+        where: { bookId: { not: null } },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 5,
+      }),
     ]);
 
   const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
+
+  const topBookIds = topBookItems
+    .map((b) => b.bookId)
+    .filter((id): id is string => id !== null);
+  const topBooks = topBookIds.length
+    ? await db.book.findMany({ where: { id: { in: topBookIds } } })
+    : [];
+  const topBookMap = new Map(topBooks.map((b) => [b.id, b]));
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -166,6 +182,34 @@ export default async function AdminOverviewPage() {
             </p>
             <p className="text-2xl font-bold">{totalBooks}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Top 5 most-purchased books */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <Trophy className="h-4 w-4" />
+          Buku Terlaris
+        </p>
+        <div className="rounded-lg border p-4">
+          {topBookItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada penjualan buku</p>
+          ) : (
+            <ol className="space-y-1 text-sm">
+              {topBookItems.map((item, i) => {
+                const book = item.bookId ? topBookMap.get(item.bookId) : undefined;
+                if (!book) return null;
+                return (
+                  <li key={item.bookId} className="flex justify-between">
+                    <span>
+                      {i + 1}. {book.title}
+                    </span>
+                    <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </div>
       </div>
     </div>
