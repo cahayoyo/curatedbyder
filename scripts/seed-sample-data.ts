@@ -13,8 +13,8 @@ const BOOKS = [
 ];
 
 const TOYS = [
-  { title: "Puzzle Huruf Kayu", publisher: "Mainan Sample", price: 45000, stock: 20 },
-  { title: "Boneka Kelinci", publisher: "Mainan Sample", price: 75000, stock: 8 },
+  { title: "Puzzle Huruf Kayu", price: 45000, stock: 20 },
+  { title: "Boneka Kelinci", price: 75000, stock: 8 },
 ];
 
 async function main() {
@@ -41,8 +41,8 @@ async function main() {
   for (const t of TOYS) {
     const toy = await db.toy.upsert({
       where: { title: t.title },
-      update: { publisher: t.publisher, price: t.price, stock: t.stock },
-      create: { title: t.title, publisher: t.publisher, price: t.price, stock: t.stock },
+      update: { price: t.price, stock: t.stock },
+      create: { title: t.title, price: t.price, stock: t.stock },
     });
     await db.toyBatchPrice.upsert({
       where: { toyId_batchId: { toyId: toy.id, batchId: batch.id } },

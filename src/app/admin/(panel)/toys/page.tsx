@@ -17,7 +17,6 @@ import {
   Banknote,
   Boxes,
   Hand,
-  Building2,
   Info,
   ImageIcon,
   CircleCheckBig,
@@ -46,14 +45,13 @@ function parseFilters(searchParams: ToySearchParams) {
   const qRaw = (searchParams?.q ?? "").trim();
 
   const sort = searchParams?.sort?.trim();
-  const sortValid = ["title", "publisher", "price", "stock"].includes(sort ?? "")
-    ? (sort as "title" | "publisher" | "price" | "stock")
+  const sortValid = ["title", "price", "stock"].includes(sort ?? "")
+    ? (sort as "title" | "price" | "stock")
     : undefined;
   const dir = searchParams?.dir?.trim() === "desc" ? ("desc" as const) : ("asc" as const);
 
   const orderBy = (() => {
     if (sortValid === "title") return { title: dir };
-    if (sortValid === "publisher") return { publisher: dir };
     if (sortValid === "price") return { price: dir };
     if (sortValid === "stock") return { stock: dir };
     return { createdAt: "desc" as const };
@@ -72,7 +70,7 @@ function parseFilters(searchParams: ToySearchParams) {
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
 
   const where: {
-    OR?: { title?: { contains: string; mode: "insensitive" }; publisher?: { contains: string; mode: "insensitive" } }[];
+    OR?: { title?: { contains: string; mode: "insensitive" } }[];
     status?: { in: ("READY_STOCK" | "PRE_ORDER")[] };
     price?: { gte?: number; lte?: number };
   } = {};
@@ -80,7 +78,6 @@ function parseFilters(searchParams: ToySearchParams) {
   if (q) {
     where.OR = [
       { title: { contains: q, mode: "insensitive" as const } },
-      { publisher: { contains: q, mode: "insensitive" as const } },
     ];
   }
   if (statuses.length > 0) {
@@ -161,7 +158,6 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
               id: b.id,
               title: b.title,
               image: b.image,
-              publisher: b.publisher,
               info: b.info,
               price: b.price,
               stock: b.stock,
@@ -192,12 +188,6 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                 <span className="flex items-center gap-1">
                   <ImageIcon className="h-3.5 w-3.5" />
                   Gambar
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Building2 className="h-3.5 w-3.5" />
-                  <SortButton label="Publisher" column="publisher" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -274,7 +264,6 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell rowSpan={variants.length}>{b.publisher || "—"}</TableCell>
                           <TableCell className="max-w-[200px]" rowSpan={variants.length}>
                             <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
                           </TableCell>
@@ -341,7 +330,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
             })}
             {toys.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Belum ada mainan.
                 </TableCell>
               </TableRow>
@@ -399,7 +388,7 @@ export default function AdminToysPage({
         <div className="flex items-start gap-2">
           <BookFilter basePath="/admin/toys" />
           <div className="w-[70%] md:w-[80%]">
-            <SearchInput basePath="/admin/toys" placeholder="Cari judul / publisher..." />
+            <SearchInput basePath="/admin/toys" placeholder="Cari judul..." />
           </div>
         </div>
       </div>

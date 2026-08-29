@@ -10,7 +10,6 @@ import { BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
 const toySchema = z.object({
   title: z.string().trim().min(1),
-  publisher: z.string().trim().max(500).optional(),
   info: z.string().trim().max(5000).optional(),
   image: z.string().trim().max(2000).optional(),
   price: z.number().int().min(0),
@@ -44,7 +43,6 @@ export async function createToy(
     const toy = await db.toy.create({
       data: {
         title: data.title,
-        publisher: orNull(data.publisher),
         info: orNull(data.info),
         image: orNull(data.image),
         price: data.price,
@@ -77,7 +75,6 @@ export async function updateToy(
       where: { id },
       data: {
         title: data.title,
-        publisher: orNull(data.publisher),
         info: orNull(data.info),
         image: orNull(data.image),
         price: data.price,
