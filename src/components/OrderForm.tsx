@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ETAS, PAYMENT_STATUSES, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2 } from "lucide-react";
+import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
+import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -336,7 +336,10 @@ export function OrderForm({
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>Nama</Label>
+          <Label className="flex items-center gap-1.5">
+            <UserRound className="h-4 w-4 text-muted-foreground" />
+            Nama
+          </Label>
           <SearchSelect
             options={buyers.map((b) => ({ value: b.id, label: b.name }))}
             value={buyerId}
@@ -347,7 +350,10 @@ export function OrderForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Produk</Label>
+        <Label className="flex items-center gap-1.5">
+          <BookOpen className="h-4 w-4 text-muted-foreground" />
+          Produk
+        </Label>
         {items.map((item, idx) => (
           <div
             key={idx}
@@ -501,16 +507,52 @@ export function OrderForm({
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Total</Label>
-          <Input readOnly value={formatIDR(total)} className="bg-black/5" />
+          <Label className="flex items-center gap-1.5">
+            <Truck className="h-4 w-4 text-muted-foreground" />
+            Ongkir
+          </Label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+              Rp
+            </span>
+            <Input
+              inputMode="numeric"
+              className="pl-10 placeholder:text-black/30"
+              value={shippingCost ? formatRp(shippingCost) : ""}
+              onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
+              placeholder="Masukkan ongkir..."
+            />
+          </div>
         </div>
         <div className="space-y-1.5">
-          <Label>
+          <Label className="flex items-center gap-1.5">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            Nomor Resi
+          </Label>
+          <Input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="Masukkan nomor resi..."
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5">
+            <PiggyBank className="h-4 w-4 text-muted-foreground" />
+            Sisa Tagihan
+          </Label>
+          <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5">
+            <Wallet className="h-4 w-4 text-muted-foreground" />
             DP{" "}
             {!isEdit && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs font-normal text-muted-foreground">
                 (Perhitungan DP 30% dari Harga Total)
               </span>
             )}
@@ -531,42 +573,27 @@ export function OrderForm({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label>Sisa Tagihan</Label>
-          <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
+          <Label className="flex items-center gap-1.5">
+            <Calculator className="h-4 w-4 text-muted-foreground" />
+            Total
+          </Label>
+          <Input readOnly value={formatIDR(total)} className="bg-black/5" />
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label>Ongkir</Label>
-          <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
-              Rp
-            </span>
-            <Input
-              inputMode="numeric"
-              className="pl-10 placeholder:text-black/30"
-              value={shippingCost ? formatRp(shippingCost) : ""}
-              onChange={(e) => setShippingCost(e.target.value.replace(/\D/g, ""))}
-              placeholder="Masukkan ongkir..."
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Nomor Resi</Label>
-          <Input
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Masukkan nomor resi..."
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Status Pembayaran</Label>
+          <Label className="flex items-center gap-1.5">
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            Status Pembayaran
+          </Label>
           <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-            <SelectTrigger>
+            <SelectTrigger
+              className={cn(
+                "font-medium",
+                PAYMENT_BADGE[paymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
+              )}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -586,6 +613,7 @@ export function OrderForm({
           disabled={pending}
           className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
+          <Save className="h-4 w-4" />
           {pending ? "Menyimpan..." : initial?.id ? "Ubah Pesanan" : "Buat Pesanan"}
         </Button>
         <Button
@@ -594,6 +622,7 @@ export function OrderForm({
           onClick={() => router.back()}
           className={cn("flex-1 border border-input", btn)}
         >
+          <X className="h-4 w-4" />
           Batal
         </Button>
       </div>
