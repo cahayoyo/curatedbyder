@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -8,18 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PAGE_SIZES, DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 export function PageSizeSelect({ basePath }: { basePath: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const current = Number(searchParams.get("per"));
 
   function onChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("per", value);
     params.delete("page");
-    router.replace(`${basePath}?${params.toString()}`);
+    startTransition(() => router.replace(`${basePath}?${params.toString()}`));
   }
 
   return (
@@ -34,9 +38,14 @@ export function PageSizeSelect({ basePath }: { basePath: string }) {
       <SelectTrigger
         aria-label="Jumlah item per halaman"
         title="Item per halaman"
-        className="h-9 w-20 shrink-0"
+        disabled={isPending}
+        className={cn("h-9 w-20 shrink-0", isPending && "cursor-wait opacity-70")}
       >
-        <SelectValue />
+        {isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin text-[#D97A7A]" />
+        ) : (
+          <SelectValue />
+        )}
       </SelectTrigger>
       <SelectContent>
         {PAGE_SIZES.map((s) => (
