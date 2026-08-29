@@ -20,7 +20,6 @@ export default async function EditToyPage({ params }: { params: { id: string } }
         initial={{
           id: toy.id,
           title: toy.title,
-          publisher: toy.publisher,
           info: toy.info,
           image: toy.image,
           price: toy.price,

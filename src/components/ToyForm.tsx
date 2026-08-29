@@ -24,7 +24,6 @@ import { BookImagePicker } from "@/components/BookImagePicker";
 type InitialToy = {
   id?: string;
   title: string;
-  publisher: string | null;
   info: string | null;
   image: string | null;
   price: number;
@@ -38,7 +37,6 @@ type Batch = { id: string; name: string };
 type ToyRow = {
   id?: string;
   title: string;
-  publisher: string;
   info: string;
   image: string;
   price: string;
@@ -49,7 +47,6 @@ type ToyRow = {
 
 const emptyRow = (): ToyRow => ({
   title: "",
-  publisher: "",
   info: "",
   image: "",
   price: "",
@@ -73,7 +70,6 @@ export function ToyForm({
           {
             id: initial.id,
             title: initial.title,
-            publisher: initial.publisher ?? "",
             info: initial.info ?? "",
             image: initial.image ?? "",
             price: initial.price != null ? String(initial.price) : "",
@@ -140,7 +136,6 @@ export function ToyForm({
       try {
         const toyPayload = (r: ToyRow) => ({
           title: r.title,
-          publisher: r.publisher,
           info: r.info,
           image: r.image,
           price: Number(r.price),
@@ -227,16 +222,6 @@ export function ToyForm({
               onChange={(url) => upRow(i, "image", url)}
             />
           </div>
-
-          <div className="space-y-1.5">
-              <Label>Publisher</Label>
-              <Input
-                value={r.publisher}
-                onChange={(e) => upRow(i, "publisher", e.target.value)}
-                placeholder="Masukkan publisher..."
-                className="placeholder:text-[#b5b5b5]"
-              />
-            </div>
 
           <div className="space-y-1.5">
             <Label>Informasi</Label>

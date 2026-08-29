@@ -31,11 +31,11 @@ const BOOKS = [
 ];
 
 const TOYS = [
-  { title: "Mobil Remote Kontrol Mini", publisher: "Mainan Sample", price: 185000, stock: 7 },
-  { title: "Lego Blok 100 Pcs", publisher: "Mainan Sample", price: 149000, stock: 11 },
-  { title: "Yo-yo Premium", publisher: "Mainan Sample", price: 35000, stock: 30 },
-  { title: "Set Cat Air Anak", publisher: "Mainan Sample", price: 62000, stock: 14 },
-  { title: "Papan Edukasi Angka", publisher: "Mainan Sample", price: 88000, stock: 10 },
+  { title: "Mobil Remote Kontrol Mini", price: 185000, stock: 7 },
+  { title: "Lego Blok 100 Pcs", price: 149000, stock: 11 },
+  { title: "Yo-yo Premium", price: 35000, stock: 30 },
+  { title: "Set Cat Air Anak", price: 62000, stock: 14 },
+  { title: "Papan Edukasi Angka", price: 88000, stock: 10 },
 ];
 
 type OrderSeed = {
@@ -99,8 +99,8 @@ async function main() {
   for (const t of TOYS) {
     const toy = await db.toy.upsert({
       where: { title: t.title },
-      update: { publisher: t.publisher, price: t.price, stock: t.stock },
-      create: { title: t.title, publisher: t.publisher, price: t.price, stock: t.stock },
+      update: { price: t.price, stock: t.stock },
+      create: { title: t.title, price: t.price, stock: t.stock },
     });
     await db.toyBatchPrice.upsert({
       where: { toyId_batchId: { toyId: toy.id, batchId: batch.id } },

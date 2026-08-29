@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Building2, Info, MoreVertical, Pencil, Trash2, ImageIcon, ToyBrick, Banknote, Boxes } from "lucide-react";
+import { Info, MoreVertical, Pencil, Trash2, ImageIcon, ToyBrick, Banknote, Boxes } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,6 @@ type ToyDTO = {
   id: string;
   title: string;
   image: string | null;
-  publisher: string | null;
   info: string | null;
   price: number;
   stock: number;
@@ -142,10 +141,6 @@ export function ToyCard({ toy, onDelete }: { toy: ToyDTO; onDelete: () => void }
           <CardThumb toy={toy} />
         </div>
         <div className="min-w-0 flex-1 space-y-2.5 pt-1 text-sm">
-          <div className="flex items-center gap-1.5">
-            <HintIcon icon={<Building2 className="h-3.5 w-3.5 shrink-0" />} title="Publisher" detail={toy.publisher || "—"} />
-            <span className="line-clamp-1 text-muted-foreground">{toy.publisher || "—"}</span>
-          </div>
           <div className="flex items-center gap-1.5">
             <HintIcon icon={<Info className="h-3.5 w-3.5 shrink-0" />} title="Informasi" detail={toy.info || "—"} />
             <span className="line-clamp-2 text-black/80">{toy.info ? toy.info : "—"}</span>
