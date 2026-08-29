@@ -163,7 +163,7 @@ async function ToyOrderCount({ searchParams }: { searchParams: ToySearchParams }
     <div>
       <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
         <ShoppingCart className="h-4 w-4" />
-        Cek Pesanan Mainan
+        Total Pesanan Mainan
       </p>
       <div className="w-full md:w-1/2">
         <SearchInput basePath="/admin/toys" paramKey="toyQ" placeholder="Masukkan nama mainan..." />
@@ -442,16 +442,16 @@ export default function AdminToysPage({
           <ToysStats searchParams={searchParams} />
         </Suspense>
 
+        <Suspense fallback={null}>
+          <ToyOrderCount searchParams={searchParams} />
+        </Suspense>
+
         <div className="flex items-start gap-2">
           <BookFilter basePath="/admin/toys" />
           <div className="w-[70%] md:w-[80%]">
             <SearchInput basePath="/admin/toys" placeholder="Cari judul..." />
           </div>
         </div>
-
-        <Suspense fallback={null}>
-          <ToyOrderCount searchParams={searchParams} />
-        </Suspense>
       </div>
 
       <Suspense fallback={<ListLoader />}>

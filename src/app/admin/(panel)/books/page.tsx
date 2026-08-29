@@ -169,7 +169,7 @@ async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams
     <div>
       <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
         <ShoppingCart className="h-4 w-4" />
-        Cek Pesanan Buku
+        Total Pesanan Buku
       </p>
       <div className="w-full md:w-1/2">
         <SearchInput basePath="/admin/books" paramKey="bookQ" placeholder="Masukkan judul buku..." />
@@ -479,16 +479,16 @@ export default function AdminBooksPage({
           <BooksStats searchParams={searchParams} />
         </Suspense>
 
+        <Suspense fallback={null}>
+          <BookOrderCount searchParams={searchParams} />
+        </Suspense>
+
         <div className="flex items-start gap-2">
           <BookFilter basePath="/admin/books" />
           <div className="w-[70%] md:w-[80%]">
             <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
           </div>
         </div>
-
-        <Suspense fallback={null}>
-          <BookOrderCount searchParams={searchParams} />
-        </Suspense>
       </div>
 
       <Suspense fallback={<ListLoader />}>
