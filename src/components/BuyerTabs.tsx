@@ -104,9 +104,9 @@ function InfoRow({ icon, title, children }: { icon: React.ReactNode; title: stri
   );
 }
 
-function SummaryCol({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function SummaryCol({ icon, title, className, children }: { icon: React.ReactNode; title: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-0.5">
+    <div className={`flex flex-col items-center gap-0.5${className ? ` ${className}` : ""}`}>
       <div className="flex items-center gap-1 text-xs text-black/60">
         {icon}
         <span>{title}</span>
@@ -228,12 +228,12 @@ function OrderCard({ order }: { order: OrderDTO }) {
 
       <div className="mt-2 h-px w-full bg-black/15" />
 
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
-        <SummaryCol icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
-          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
+      <div className="mt-2 grid grid-cols-4 items-center justify-items-center gap-x-4 gap-y-2 text-sm md:grid-cols-6">
+        <SummaryCol className="col-span-2 md:col-span-1" icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
+          {order.items.reduce((n, it) => n + it.quantity, 0)}
         </SummaryCol>
-        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
-          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
+        <SummaryCol className="col-span-2 md:col-span-1" icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
+          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
         </SummaryCol>
         <SummaryCol icon={<Wallet className="h-3.5 w-3.5" />} title="DP">
           {formatIDR(order.dp ?? 0)}
@@ -241,8 +241,8 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa Tagihan">
           {formatIDR(order.remaining ?? 0)}
         </SummaryCol>
-        <SummaryCol icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
-          {order.items.reduce((n, it) => n + it.quantity, 0)}
+        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
+          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
         </SummaryCol>
         <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
           {formatIDR(order.total)}
