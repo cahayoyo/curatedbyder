@@ -8,6 +8,9 @@ function normalizePhone(phone: string): string {
 export function waLink(phone: string, text?: string): string | null {
   const p = normalizePhone(phone);
   if (!p) return null;
-  const base = `https://wa.me/${p}`;
-  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+  // Do not use wa.me here: its redirect re-encodes ?text= as Latin-1 and turns
+  // every character outside that range (emoji, ✅, …) into U+FFFD "�" (#91).
+  // api.whatsapp.com/send passes the UTF-8 payload through untouched.
+  const base = `https://api.whatsapp.com/send?phone=${p}`;
+  return text ? `${base}&text=${encodeURIComponent(text)}` : base;
 }
