@@ -30,6 +30,7 @@ import {
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
+import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BookFilter } from "@/components/BookFilter";
 import { SortButton } from "@/components/SortButton";
 import { formatIDR } from "@/lib/format";
@@ -40,10 +41,9 @@ import { BookCard } from "@/components/BookCard";
 import { FormatBadge } from "@/components/FormatBadge";
 import { ListLoader } from "@/components/ListLoader";
 import { cn } from "@/lib/utils";
+import { parsePerPage, perQuery } from "@/lib/pagination";
 
-const PAGE_SIZE = 20;
-
-type BookSearchParams = { q?: string; bookQ?: string; page?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+type BookSearchParams = { q?: string; bookQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
 function parseFilters(searchParams: BookSearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -196,14 +196,15 @@ async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams
 
 async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
   const { qRaw, sortValid, dir, orderBy, min, max, where, page } = parseFilters(searchParams);
+  const per = parsePerPage(searchParams?.per);
 
   const [totalFiltered, books] = await Promise.all([
     db.book.count({ where }),
     db.book.findMany({
       where,
       orderBy,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * per,
+      take: per,
       include: {
         batchPrices: { include: { batch: { select: { name: true } } } },
       },
@@ -246,7 +247,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <ListOrdered className="h-3.5 w-3.5" />
-                  <SortButton label="Judul" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
+                  <SortButton label="Judul" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -258,7 +259,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3.5 w-3.5" />
-                  <SortButton label="Publisher" column="publisher" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
+                  <SortButton label="Publisher" column="publisher" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -276,13 +277,13 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Banknote className="h-3.5 w-3.5" />
-                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "" }} />
+                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
                 <span className="flex items-center gap-1">
                   <Boxes className="h-3.5 w-3.5" />
-                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, min: min != null ? String(min) : "", max: max != null ? String(max) : "", status: searchParams?.status ?? "" }} />
+                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, min: min != null ? String(min) : "", max: max != null ? String(max) : "", status: searchParams?.status ?? "", per: searchParams?.per ?? "" }} />
                 </span>
               </TableHead>
               <TableHead className="font-bold">
@@ -437,7 +438,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
         <Pagination
           total={totalFiltered}
           page={page}
-          pageSize={PAGE_SIZE}
+          pageSize={per}
           basePath="/admin/books"
           query={{
             q: qRaw,
@@ -446,6 +447,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
             max: max != null ? String(max) : "",
             sort: sortValid ?? "",
             dir: searchParams?.dir?.trim() === "desc" ? "desc" : "",
+            per: perQuery(per),
           }}
         />
       </div>
@@ -485,8 +487,11 @@ export default function AdminBooksPage({
 
         <div className="flex items-start gap-2">
           <BookFilter basePath="/admin/books" />
-          <div className="w-[70%] md:w-[80%]">
-            <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
+          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+            <div className="w-full">
+              <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
+            </div>
+            <PageSizeSelect basePath="/admin/books" />
           </div>
         </div>
       </div>

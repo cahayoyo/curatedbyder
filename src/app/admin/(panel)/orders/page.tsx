@@ -6,6 +6,7 @@ import { NavActionButton } from "@/components/NavActionButton";
 import { ManageBatchDialog } from "@/components/ManageBatchDialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
+import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
 import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
@@ -16,6 +17,7 @@ import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
 import { SortButton } from "@/components/SortButton";
 import { ListLoader } from "@/components/ListLoader";
+import { parsePerPage, perQuery } from "@/lib/pagination";
 import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
@@ -26,8 +28,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const PAGE_SIZE = 20;
-
 function effectiveRemaining(s: { remaining: number | null; dp: number | null; total: number }) {
   return s.remaining ?? Math.max(0, s.total - (s.dp ?? 0));
 }
@@ -35,6 +35,7 @@ function effectiveRemaining(s: { remaining: number | null; dp: number | null; to
 type OrderSearchParams = {
   q?: string;
   page?: string;
+  per?: string;
   paymentStatus?: string;
   status?: string;
   batch?: string;
@@ -188,6 +189,7 @@ async function OrdersList({
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const per = parsePerPage(searchParams?.per);
 
   const sort = searchParams?.sort?.trim();
   const sortValid = ["batch", "eta", "name", "book", "invoice", "price", "total", "dp", "remaining"].includes(sort ?? "")
@@ -270,14 +272,14 @@ async function OrdersList({
       const pb = b.items[0]?.unitPrice ?? 0;
       return (pa - pb) * dirFactor;
     });
-    orders = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    orders = all.slice((page - 1) * per, page * per);
   } else {
     orders = await db.order.findMany({
       where,
       include: orderInclude,
       orderBy,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * per,
+      take: per,
     });
   }
 
@@ -289,6 +291,7 @@ async function OrdersList({
     eta: searchParams?.eta ?? "",
     dateFrom: searchParams?.dateFrom ?? "",
     dateTo: searchParams?.dateTo ?? "",
+    per: perQuery(per),
   };
 
   return (
@@ -505,7 +508,7 @@ async function OrdersList({
         <Pagination
           total={totalFiltered}
           page={page}
-          pageSize={PAGE_SIZE}
+          pageSize={per}
           basePath="/admin/orders"
           query={{
             ...pageQuery,
@@ -592,8 +595,11 @@ export default async function AdminOrdersPage({
 
         <div className="flex items-start gap-2">
           <OrderFilter basePath="/admin/orders" batches={batches} />
-          <div className="w-[70%] md:w-[80%]">
-            <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+            <div className="w-full">
+              <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+            </div>
+            <PageSizeSelect basePath="/admin/orders" />
           </div>
         </div>
       </div>

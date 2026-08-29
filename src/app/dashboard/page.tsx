@@ -4,12 +4,12 @@ import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 import { SearchInput } from "@/components/SearchInput";
+import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BuyerFilter } from "@/components/BuyerFilter";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
+import { parsePerPage, perQuery } from "@/lib/pagination";
 import { ShoppingCart } from "lucide-react";
-
-const PAGE_SIZE = 10;
 
 type DashboardSearchParams = {
   q?: string;
@@ -18,6 +18,7 @@ type DashboardSearchParams = {
   paymentStatus?: string;
   tab?: string;
   page?: string;
+  per?: string;
 };
 
 export default async function DashboardPage({
@@ -43,11 +44,14 @@ export default async function DashboardPage({
 
       <div className="flex items-start gap-2">
         <BuyerFilter basePath="/dashboard" batches={batches} />
-        <div className="w-[70%] md:w-[80%]">
-          <SearchInput
-            basePath="/dashboard"
-            placeholder="Cari invoice / batch / judul buku..."
-          />
+        <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+          <div className="w-full">
+            <SearchInput
+              basePath="/dashboard"
+              placeholder="Cari invoice / batch / judul buku..."
+            />
+          </div>
+          <PageSizeSelect basePath="/dashboard" />
         </div>
       </div>
 
@@ -74,6 +78,7 @@ async function OrdersSection({
     .map((s) => s.trim())
     .filter((s) => PAYMENT_STATUSES.some((opt) => opt.value === s));
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const per = parsePerPage(searchParams?.per);
   const tab = ["invoice", "payment", "shipment"].includes(searchParams?.tab ?? "")
     ? searchParams.tab!
     : "invoice";
@@ -113,8 +118,8 @@ async function OrdersSection({
       },
     },
     orderBy: { soldAt: "desc" },
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
+    skip: (page - 1) * per,
+    take: per,
   });
 
   const dto: OrderDTO[] = orders.map((s) => ({
@@ -152,6 +157,7 @@ async function OrdersSection({
     status: searchParams?.status ?? "",
     paymentStatus: searchParams?.paymentStatus ?? "",
     tab: tab === "invoice" ? undefined : tab,
+    per: perQuery(per),
   };
 
   return (
@@ -159,7 +165,7 @@ async function OrdersSection({
       orders={dto}
       total={total}
       page={page}
-      pageSize={PAGE_SIZE}
+      pageSize={per}
       basePath="/dashboard"
       query={paginationQuery}
       defaultTab={tab}

@@ -12,20 +12,21 @@ import { UserPlus, Pencil, Users, Phone, MapPin, Hand, IdCard, AtSign } from "lu
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
+import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { deleteBuyer } from "@/server/actions/buyers";
 import { Pagination } from "@/components/Pagination";
 import { BuyerCard } from "@/components/BuyerCard";
 import { SortButton } from "@/components/SortButton";
 import { ListLoader } from "@/components/ListLoader";
+import { parsePerPage, perQuery } from "@/lib/pagination";
 
-const PAGE_SIZE = 20;
-
-type BuyerSearchParams = { q?: string; page?: string; sort?: string; dir?: string };
+type BuyerSearchParams = { q?: string; page?: string; per?: string; sort?: string; dir?: string };
 
 async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams }) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const qRaw = (searchParams?.q ?? "").trim();
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const per = parsePerPage(searchParams?.per);
 
   const sort = searchParams?.sort?.trim();
   const sortValid = ["username", "name"].includes(sort ?? "")
@@ -57,8 +58,8 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
       where,
       select: { id: true, username: true, name: true, phone: true, contact: true },
       orderBy,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * per,
+      take: per,
     }),
   ]);
 
@@ -94,13 +95,13 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
                     <AtSign className="h-3.5 w-3.5" />
-                    <SortButton label="Username" column="username" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw }} />
+                    <SortButton label="Username" column="username" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw, per: searchParams?.per ?? "" }} />
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
-                    <SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw }} />
+                    <SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/buyers" query={{ q: qRaw, per: searchParams?.per ?? "" }} />
                   </span>
                 </TableHead>
               <TableHead className="font-bold">
@@ -164,9 +165,9 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
         <Pagination
           total={totalFiltered}
           page={page}
-          pageSize={PAGE_SIZE}
+          pageSize={per}
           basePath="/admin/buyers"
-          query={{ q: qRaw, sort: sortValid ?? "", dir: searchParams?.dir?.trim() === "desc" ? "desc" : "" }}
+          query={{ q: qRaw, sort: sortValid ?? "", dir: searchParams?.dir?.trim() === "desc" ? "desc" : "", per: perQuery(per) }}
         />
       </div>
     </>
@@ -207,8 +208,11 @@ export default async function AdminBuyersPage({
           </div>
         </div>
 
-        <div className="w-full md:grid md:grid-cols-2 md:gap-4">
-          <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
+        <div className="flex items-center gap-2 md:w-1/2">
+          <div className="w-full">
+            <SearchInput basePath="/admin/buyers" placeholder="Cari username / nama / nomor telepon..." />
+          </div>
+          <PageSizeSelect basePath="/admin/buyers" />
         </div>
       </div>
 
