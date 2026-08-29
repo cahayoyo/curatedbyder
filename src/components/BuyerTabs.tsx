@@ -172,16 +172,13 @@ function OrderCard({ order }: { order: OrderDTO }) {
 
       <div className="mb-2 h-px w-full bg-black/15" />
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-1 text-sm">
+      <div className="space-y-2.5 pt-1 text-sm">
         <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
           {order.buyerName}
         </InfoRow>
-        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="HP:">
+        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No HP:">
           {order.buyerPhone || "—"}
         </InfoRow>
-      </div>
-
-      <div className="mt-2.5 flex justify-center text-sm">
         <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
           {new Date(order.soldAt).toLocaleDateString("id-ID")}
         </InfoRow>
