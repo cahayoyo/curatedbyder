@@ -93,7 +93,7 @@ function SearchSelect({
       <SelectTrigger className={triggerClassName}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="w-[var(--radix-select-trigger-width)]">
         <div className="sticky top-0 z-10 border-b border-input bg-popover p-1">
           <Input
             autoFocus
