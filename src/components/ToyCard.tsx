@@ -14,14 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteButton";
 import { Info, MoreVertical, Pencil, Trash2, ImageIcon, ToyBrick, Banknote, Boxes } from "lucide-react";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -103,7 +96,6 @@ export function ToyCard({
   const { success } = useSuccessModal();
 
   async function handleDelete() {
-    setDeleteOpen(false);
     try {
       const res = await onDelete();
       if (res && !res.ok) {
@@ -194,31 +186,13 @@ export function ToyCard({
         </div>
       </div>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="w-[90%] max-w-sm" style={{ backgroundColor: "#FED6D6" }}>
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Hapus</DialogTitle>
-            <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus mainan &quot;{toy.title}&quot;?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              className="flex-1 border border-input bg-transparent"
-            >
-              Batal
-            </Button>
-            <Button
-              onClick={handleDelete}
-              className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
-            >
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Konfirmasi Hapus"
+        description={`Apakah anda benar ingin menghapus mainan "${toy.title}"?`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
