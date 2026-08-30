@@ -36,7 +36,7 @@ import { Pagination } from "@/components/Pagination";
 import { BookThumbnail } from "@/components/BookThumbnail";
 import { ToyCard } from "@/components/ToyCard";
 import { ListLoader } from "@/components/ListLoader";
-import { cn } from "@/lib/utils";
+import { cn, stockBadgeClass } from "@/lib/utils";
 import { parsePerPage, perQuery } from "@/lib/pagination";
 
 type ToySearchParams = { q?: string; toyQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
@@ -339,11 +339,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                             <Badge
                               variant="outline"
                               className={cn(
-                                b.stock <= 0
-                                  ? "border-red-300 bg-red-500 text-white"
-                                  : b.stock <= 10
-                                    ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                                    : "border-transparent bg-primary text-primary-foreground",
+                                stockBadgeClass(b.stock),
                                 "h-6 w-9 justify-center px-0 text-xs"
                               )}
                             >

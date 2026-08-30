@@ -17,7 +17,7 @@ import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/order
 import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
-import { cn } from "@/lib/utils";
+import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
 
 type Buyer = { id: string; name: string };
@@ -72,7 +72,7 @@ function SearchSelect({
   placeholder,
   triggerClassName,
 }: {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; stock?: number }[];
   value: string;
   onValueChange: (v: string) => void;
   placeholder: string;
@@ -93,7 +93,7 @@ function SearchSelect({
       <SelectTrigger className={triggerClassName}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="w-[var(--radix-select-trigger-width)]">
         <div className="sticky top-0 z-10 border-b border-input bg-popover p-1">
           <Input
             autoFocus
@@ -109,7 +109,17 @@ function SearchSelect({
         ) : (
           filtered.map((o) => (
             <SelectItem key={o.value} value={o.value}>
-              {o.label}
+              <span className="whitespace-normal break-words leading-snug">{o.label}</span>
+              {o.stock != null && (
+                <span
+                  className={cn(
+                    "ml-1 shrink-0 whitespace-nowrap rounded border px-1 text-[11px] font-semibold",
+                    stockBadgeClass(o.stock)
+                  )}
+                >
+                  Stok : {o.stock}
+                </span>
+              )}
             </SelectItem>
           ))
         )}
@@ -189,6 +199,7 @@ export function OrderForm({
       bookId: string;
       unitPrice: number;
       label: string;
+      stock: number;
       formats: string[];
     }[] = [];
     for (const book of books) {
@@ -196,7 +207,8 @@ export function OrderForm({
         value: `${book.id}::${book.price}`,
         bookId: book.id,
         unitPrice: book.price,
-        label: `${book.title} (stok ${book.stock})`,
+        label: book.title,
+        stock: book.stock,
         formats: book.formats ?? [],
       });
       for (const bp of batchPrices.filter((x) => x.bookId === book.id)) {
@@ -205,7 +217,8 @@ export function OrderForm({
           value: `${book.id}::${bp.price}`,
           bookId: book.id,
           unitPrice: bp.price,
-          label: `${book.title} · ${batchName} (stok ${book.stock})`,
+          label: `${book.title} · ${batchName}`,
+          stock: book.stock,
           formats: bp.formats ?? [],
         });
       }
@@ -226,7 +239,8 @@ export function OrderForm({
       value: `toy:${t.id}::${t.price}`,
       toyId: t.id,
       unitPrice: t.price,
-      label: `${t.title} (stok ${t.stock})`,
+      label: t.title,
+      stock: t.stock,
     }));
   }, [toys]);
 
@@ -380,7 +394,7 @@ export function OrderForm({
               <span className="text-xs text-muted-foreground">Nama Produk</span>
               {item.kind === "book" ? (
                 <SearchSelect
-                  options={bookVariants.map((v) => ({ value: v.value, label: v.label }))}
+                  options={bookVariants.map((v) => ({ value: v.value, label: v.label, stock: v.stock }))}
                   value={bookOptionForItem(item)?.value ?? ""}
                   onValueChange={(v) => {
                     const variant = bookVariantMap.get(v);
@@ -397,7 +411,7 @@ export function OrderForm({
                 />
               ) : (
                 <SearchSelect
-                  options={toyVariants.map((v) => ({ value: v.value, label: v.label }))}
+                  options={toyVariants.map((v) => ({ value: v.value, label: v.label, stock: v.stock }))}
                   value={toyOptionForItem(item)?.value ?? ""}
                   onValueChange={(v) => {
                     const variant = toyVariantMap.get(v);
