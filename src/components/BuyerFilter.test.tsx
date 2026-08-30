@@ -15,14 +15,19 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => nav.searchParams,
 }));
 
-function renderFilter(pending: boolean) {
-  const ui = (p: boolean) => (
-    <BuyerNavContext.Provider value={{ pending: p, navigate: nav.push }}>
+function renderFilter(pending: boolean, source = "filter") {
+  const ui = (p: boolean, s: string) => (
+    <BuyerNavContext.Provider
+      value={{ pending: p, source: s, navigate: (url: string) => nav.push(url) }}
+    >
       <BuyerFilter basePath="/dashboard" batches={[{ id: "b1", name: "Batch 1" }]} />
     </BuyerNavContext.Provider>
   );
-  const view = render(ui(pending));
-  return { ...view, setPending: (p: boolean) => view.rerender(ui(p)) };
+  const view = render(ui(pending, source));
+  return {
+    ...view,
+    setPending: (p: boolean, s = source) => view.rerender(ui(p, s)),
+  };
 }
 
 async function openPanel(user: ReturnType<typeof userEvent.setup>) {
@@ -46,6 +51,19 @@ describe("BuyerFilter", () => {
     screen.getAllByRole("checkbox").forEach((cb) => expect(cb).toBeDisabled());
     screen.getAllByRole("combobox").forEach((sel) => expect(sel).toBeDisabled());
     expect(nav.push).not.toHaveBeenCalled();
+  });
+
+  it("stays usable while a tab navigation is pending (different source)", async () => {
+    const user = userEvent.setup();
+    const { setPending } = renderFilter(false);
+    await openPanel(user);
+    setPending(true, "tabs");
+
+    expect(screen.getByRole("button", { name: /^Filter/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Reset Filter" })).toBeEnabled();
+    screen.getAllByRole("checkbox").forEach((cb) => expect(cb).toBeEnabled());
+    screen.getAllByRole("combobox").forEach((sel) => expect(sel).toBeEnabled());
+    expect(document.querySelectorAll(".animate-spin")).toHaveLength(0);
   });
 
   it("toggles a payment status and drops the page param", async () => {
