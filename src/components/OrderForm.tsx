@@ -109,7 +109,7 @@ function SearchSelect({
         ) : (
           filtered.map((o) => (
             <SelectItem key={o.value} value={o.value}>
-              {o.label}
+              <span className="whitespace-normal break-words leading-snug">{o.label}</span>
             </SelectItem>
           ))
         )}
@@ -196,7 +196,7 @@ export function OrderForm({
         value: `${book.id}::${book.price}`,
         bookId: book.id,
         unitPrice: book.price,
-        label: `${book.title} (stok ${book.stock})`,
+        label: `${book.title} (Stok : ${book.stock})`,
         formats: book.formats ?? [],
       });
       for (const bp of batchPrices.filter((x) => x.bookId === book.id)) {
@@ -205,7 +205,7 @@ export function OrderForm({
           value: `${book.id}::${bp.price}`,
           bookId: book.id,
           unitPrice: bp.price,
-          label: `${book.title} · ${batchName} (stok ${book.stock})`,
+          label: `${book.title} · ${batchName} (Stok : ${book.stock})`,
           formats: bp.formats ?? [],
         });
       }
@@ -226,7 +226,7 @@ export function OrderForm({
       value: `toy:${t.id}::${t.price}`,
       toyId: t.id,
       unitPrice: t.price,
-      label: `${t.title} (stok ${t.stock})`,
+      label: `${t.title} (Stok : ${t.stock})`,
     }));
   }, [toys]);
 
