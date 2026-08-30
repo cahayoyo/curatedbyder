@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import img1 from "@/assets/img/1.jpg";
-import img2 from "@/assets/img/2.jpg";
-import img3 from "@/assets/img/3.jpg";
-import img4 from "@/assets/img/4.png";
-import img5 from "@/assets/img/5.jpg";
+import img1 from "@/assets/img/baru1.webp";
+import img2 from "@/assets/img/baru2.jpg";
+import img3 from "@/assets/img/baru3.jpg";
+import img4 from "@/assets/img/baru4.jpg";
+import img5 from "@/assets/img/baru5.jpg";
+import img6 from "@/assets/img/baru6.jpg";
+import img7 from "@/assets/img/baru7.webp";
 
 const slides = [
   { src: img1, alt: "Book 1" },
@@ -16,6 +18,8 @@ const slides = [
   { src: img3, alt: "Book 3" },
   { src: img4, alt: "Book 4" },
   { src: img5, alt: "Book 5" },
+  { src: img6, alt: "Book 6" },
+  { src: img7, alt: "Book 7" },
 ] as const;
 
 const SWIPE_THRESHOLD = 50;
