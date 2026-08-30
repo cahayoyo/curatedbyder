@@ -1,59 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CuratedByDer
+
+Online bookstore (books & toys) built with Next.js 14 (App Router), Prisma, and PostgreSQL on Neon. Monorepo of buyer and admin dashboards.
 
 ## Local Development
 
-Database lokal terpisah dari production (Neon project dev vs prod). Struktur tabel dibagikan lewat Prisma migrations yang di-commit ke git; data tidak pernah ikut.
+The local database is separate from production (Neon dev project vs prod project). Table structure is shared via Prisma migrations committed to git; data is never shared.
 
-### Setup awal
+### Initial setup
 
-1. Copy `.env.example` ke `.env`, isi:
-   - `DATABASE_URL` — Neon dev **pooled** URL (host mengandung `-pooler`)
-   - `DIRECT_URL` — Neon dev **direct** URL (tanpa `-pooler`), dipakai untuk migrasi
-   - `NEXTAUTH_URL=http://localhost:3000`, `NEXTAUTH_SECRET` (bebas, beda dari prod)
-   - `UPLOADTHING_TOKEN` (app dev terpisah), `ADMIN_SEED="email|password|nama"`
+1. Copy `.env.example` to `.env`, then fill in:
+   - `DATABASE_URL` — Neon dev **pooled** URL (host contains `-pooler`)
+   - `DIRECT_URL` — Neon dev **direct** URL (without `-pooler`), used for migrations
+   - `NEXTAUTH_URL=http://localhost:3000`, `NEXTAUTH_SECRET` (any value, different from prod)
+   - `UPLOADTHING_TOKEN` (separate dev app), `ADMIN_SEED="email|password|name"`
 2. Apply schema + seed:
 
 ```bash
-npm run db:migrate   # apply/create migrations (guardrail anti-prod aktif)
-npm run db:seed      # buat admin dari ADMIN_SEED
-npx tsx scripts/seed-sample-data.ts   # data katalog contoh (opsional)
+npm run db:migrate   # apply/create migrations (anti-prod guardrail active)
+npm run db:seed      # create admin from ADMIN_SEED
+npx tsx scripts/seed-sample-data.ts   # sample catalog data (optional)
 ```
 
-### Workflow perubahan schema
+### Schema change workflow
 
 ```bash
-npm run db:migrate   # 1. ubah prisma/schema.prisma, lalu buat migration
-git commit           # 2. commit file migration yang dibuat
-git push             # 3. Vercel otomatis menjalankan `prisma migrate deploy` saat build
+npm run db:migrate   # 1. edit prisma/schema.prisma, then create the migration
+git commit           # 2. commit the generated migration files
+git push             # 3. Vercel automatically runs `prisma migrate deploy` on build
 ```
 
-Migrasi diterapkan ke struktur DB prod saat deploy — data prod tidak tersentuh.
+Migrations are applied to the production DB structure on deploy — production data is untouched.
 
 ### Guardrail
 
-`npm run db:migrate` dan `npm run db:seed` menolak jalan jika `DATABASE_URL` menunjuk ke DB production (cek host di `scripts/check-db-target.mjs`). Bypass darurat: `SKIP_DB_GUARD=1`.
+`npm run db:migrate` and `npm run db:seed` refuse to run if `DATABASE_URL` points at the production database (host check in `scripts/check-db-target.mjs`). Emergency bypass: `SKIP_DB_GUARD=1`.
 
-## Getting Started
-
-First, run the development server:
+## Running the App
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app is hosted on Vercel (Hobby plan). Push to `main` to deploy; env vars must match `.env` in the Vercel project settings. Migrations run automatically during the build via `prisma migrate deploy`.
