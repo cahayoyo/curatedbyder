@@ -12,14 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteButton";
 import { MapPin, MoreVertical, Pencil, Phone, Trash2, Users } from "lucide-react";
 
 type BuyerDTO = {
@@ -70,7 +63,6 @@ export function BuyerCard({
   const { success } = useSuccessModal();
 
   async function handleDelete() {
-    setDeleteOpen(false);
     try {
       const res = await onDelete();
       if (res && !res.ok) {
@@ -144,31 +136,13 @@ export function BuyerCard({
       <div className="mt-2 h-px w-full bg-black/15" />
 
       {/* Delete confirm dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="w-[90%] max-w-sm" style={{ backgroundColor: "#FED6D6" }}>
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Hapus</DialogTitle>
-            <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus pembeli &quot;{buyer.name}&quot;?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              className="flex-1 border border-input bg-transparent"
-            >
-              Batal
-            </Button>
-            <Button
-              onClick={handleDelete}
-              className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
-            >
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Konfirmasi Hapus"
+        description={`Apakah anda benar ingin menghapus pembeli "${buyer.name}"?`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

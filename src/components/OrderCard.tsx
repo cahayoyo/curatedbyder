@@ -12,14 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteButton";
 import { Badge } from "@/components/ui/badge";
 import { formatIDR } from "@/lib/format";
 import { PAYMENT_LABEL, PAYMENT_BADGE, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
@@ -94,7 +87,6 @@ export function OrderCard({
   const totalItems = order.items.reduce((n, it) => n + it.quantity, 0);
 
   async function handleDelete() {
-    setDeleteOpen(false);
     try {
       const res = await onDelete();
       if (res && !res.ok) {
@@ -280,31 +272,13 @@ export function OrderCard({
       <OrderDetailDialog order={order} open={detailOpen} onOpenChange={setDetailOpen} />
 
       {/* Delete confirm dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="w-[90%] max-w-sm" style={{ backgroundColor: "#FED6D6" }}>
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Hapus</DialogTitle>
-            <DialogDescription className="text-black/80">
-              Apakah anda benar ingin menghapus order &quot;{order.invoiceNumber}&quot;? Stok produk akan dikembalikan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              className="flex-1 border border-input bg-transparent"
-            >
-              Batal
-            </Button>
-            <Button
-              onClick={handleDelete}
-              className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-red-500 hover:text-white"
-            >
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Konfirmasi Hapus"
+        description={`Apakah anda benar ingin menghapus order "${order.invoiceNumber}"? Stok produk akan dikembalikan.`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
