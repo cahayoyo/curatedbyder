@@ -18,16 +18,16 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F6F1E7" }}>
 <header className="border-b" style={{ backgroundColor: "#FED6D6" }}>
-        <div className="mx-auto grid h-14 max-w-5xl grid-cols-3 items-center gap-2 px-4 md:flex">
+        <div className="mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex">
           <div className="flex md:hidden">
             <UserNav />
           </div>
 
-          <div className="flex items-center justify-self-center gap-2 md:mr-2 md:justify-self-start">
+          <div className="flex min-w-0 items-center justify-self-center gap-2 md:mr-2 md:justify-self-start">
             <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
-            <div className="flex flex-col leading-tight">
-              <span className="font-semibold">CuratedByDer</span>
-              <span className="text-[11px] font-medium opacity-70">USER DASHBOARD</span>
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-semibold">CuratedByDer</span>
+              <span className="truncate text-[11px] font-medium opacity-70">USER DASHBOARD</span>
             </div>
           </div>
 

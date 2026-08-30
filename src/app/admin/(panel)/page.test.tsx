@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import AdminOverviewPage from "./page";
+import { db } from "@/lib/db";
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -25,8 +26,6 @@ vi.mock("@/lib/db", () => ({
     },
   },
 }));
-
-const { db } = await import("@/lib/db");
 
 beforeEach(() => {
   vi.clearAllMocks();
