@@ -286,19 +286,22 @@ export function OrderDetailDialog({
         </div>
 
         <DialogFooter className="flex-row gap-2">
-          <Button onClick={() => downloadPdf(order)} className="flex-1">
+          <Button
+            onClick={() => downloadPdf(order)}
+            className="flex-1 px-3 text-xs"
+          >
             <Download className="h-4 w-4" />
             Download PDF
           </Button>
           {order.buyer.phone && (
-            <button
+            <Button
               type="button"
               onClick={() => openWa(order)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+              className="flex-1 bg-[#25D366] px-3 text-xs hover:bg-[#1ebe57]"
             >
               <MessageCircle className="h-4 w-4" />
               Hubungi Pembeli
-            </button>
+            </Button>
           )}
         </DialogFooter>
 
