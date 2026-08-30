@@ -512,7 +512,9 @@ function TrackCard({ order }: { order: OrderDTO }) {
             <div key={sv} className="flex items-center gap-1">
               <span
                 className={`whitespace-nowrap rounded-full px-2 py-1 ${
-                  reached ? "bg-[#D97A7A] text-white" : "bg-black/10 text-black/50"
+                  reached
+                    ? STATUS_BADGE[sv] ?? "bg-[#D97A7A] text-white"
+                    : "bg-black/10 text-black/50"
                 }`}
               >
                 {STATUS_LABEL[sv]}
