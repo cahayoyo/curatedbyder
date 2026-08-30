@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, Loader2 } from "lucide-react";
 import { STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { useBuyerNav } from "@/components/BuyerShell";
+import { cn } from "@/lib/utils";
 
 type Batch = { id: string; name: string };
 
 export function BuyerFilter({
   basePath,
   batches,
+  className,
 }: {
   basePath: string;
   batches: Batch[];
+  className?: string;
 }) {
   const { active: pending, navigate } = useBuyerNav("filter");
   const searchParams = useSearchParams();
@@ -76,7 +79,7 @@ export function BuyerFilter({
   }
 
   return (
-    <div className="relative w-[30%] md:w-[20%]">
+    <div className={cn("relative", className)}>
       <Button
         type="button"
         onClick={toggleOpen}
