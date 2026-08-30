@@ -32,6 +32,7 @@ type LineItem = {
   eta: string;
   quantity: string;
   unitPrice?: number;
+  variantKey?: string;
 };
 
 const emptyLine = (): LineItem => ({
@@ -185,7 +186,7 @@ export function OrderForm({
     setItems((i) =>
       i.map((it, n) =>
         n === idx
-          ? { ...it, kind, bookId: "", toyId: "", unitPrice: undefined }
+          ? { ...it, kind, bookId: "", toyId: "", unitPrice: undefined, variantKey: undefined }
           : it
       )
     );
@@ -203,7 +204,7 @@ export function OrderForm({
     }[] = [];
     for (const book of books) {
       out.push({
-        value: `${book.id}::${book.price}`,
+        value: `${book.id}::base::${book.price}`,
         bookId: book.id,
         unitPrice: book.price,
         label: book.title,
@@ -213,7 +214,7 @@ export function OrderForm({
       for (const bp of batchPrices.filter((x) => x.bookId === book.id)) {
         const batchName = batchNameMap2.get(bp.batchId) ?? "Batch";
         out.push({
-          value: `${book.id}::${bp.price}`,
+          value: `${book.id}::bp::${bp.batchId}::${bp.price}`,
           bookId: book.id,
           unitPrice: bp.price,
           label: `${book.title} · ${batchName}`,
@@ -226,12 +227,17 @@ export function OrderForm({
   }, [books, batchPrices, batches]);
 
   const bookVariantMap = new Map(bookVariants.map((v) => [v.value, v]));
-  const bookOptionForItem = (item: LineItem) =>
-    bookVariants.find(
+  const bookOptionForItem = (item: LineItem) => {
+    const matches = bookVariants.filter(
       (v) =>
         v.bookId === item.bookId &&
         (item.unitPrice == null || v.unitPrice === item.unitPrice)
     );
+    return (
+      matches.find((v) => item.batchId && v.value.includes(`::bp::${item.batchId}::`)) ??
+      matches[0]
+    );
+  };
 
   const toyVariants = useMemo(() => {
     return toys.map((t) => ({
@@ -394,7 +400,7 @@ export function OrderForm({
               {item.kind === "book" ? (
                 <SearchSelect
                   options={bookVariants.map((v) => ({ value: v.value, label: v.label, stock: v.stock }))}
-                  value={bookOptionForItem(item)?.value ?? ""}
+                  value={item.variantKey ?? bookOptionForItem(item)?.value ?? ""}
                   onValueChange={(v) => {
                     const variant = bookVariantMap.get(v);
                     if (variant) {
@@ -402,6 +408,7 @@ export function OrderForm({
                         bookId: variant.bookId,
                         toyId: "",
                         unitPrice: variant.unitPrice,
+                        variantKey: v,
                       });
                     }
                   }}
@@ -419,6 +426,7 @@ export function OrderForm({
                         toyId: variant.toyId,
                         bookId: "",
                         unitPrice: variant.unitPrice,
+                        variantKey: v,
                       });
                     }
                   }}
@@ -449,7 +457,7 @@ export function OrderForm({
                 <span className="text-xs text-muted-foreground">Batch</span>
                 <Select
                   value={item.batchId}
-                  onValueChange={(v) => updateItem(idx, { batchId: v, unitPrice: undefined })}
+                  onValueChange={(v) => updateItem(idx, { batchId: v, unitPrice: undefined, variantKey: undefined })}
                 >
                   <SelectTrigger className="w-full min-w-0">
                     <SelectValue placeholder="Pilih batch" />
