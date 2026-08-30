@@ -453,11 +453,11 @@ export default function AdminToysPage({
             <PageSizeSelect basePath="/admin/toys" />
           </div>
         </div>
-      </div>
 
-      <Suspense fallback={<ListLoader />}>
-        <ToysList searchParams={searchParams} />
-      </Suspense>
+        <Suspense fallback={<ListLoader />}>
+          <ToysList searchParams={searchParams} />
+        </Suspense>
+      </div>
     </div>
   );
 }

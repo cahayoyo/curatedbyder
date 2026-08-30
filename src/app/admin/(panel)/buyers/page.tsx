@@ -214,11 +214,11 @@ export default async function AdminBuyersPage({
           </div>
           <PageSizeSelect basePath="/admin/buyers" />
         </div>
-      </div>
 
-      <Suspense fallback={<ListLoader />}>
-        <BuyersList searchParams={searchParams} />
-      </Suspense>
+        <Suspense fallback={<ListLoader />}>
+          <BuyersList searchParams={searchParams} />
+        </Suspense>
+      </div>
     </div>
   );
 }

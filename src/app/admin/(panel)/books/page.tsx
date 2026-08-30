@@ -490,11 +490,11 @@ export default function AdminBooksPage({
             <PageSizeSelect basePath="/admin/books" />
           </div>
         </div>
-      </div>
 
-      <Suspense fallback={<ListLoader />}>
-        <BooksList searchParams={searchParams} />
-      </Suspense>
+        <Suspense fallback={<ListLoader />}>
+          <BooksList searchParams={searchParams} />
+        </Suspense>
+      </div>
     </div>
   );
 }
