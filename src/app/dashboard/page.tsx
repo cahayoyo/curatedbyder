@@ -9,7 +9,7 @@ import { BuyerFilter } from "@/components/BuyerFilter";
 import { BuyerShell, PendingDim } from "@/components/BuyerShell";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
-import { parsePerPage, perQuery } from "@/lib/pagination";
+import { BUYER_DEFAULT_PAGE_SIZE, parsePerPage, perQuery } from "@/lib/pagination";
 import { ShoppingCart } from "lucide-react";
 
 type DashboardSearchParams = {
@@ -53,7 +53,7 @@ export default async function DashboardPage({
                 placeholder="Cari invoice / batch / judul buku..."
               />
             </div>
-            <PageSizeSelect basePath="/dashboard" />
+            <PageSizeSelect basePath="/dashboard" defaultPer={BUYER_DEFAULT_PAGE_SIZE} />
           </div>
         </div>
 
@@ -83,7 +83,7 @@ async function OrdersSection({
     .map((s) => s.trim())
     .filter((s) => PAYMENT_STATUSES.some((opt) => opt.value === s));
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
-  const per = parsePerPage(searchParams?.per);
+  const per = parsePerPage(searchParams?.per, BUYER_DEFAULT_PAGE_SIZE);
   const tab = ["invoice", "payment", "shipment"].includes(searchParams?.tab ?? "")
     ? searchParams.tab!
     : "invoice";
@@ -162,7 +162,7 @@ async function OrdersSection({
     status: searchParams?.status ?? "",
     paymentStatus: searchParams?.paymentStatus ?? "",
     tab: tab === "invoice" ? undefined : tab,
-    per: perQuery(per),
+    per: perQuery(per, BUYER_DEFAULT_PAGE_SIZE),
   };
 
   return (
