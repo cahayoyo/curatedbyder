@@ -543,7 +543,7 @@ export function BuyerTabs({
   query: Record<string, string | undefined>;
   defaultTab: string;
 }) {
-  const { pending, navigate } = useBuyerNav();
+  const { active: pending, navigate } = useBuyerNav("tabs");
   const searchParams = useSearchParams();
   const tab = defaultTab;
 

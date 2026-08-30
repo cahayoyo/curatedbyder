@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 function NavigateProbe() {
-  const { pending, navigate } = useBuyerNav();
+  const { pending, navigate } = useBuyerNav("probe");
   return (
     <>
       <button type="button" onClick={() => navigate("/dashboard?status=X")}>
@@ -38,7 +38,7 @@ describe("BuyerShell", () => {
 describe("PendingDim", () => {
   it("dims and blocks interaction only while pending", () => {
     const ui = (pending: boolean) => (
-      <BuyerNavContext.Provider value={{ pending, navigate: vi.fn() }}>
+      <BuyerNavContext.Provider value={{ pending, source: "", navigate: vi.fn() }}>
         <PendingDim>
           <div>list</div>
         </PendingDim>

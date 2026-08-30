@@ -15,7 +15,9 @@ vi.mock("next/navigation", () => ({
 
 function renderTabs(pending: boolean, defaultTab = "invoice") {
   const ui = (p: boolean) => (
-    <BuyerNavContext.Provider value={{ pending: p, navigate: nav.push }}>
+    <BuyerNavContext.Provider
+      value={{ pending: p, source: "tabs", navigate: (url: string) => nav.push(url) }}
+    >
       <BuyerTabs
         orders={[]}
         total={0}

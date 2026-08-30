@@ -16,7 +16,7 @@ export function BuyerFilter({
   basePath: string;
   batches: Batch[];
 }) {
-  const { pending, navigate } = useBuyerNav();
+  const { active: pending, navigate } = useBuyerNav("filter");
   const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
