@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import {
 } from "@/lib/orderOptions";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { waLink } from "@/lib/wa";
+import { useBuyerNav } from "@/components/BuyerShell";
 import {
   Boxes,
   Calculator,
@@ -39,6 +40,7 @@ import {
   Eye,
   FileText,
   ListOrdered,
+  Loader2,
   MapPin,
   MessageCircle,
   MoreVertical,
@@ -541,30 +543,34 @@ export function BuyerTabs({
   query: Record<string, string | undefined>;
   defaultTab: string;
 }) {
-  const router = useRouter();
+  const { pending, navigate } = useBuyerNav();
   const searchParams = useSearchParams();
   const tab = defaultTab;
 
+  const lastRequested = useRef<string | null>(null);
+
   function selectTab(v: string) {
+    if (v === tab || v === lastRequested.current) return;
+    lastRequested.current = v;
     const params = new URLSearchParams(searchParams.toString());
     if (v === "invoice") params.delete("tab");
     else params.set("tab", v);
-    router.push(`${basePath}?${params.toString()}`);
+    navigate(`${basePath}?${params.toString()}`);
   }
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
       <TabsList className="w-full">
         <TabsTrigger value="invoice" className="flex-1 gap-1.5">
-          <FileText className="h-4 w-4" />
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
         </TabsTrigger>
         <TabsTrigger value="payment" className="flex-1 gap-1.5">
-          <Wallet className="h-4 w-4" />
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
           Pembayaran
         </TabsTrigger>
         <TabsTrigger value="shipment" className="flex-1 gap-1.5">
-          <Search className="h-4 w-4" />
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Lacak
         </TabsTrigger>
       </TabsList>
