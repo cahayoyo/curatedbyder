@@ -230,10 +230,10 @@ export default async function AdminOverviewPage() {
                 if (!book) return null;
                 return (
                   <li key={item.bookId} className="flex justify-between">
-                    <span>
+                    <span className="min-w-0">
                       {i + 1}. {book.title}
                     </span>
-                    <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
+                    <span className="shrink-0 font-medium whitespace-nowrap">{item._sum.quantity ?? 0} terjual</span>
                   </li>
                 );
               })}
@@ -258,10 +258,10 @@ export default async function AdminOverviewPage() {
                 if (!toy) return null;
                 return (
                   <li key={item.toyId} className="flex justify-between">
-                    <span>
+                    <span className="min-w-0">
                       {i + 1}. {toy.title}
                     </span>
-                    <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
+                    <span className="shrink-0 font-medium whitespace-nowrap">{item._sum.quantity ?? 0} terjual</span>
                   </li>
                 );
               })}
@@ -286,8 +286,8 @@ export default async function AdminOverviewPage() {
                 if (!user) return null;
                 return (
                   <li key={b.buyerId} className="flex justify-between">
-                    <span className="truncate pr-4">{i + 1}. {user.name}</span>
-                    <span className="font-medium">{b._count.buyerId} transaksi</span>
+                    <span className="min-w-0 truncate pr-4">{i + 1}. {user.name}</span>
+                    <span className="shrink-0 font-medium whitespace-nowrap">{b._count.buyerId} transaksi</span>
                   </li>
                 );
               })}
