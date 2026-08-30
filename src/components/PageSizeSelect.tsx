@@ -17,7 +17,13 @@ import { PAGE_SIZES, DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 // Used so a ?per= bookmark/reload falls back to the default size once.
 let didHandleInitialPer = false;
 
-export function PageSizeSelect({ basePath }: { basePath: string }) {
+export function PageSizeSelect({
+  basePath,
+  defaultPer = DEFAULT_PAGE_SIZE,
+}: {
+  basePath: string;
+  defaultPer?: number;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -47,7 +53,7 @@ export function PageSizeSelect({ basePath }: { basePath: string }) {
       value={
         (PAGE_SIZES as readonly number[]).includes(current)
           ? String(current)
-          : String(DEFAULT_PAGE_SIZE)
+          : String(defaultPer)
       }
       onValueChange={onChange}
     >

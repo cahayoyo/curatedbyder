@@ -54,4 +54,11 @@ describe("PageSizeSelect", () => {
       screen.getByRole("combobox", { name: "Jumlah item per halaman" })
     ).toHaveTextContent("20");
   });
+
+  it("shows the passed defaultPer when per is absent", () => {
+    render(<PageSizeSelect basePath="/dashboard" defaultPer={10} />);
+    expect(
+      screen.getByRole("combobox", { name: "Jumlah item per halaman" })
+    ).toHaveTextContent("10");
+  });
 });
