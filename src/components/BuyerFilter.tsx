@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Loader2 } from "lucide-react";
 import { STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { useBuyerNav } from "@/components/BuyerShell";
 
 type Batch = { id: string; name: string };
 
@@ -15,7 +16,7 @@ export function BuyerFilter({
   basePath: string;
   batches: Batch[];
 }) {
-  const router = useRouter();
+  const { pending, navigate } = useBuyerNav();
   const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
@@ -43,7 +44,7 @@ export function BuyerFilter({
 
   function pushParams(params: URLSearchParams) {
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    navigate(`${basePath}?${params.toString()}`);
   }
 
   function togglePayment(v: string) {
@@ -79,9 +80,10 @@ export function BuyerFilter({
       <Button
         type="button"
         onClick={toggleOpen}
+        disabled={pending}
         className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
       >
-        <SlidersHorizontal className="h-3.5 w-3.5" />
+        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <SlidersHorizontal className="h-3.5 w-3.5" />}
         Filter
         {activeCount > 0 && (
           <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FED6D6] px-1 text-[10px] font-bold text-black">
@@ -105,6 +107,7 @@ export function BuyerFilter({
                     type="checkbox"
                     checked={paymentStatus.includes(opt.value)}
                     onChange={() => togglePayment(opt.value)}
+                    disabled={pending}
                     className="h-4 w-4 accent-[#D97A7A]"
                   />
                   {opt.label}
@@ -121,6 +124,7 @@ export function BuyerFilter({
                 setStatus(e.target.value);
                 pushSingle("status", e.target.value);
               }}
+              disabled={pending}
               className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
             >
               <option value="">Semua Status</option>
@@ -140,6 +144,7 @@ export function BuyerFilter({
                 setBatch(e.target.value);
                 pushSingle("batch", e.target.value);
               }}
+              disabled={pending}
               className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
             >
               <option value="">Semua Batch</option>
@@ -155,6 +160,7 @@ export function BuyerFilter({
             <Button
               type="button"
               onClick={reset}
+              disabled={pending}
               className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
             >
               Reset Filter

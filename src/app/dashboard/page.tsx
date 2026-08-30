@@ -6,6 +6,7 @@ import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BuyerFilter } from "@/components/BuyerFilter";
+import { BuyerShell, PendingDim } from "@/components/BuyerShell";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
 import { parsePerPage, perQuery } from "@/lib/pagination";
@@ -36,29 +37,33 @@ export default async function DashboardPage({
   });
 
   return (
-    <div className="space-y-4">
-      <h2 className="flex items-center gap-2 text-2xl font-bold">
-        <ShoppingCart className="h-6 w-6 text-[#D97A7A]" />
-        Pesanan Saya
-      </h2>
+    <BuyerShell>
+      <div className="space-y-4">
+        <h2 className="flex items-center gap-2 text-2xl font-bold">
+          <ShoppingCart className="h-6 w-6 text-[#D97A7A]" />
+          Pesanan Saya
+        </h2>
 
-      <div className="flex items-start gap-2">
-        <BuyerFilter basePath="/dashboard" batches={batches} />
-        <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
-          <div className="w-full">
-            <SearchInput
-              basePath="/dashboard"
-              placeholder="Cari invoice / batch / judul buku..."
-            />
+        <div className="flex items-start gap-2">
+          <BuyerFilter basePath="/dashboard" batches={batches} />
+          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+            <div className="w-full">
+              <SearchInput
+                basePath="/dashboard"
+                placeholder="Cari invoice / batch / judul buku..."
+              />
+            </div>
+            <PageSizeSelect basePath="/dashboard" />
           </div>
-          <PageSizeSelect basePath="/dashboard" />
         </div>
-      </div>
 
-      <Suspense fallback={<ListLoader label="Memuat pesanan..." />}>
-        <OrdersSection userId={userId} searchParams={searchParams} />
-      </Suspense>
-    </div>
+        <PendingDim>
+          <Suspense fallback={<ListLoader label="Memuat pesanan..." />}>
+            <OrdersSection userId={userId} searchParams={searchParams} />
+          </Suspense>
+        </PendingDim>
+      </div>
+    </BuyerShell>
   );
 }
 
