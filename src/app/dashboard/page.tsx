@@ -44,9 +44,8 @@ export default async function DashboardPage({
           Pesanan Saya
         </h2>
 
-        <div className="flex items-start gap-2">
-          <BuyerFilter basePath="/dashboard" batches={batches} />
-          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+        <div className="flex flex-col gap-2 md:flex-row md:items-start">
+          <div className="flex w-full items-center gap-2 md:w-[80%]">
             <div className="w-full">
               <SearchInput
                 basePath="/dashboard"
@@ -55,6 +54,11 @@ export default async function DashboardPage({
             </div>
             <PageSizeSelect basePath="/dashboard" defaultPer={BUYER_DEFAULT_PAGE_SIZE} />
           </div>
+          <BuyerFilter
+            basePath="/dashboard"
+            batches={batches}
+            className="w-full md:order-first md:w-[20%]"
+          />
         </div>
 
         <PendingDim>
