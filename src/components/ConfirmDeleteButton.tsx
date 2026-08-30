@@ -74,7 +74,7 @@ export function ConfirmDeleteButton({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] max-w-sm rounded-xl bg-[#F6F1E7] shadow-lg">
+        <DialogContent className="w-[90%] max-w-sm rounded-xl bg-[#F6F1E7] shadow-lg sm:rounded-xl">
           <DialogHeader className="text-center">
             <div className="mx-auto mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
               <Trash2 className="h-6 w-6" />
@@ -84,7 +84,7 @@ export function ConfirmDeleteButton({
               {description}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-row gap-2">
+          <DialogFooter className="flex-row gap-2 sm:space-x-0">
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
