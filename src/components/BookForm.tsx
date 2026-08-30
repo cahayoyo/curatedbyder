@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -71,7 +70,7 @@ export function BookForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
   const [rows, setRows] = useState<BookRow[]>(() =>
     initial
       ? [
@@ -205,7 +204,7 @@ export function BookForm({
           const r = rows[0];
           const res = await updateBook(initial.id, bookPayload(r));
           if (!res.ok) {
-            toast.error(res.error);
+            error(res.error);
             return;
           }
           await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
@@ -214,7 +213,7 @@ export function BookForm({
           for (const r of rows) {
             const res = await createBook(bookPayload(r));
             if (!res.ok) {
-              toast.error(res.error);
+              error(res.error);
               return;
             }
             const entries = entriesFor(r);
@@ -231,7 +230,7 @@ export function BookForm({
         router.push("/admin/books");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to save book");
+        error(err instanceof Error ? err.message : "Failed to save book");
       }
     });
   }

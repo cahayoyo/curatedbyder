@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import type { ActionResult } from "@/lib/actionResult";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Badge } from "@/components/ui/badge";
@@ -96,18 +95,18 @@ export function BookCard({
 }) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   async function handleDelete() {
     try {
       const res = await onDelete();
       if (res && !res.ok) {
-        toast.error(res.error);
+        error(res.error);
         return;
       }
       success(`${book.title} berhasil dihapus!`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+      error(e instanceof Error ? e.message : "Gagal menghapus");
     }
   }
 

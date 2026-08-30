@@ -6,7 +6,6 @@ import { createBuyer, updateBuyer } from "@/server/actions/buyers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2, AtSign } from "lucide-react";
 import { generateUsername } from "@/lib/username";
@@ -33,7 +32,7 @@ const cancelBtn =
 export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
   const [rows, setRows] = useState<BuyerRow[]>(() =>
     initial
       ? [
@@ -71,7 +70,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             contact: r.contact || null,
           });
           if (!res.ok) {
-            toast.error(res.error);
+            error(res.error);
             return;
           }
           success(`${r.name.trim()} berhasil diubah!`);
@@ -83,7 +82,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               contact: r.contact || null,
             });
             if (!res.ok) {
-              toast.error(res.error);
+              error(res.error);
               return;
             }
           }
@@ -96,7 +95,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
         router.push("/admin/buyers");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menyimpan pembeli");
+        error(err instanceof Error ? err.message : "Gagal menyimpan pembeli");
       }
     });
   }

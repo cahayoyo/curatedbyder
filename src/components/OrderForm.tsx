@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -146,7 +145,7 @@ export function OrderForm({
   const router = useRouter();
   const isEdit = Boolean(initial?.id);
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
   const [buyerId, setBuyerId] = useState(initial?.buyerId ?? "");
   const [dp, setDp] = useState(initial?.dp != null ? String(initial.dp) : "");
   const [shippingCost, setShippingCost] = useState(
@@ -307,13 +306,13 @@ export function OrderForm({
         unitPrice: itemPrice(i),
       }));
 
-    if (!buyerId) return toast.error("Nama/buyer wajib dipilih");
-    if (!paymentStatus) return toast.error("Status pembayaran wajib dipilih");
-    if (itemPayload.length === 0) return toast.error("Pilih minimal satu produk");
+    if (!buyerId) return error("Nama/buyer wajib dipilih");
+    if (!paymentStatus) return error("Status pembayaran wajib dipilih");
+    if (itemPayload.length === 0) return error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
-    if (hasEmptyProduct) return toast.error("Semua baris produk wajib diisi");
-    if (items.some((i) => !i.batchId)) return toast.error("Setiap baris produk wajib memilih batch");
-    if (items.some((i) => !i.eta)) return toast.error("Setiap baris produk wajib memilih ETA");
+    if (hasEmptyProduct) return error("Semua baris produk wajib diisi");
+    if (items.some((i) => !i.batchId)) return error("Setiap baris produk wajib memilih batch");
+    if (items.some((i) => !i.eta)) return error("Setiap baris produk wajib memilih ETA");
 
     startTransition(async () => {
       try {
@@ -328,14 +327,14 @@ export function OrderForm({
         if (initial?.id) {
           const res = await updateOrder(initial.id, payload);
           if (!res.ok) {
-            toast.error(res.error);
+            error(res.error);
             return;
           }
           success(`${initial?.invoiceNumber} berhasil diubah!`);
         } else {
           const res = await createOrder(payload);
           if (!res.ok) {
-            toast.error(res.error);
+            error(res.error);
             return;
           }
           success(`${res.data.invoiceNumber} berhasil dibuat!`);
@@ -343,7 +342,7 @@ export function OrderForm({
         router.push("/admin/orders");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to record order");
+        error(err instanceof Error ? err.message : "Failed to record order");
       }
     });
   }
