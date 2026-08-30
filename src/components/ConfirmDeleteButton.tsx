@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Trash2, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import type { ActionResult } from "@/lib/actionResult";
 import { useSuccessModal } from "@/components/SuccessModal";
 
@@ -105,20 +104,20 @@ export function ConfirmDeleteButton({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   async function handleDelete() {
     try {
       const res = await onConfirm();
       if (res && !res.ok) {
-        toast.error(res.error);
+        error(res.error);
         return;
       }
       setOpen(false);
       success(successMessage);
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+      error(e instanceof Error ? e.message : "Gagal menghapus");
     }
   }
 

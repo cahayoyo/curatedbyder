@@ -17,13 +17,12 @@ import {
   PAYMENT_BADGE,
 } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 
 export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   function onChange(value: string) {
     startTransition(async () => {
@@ -32,7 +31,7 @@ export function StatusSelect({ itemId, current }: { itemId: string; current: str
         success("Status item updated");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to update");
+        error(err instanceof Error ? err.message : "Failed to update");
       }
     });
   }
@@ -67,7 +66,7 @@ export function PaymentStatusSelect({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   function onChange(value: string) {
     startTransition(async () => {
@@ -76,7 +75,7 @@ export function PaymentStatusSelect({
         success("Payment updated");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to update");
+        error(err instanceof Error ? err.message : "Failed to update");
       }
     });
   }

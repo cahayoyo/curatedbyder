@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import type { ActionResult } from "@/lib/actionResult";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Button } from "@/components/ui/button";
@@ -60,18 +59,18 @@ export function BuyerCard({
 }) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   async function handleDelete() {
     try {
       const res = await onDelete();
       if (res && !res.ok) {
-        toast.error(res.error);
+        error(res.error);
         return;
       }
       success(`${buyer.name} berhasil dihapus!`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+      error(e instanceof Error ? e.message : "Gagal menghapus");
     }
   }
 

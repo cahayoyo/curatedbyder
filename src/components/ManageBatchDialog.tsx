@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Layers2, Plus, Pencil, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 
 type Batch = { id: string; name: string };
@@ -30,7 +29,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
 
   function addField() {
     setFields((f) => [...f, ""]);
@@ -56,7 +55,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
 
   function handleCreate() {
     const names = fields.map((f) => f.trim()).filter(Boolean);
-    if (names.length === 0) return toast.error("Masukkan minimal satu nama batch");
+    if (names.length === 0) return error("Masukkan minimal satu nama batch");
 
     startTransition(async () => {
       try {
@@ -72,10 +71,10 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           setFields([""]);
           router.refresh();
         } else {
-          toast.error(firstError ?? "Tidak ada batch baru yang dibuat (mungkin sudah ada)");
+          error(firstError ?? "Tidak ada batch baru yang dibuat (mungkin sudah ada)");
         }
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Gagal membuat batch");
+        error(e instanceof Error ? e.message : "Gagal membuat batch");
       }
     });
   }
@@ -83,20 +82,20 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
   function handleSaveEdit() {
     if (!editingId) return;
     const name = editValue.trim();
-    if (!name) return toast.error("Nama batch tidak boleh kosong");
+    if (!name) return error("Nama batch tidak boleh kosong");
 
     startTransition(async () => {
       try {
         const res = await updateBatch(editingId, name);
         if (!res.ok) {
-          toast.error(res.error);
+          error(res.error);
           return;
         }
         success("Batch diubah");
         cancelEdit();
         router.refresh();
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Gagal mengubah batch");
+        error(e instanceof Error ? e.message : "Gagal mengubah batch");
       }
     });
   }

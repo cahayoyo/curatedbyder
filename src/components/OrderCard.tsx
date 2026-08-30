@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import type { ActionResult } from "@/lib/actionResult";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Button } from "@/components/ui/button";
@@ -83,19 +82,19 @@ export function OrderCard({
   const router = useRouter();
   const [detailOpen, setDetailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
   const totalItems = order.items.reduce((n, it) => n + it.quantity, 0);
 
   async function handleDelete() {
     try {
       const res = await onDelete();
       if (res && !res.ok) {
-        toast.error(res.error);
+        error(res.error);
         return;
       }
       success(`${order.invoiceNumber} berhasil dihapus!`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal menghapus");
+      error(e instanceof Error ? e.message : "Gagal menghapus");
     }
   }
 

@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -65,7 +64,7 @@ export function ToyForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const { success } = useSuccessModal();
+  const { success, error } = useSuccessModal();
   const [rows, setRows] = useState<ToyRow[]>(() =>
     initial
       ? [
@@ -156,7 +155,7 @@ export function ToyForm({
           const r = rows[0];
           const res = await updateToy(initial.id, toyPayload(r));
           if (!res.ok) {
-            toast.error(res.error);
+            error(res.error);
             return;
           }
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
@@ -165,7 +164,7 @@ export function ToyForm({
           for (const r of rows) {
             const res = await createToy(toyPayload(r));
             if (!res.ok) {
-              toast.error(res.error);
+              error(res.error);
               return;
             }
             const entries = entriesFor(r);
@@ -182,7 +181,7 @@ export function ToyForm({
         router.push("/admin/toys");
         router.refresh();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to save mainan");
+        error(err instanceof Error ? err.message : "Failed to save mainan");
       }
     });
   }
