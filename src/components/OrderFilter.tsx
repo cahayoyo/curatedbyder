@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Loader2 } from "lucide-react";
 import { STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,7 @@ export function OrderFilter({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const [open, setOpen] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string[]>([]);
@@ -70,7 +71,7 @@ export function OrderFilter({
     if (next.length) params.set(key, next.join(","));
     else params.delete(key);
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    startTransition(() => router.push(`${basePath}?${params.toString()}`));
   }
 
   function pushSingle(key: "status" | "batch" | "eta", next: string) {
@@ -78,7 +79,7 @@ export function OrderFilter({
     if (next) params.set(key, next);
     else params.delete(key);
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    startTransition(() => router.push(`${basePath}?${params.toString()}`));
   }
 
   function pushDate(key: "dateFrom" | "dateTo", next: string) {
@@ -88,7 +89,7 @@ export function OrderFilter({
     if (next) params.set(key, next);
     else params.delete(key);
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    startTransition(() => router.push(`${basePath}?${params.toString()}`));
   }
 
   function reset() {
@@ -103,7 +104,7 @@ export function OrderFilter({
       params.delete(k)
     );
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    startTransition(() => router.push(`${basePath}?${params.toString()}`));
     setOpen(false);
   }
 
@@ -126,6 +127,7 @@ export function OrderFilter({
           type="checkbox"
           checked={list.includes(value)}
           onChange={() => toggle(list, set, value, paramKey)}
+          disabled={isPending}
           className="h-4 w-4 accent-[#D97A7A]"
         />
         {label}
@@ -138,9 +140,14 @@ export function OrderFilter({
       <Button
         type="button"
         onClick={toggleOpen}
-        className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+        disabled={isPending}
+        className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white disabled:opacity-70"
       >
-        <SlidersHorizontal className="h-3.5 w-3.5" />
+        {isPending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+        )}
         Filter
         {activeCount > 0 && (
           <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FED6D6] px-1 text-[10px] font-bold text-black">
@@ -179,7 +186,8 @@ export function OrderFilter({
                 setStatus(e.target.value);
                 pushSingle("status", e.target.value);
               }}
-              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+              disabled={isPending}
+              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm disabled:opacity-70"
             >
               <option value="">Semua Status</option>
               {STATUSES.map((opt) => (
@@ -198,7 +206,8 @@ export function OrderFilter({
                 setBatch(e.target.value);
                 pushSingle("batch", e.target.value);
               }}
-              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+              disabled={isPending}
+              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm disabled:opacity-70"
             >
               <option value="">Semua Batch</option>
               {batches.map((b) => (
@@ -217,7 +226,8 @@ export function OrderFilter({
                 setEta(e.target.value);
                 pushSingle("eta", e.target.value);
               }}
-              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+              disabled={isPending}
+              className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm disabled:opacity-70"
             >
               <option value="">Semua ETA</option>
               {ETAS.map((opt) => (
@@ -238,7 +248,8 @@ export function OrderFilter({
                   value={dateFrom}
                   max={dateTo || undefined}
                   onChange={(e) => pushDate("dateFrom", e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
+                  disabled={isPending}
+                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm disabled:opacity-70"
                 />
               </div>
               <div className="space-y-1">
@@ -248,7 +259,8 @@ export function OrderFilter({
                   value={dateTo}
                   min={dateFrom || undefined}
                   onChange={(e) => pushDate("dateTo", e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm"
+                  disabled={isPending}
+                  className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm disabled:opacity-70"
                 />
               </div>
             </div>
@@ -265,7 +277,8 @@ export function OrderFilter({
               onClick={() => {
                 reset();
               }}
-              className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+              disabled={isPending}
+              className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white disabled:opacity-70"
             >
               Reset Filter
             </Button>
