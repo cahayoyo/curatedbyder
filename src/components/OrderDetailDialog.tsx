@@ -110,7 +110,7 @@ function buildWaText(order: OrderDTO): string {
     "",
     "Terimakasih sudah belanja buku anaknya di Curatedbyder. Semoga lancar selalu rezeki urusannya kak 🤗",
     "",
-    "Silahkan akses curatedbyder.store untuk cek history order, pembayaran, dan pengiriman",
+    "Silahkan akses https://curatedbyder.store untuk cek history order, pembayaran, dan pengiriman",
     `Username : ${order.buyer.username || "--"}`,
     `No HP : ${order.buyer.phone || "--"}`,
   );
