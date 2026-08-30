@@ -608,14 +608,18 @@ export default async function AdminOrdersPage({
           <OrdersSummary />
         </Suspense>
 
-        <div className="flex items-start gap-2">
-          <OrderFilter basePath="/admin/orders" batches={batches} />
-          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+        <div className="flex flex-col gap-2 md:flex-row md:items-start">
+          <div className="flex w-full items-center gap-2 md:w-[80%]">
             <div className="w-full">
               <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
             </div>
             <PageSizeSelect basePath="/admin/orders" />
           </div>
+          <OrderFilter
+            basePath="/admin/orders"
+            batches={batches}
+            className="w-full md:order-first md:w-[20%]"
+          />
         </div>
       </div>
 

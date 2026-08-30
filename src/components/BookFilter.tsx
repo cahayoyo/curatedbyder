@@ -8,8 +8,15 @@ import { SlidersHorizontal } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { formatRp } from "@/lib/format";
 import { BOOK_STATUSES } from "@/lib/orderOptions";
+import { cn } from "@/lib/utils";
 
-export function BookFilter({ basePath }: { basePath: string }) {
+export function BookFilter({
+  basePath,
+  className,
+}: {
+  basePath: string;
+  className?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -75,7 +82,7 @@ export function BookFilter({ basePath }: { basePath: string }) {
   }
 
   return (
-    <div className="relative w-[30%] md:w-[20%]">
+    <div className={cn("relative", className)}>
       <Button
         type="button"
         onClick={toggleOpen}
