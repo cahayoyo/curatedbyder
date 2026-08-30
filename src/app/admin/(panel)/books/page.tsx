@@ -481,14 +481,14 @@ export default function AdminBooksPage({
           <BookOrderCount searchParams={searchParams} />
         </Suspense>
 
-        <div className="flex items-start gap-2">
-          <BookFilter basePath="/admin/books" />
-          <div className="flex w-[70%] items-center gap-2 md:w-[80%]">
+        <div className="flex flex-col gap-2 md:flex-row md:items-start">
+          <div className="flex w-full items-center gap-2 md:w-[80%]">
             <div className="w-full">
               <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
             </div>
             <PageSizeSelect basePath="/admin/books" />
           </div>
+          <BookFilter basePath="/admin/books" className="w-full md:order-first md:w-[20%]" />
         </div>
 
         <Suspense fallback={<ListLoader />}>

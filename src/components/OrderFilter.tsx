@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SlidersHorizontal } from "lucide-react";
 import { STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
+import { cn } from "@/lib/utils";
 
 type Batch = { id: string; name: string };
 
 export function OrderFilter({
   basePath,
   batches,
+  className,
 }: {
   basePath: string;
   batches: Batch[];
+  className?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -131,7 +134,7 @@ export function OrderFilter({
   }
 
   return (
-    <div className="relative w-[30%] md:w-[20%]">
+    <div className={cn("relative", className)}>
       <Button
         type="button"
         onClick={toggleOpen}
