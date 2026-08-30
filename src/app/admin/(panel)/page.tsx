@@ -150,7 +150,7 @@ export default async function AdminOverviewPage() {
             <ReceiptText className="h-4 w-4" />
             Total Revenue
           </p>
-          <p className="text-2xl font-bold">{formatIDR(financial._sum.total ?? 0)}</p>
+          <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.total ?? 0)}</p>
         </div>
 
         {/* DP + Sisa Tagihan side by side */}
@@ -160,14 +160,14 @@ export default async function AdminOverviewPage() {
               <Wallet className="h-4 w-4" />
               Total DP
             </p>
-            <p className="text-2xl font-bold">{formatIDR(financial._sum.dp ?? 0)}</p>
+            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.dp ?? 0)}</p>
           </div>
           <div className="rounded-lg border p-4">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <PiggyBank className="h-4 w-4" />
               Total Sisa Tagihan
             </p>
-            <p className="text-2xl font-bold">{formatIDR(financial._sum.remaining ?? 0)}</p>
+            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.remaining ?? 0)}</p>
           </div>
         </div>
       </div>
