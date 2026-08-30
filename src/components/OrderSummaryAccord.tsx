@@ -86,10 +86,10 @@ function GroupSection({
         {title}
       </Label>
       <Select value={selected} onValueChange={setSelected}>
-        <SelectTrigger className="mt-2">
+        <SelectTrigger className="mt-2 bg-white">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white">
           {options.map((o) => (
             <SelectItem key={o.value} value={o.value}>
               {o.label}
