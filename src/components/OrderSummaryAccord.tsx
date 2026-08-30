@@ -53,8 +53,8 @@ function Stat({
 }) {
   return (
     <div className="rounded-lg border p-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
           {icon}
           {title}
         </p>
@@ -151,10 +151,10 @@ export function OrderSummaryAccordion(data: OrderSummaryDTO) {
               value={formatIDR(revenue)}
               action={
                 <Select value={month} onValueChange={setMonth}>
-                  <SelectTrigger className="h-7 w-28 shrink-0 text-xs" aria-label="Periode pendapatan">
+                  <SelectTrigger className="h-7 w-28 shrink-0 bg-white text-xs" aria-label="Periode pendapatan">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="all">Semua</SelectItem>
                     {MONTH_LABELS.map((m, i) => (
                       <SelectItem key={m} value={String(i)}>
