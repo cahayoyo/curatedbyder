@@ -33,7 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems, topToyItems] =
+  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
     await Promise.all([
       db.order.count(),
       db.order.count({ where: { items: { some: { book: { isNot: null } } } } }),
@@ -61,6 +61,12 @@ export default async function AdminOverviewPage() {
         orderBy: { _sum: { quantity: "desc" } },
         take: 5,
       }),
+      db.order.groupBy({
+        by: ["buyerId"],
+        _count: { buyerId: true },
+        orderBy: { _count: { buyerId: "desc" } },
+        take: 5,
+      }),
     ]);
 
   const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
@@ -80,6 +86,14 @@ export default async function AdminOverviewPage() {
     ? await db.toy.findMany({ where: { id: { in: topToyIds } } })
     : [];
   const topToyMap = new Map(topToys.map((t) => [t.id, t]));
+
+  const topBuyerIds = topBuyerCounts
+    .map((b) => b.buyerId)
+    .filter((id): id is string => id !== null);
+  const topBuyers = topBuyerIds.length
+    ? await db.user.findMany({ where: { id: { in: topBuyerIds } } })
+    : [];
+  const topBuyerMap = new Map(topBuyers.map((u) => [u.id, u]));
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -248,6 +262,32 @@ export default async function AdminOverviewPage() {
                       {i + 1}. {toy.title}
                     </span>
                     <span className="font-medium">{item._sum.quantity ?? 0} terjual</span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+      </div>
+
+      {/* Top 5 buyers by transaction count */}
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+          <Users className="h-4 w-4" />
+          Pembeli Transaksi Terbanyak
+        </p>
+        <div className="rounded-lg border p-4">
+          {topBuyerCounts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada transaksi pembeli</p>
+          ) : (
+            <ol className="space-y-1 text-sm">
+              {topBuyerCounts.map((b, i) => {
+                const user = b.buyerId ? topBuyerMap.get(b.buyerId) : undefined;
+                if (!user) return null;
+                return (
+                  <li key={b.buyerId} className="flex justify-between">
+                    <span className="truncate pr-4">{i + 1}. {user.name}</span>
+                    <span className="font-medium">{b._count.buyerId} transaksi</span>
                   </li>
                 );
               })}
