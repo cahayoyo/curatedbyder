@@ -43,3 +43,6 @@ SystemPrompt.md
 
 # local assets
 /src/assets/temp 
+
+# dev logs
+logs-dev.log
