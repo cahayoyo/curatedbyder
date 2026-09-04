@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getBatches } from "@/server/queries/catalog";
 import { Fragment, Suspense } from "react";
 import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
@@ -524,7 +525,7 @@ async function OrdersList({
 async function OrdersSummary() {
   const [batches, orders, byBatch, byEta, byPayment, byStatus] =
     await Promise.all([
-      db.batch.findMany({ orderBy: { name: "asc" } }),
+      getBatches(),
       db.order.findMany({ select: { createdAt: true, total: true } }),
       db.orderItem.groupBy({ by: ["batchId"], _count: { _all: true }, _sum: { subtotal: true } }),
       db.orderItem.groupBy({ by: ["eta"], _count: { _all: true }, _sum: { subtotal: true } }),
@@ -583,7 +584,7 @@ export default async function AdminOrdersPage({
   searchParams: Promise<OrderSearchParams>;
 }) {
   const sp = scalarize(await searchParams, ["paymentStatus"]) as OrderSearchParams;
-  const batches = await db.batch.findMany({ orderBy: { name: "asc" } });
+  const batches = await getBatches();
 
   return (
     <div className="space-y-4">

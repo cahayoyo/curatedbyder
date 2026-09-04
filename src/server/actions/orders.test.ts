@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Prisma } from "@prisma/client";
-import { createOrder } from "./orders";
+import { createBatch, createOrder, deleteBatch, updateBatch } from "./orders";
 
 const requireAdmin = vi.hoisted(() => vi.fn());
 const revalidatePath = vi.hoisted(() => vi.fn());
+const updateTag = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/session", () => ({ requireAdmin }));
-vi.mock("next/cache", () => ({ revalidatePath }));
+vi.mock("next/cache", () => ({ revalidatePath, updateTag }));
 
 const tx = {
   book: {
@@ -24,8 +25,21 @@ const tx = {
   },
 };
 
+const dbBatch = vi.hoisted(() => ({
+  findUnique: vi.fn(),
+  findFirst: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+}));
+const orderItemCount = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/db", () => ({
-  db: { $transaction: vi.fn((fn: (tx: unknown) => unknown) => fn(tx)) },
+  db: {
+    $transaction: vi.fn((fn: (tx: unknown) => unknown) => fn(tx)),
+    batch: dbBatch,
+    orderItem: { count: orderItemCount },
+  },
 }));
 
 function baseInput(overrides: Record<string, unknown> = {}) {
@@ -47,6 +61,8 @@ function baseInput(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  dbBatch.findUnique.mockResolvedValue(null);
+  dbBatch.findFirst.mockResolvedValue(null);
   tx.book.findMany.mockResolvedValue([
     { id: "b1", title: "Buku A", price: 10000, stock: 5 },
   ]);
@@ -82,6 +98,8 @@ describe("createOrder", () => {
     });
     expect(tx.toy.updateMany).not.toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith("/admin/orders");
+    expect(updateTag).toHaveBeenCalledWith("books");
+    expect(updateTag).toHaveBeenCalledWith("toys");
   });
 
   it("rejects items without a book or toy id (zod refinement)", async () => {
@@ -154,5 +172,56 @@ describe("createOrder", () => {
     await expect(
       createOrder(baseInput() as Parameters<typeof createOrder>[0])
     ).rejects.toThrow("db down");
+  });
+});
+
+describe("batch mutations invalidate the batches cache tag", () => {
+  it("createBatch creates the batch and revalidates the batches tag", async () => {
+    const result = await createBatch("ready stock");
+
+    expect(result.ok).toBe(true);
+    expect(dbBatch.create).toHaveBeenCalledWith({ data: { name: "READY STOCK" } });
+    expect(updateTag).toHaveBeenCalledWith("batches");
+  });
+
+  it("createBatch rejects duplicates without revalidating", async () => {
+    dbBatch.findUnique.mockResolvedValue({ id: "bt1", name: "READY STOCK" });
+
+    const result = await createBatch("ready stock");
+
+    expect(result).toEqual({ ok: false, error: "Batch sudah ada" });
+    expect(dbBatch.create).not.toHaveBeenCalled();
+    expect(updateTag).not.toHaveBeenCalled();
+  });
+
+  it("updateBatch renames and revalidates the batches tag", async () => {
+    const result = await updateBatch("bt1", "pre order");
+
+    expect(result.ok).toBe(true);
+    expect(dbBatch.update).toHaveBeenCalledWith({
+      where: { id: "bt1" },
+      data: { name: "PRE ORDER" },
+    });
+    expect(updateTag).toHaveBeenCalledWith("batches");
+  });
+
+  it("deleteBatch deletes an unused batch and revalidates the batches tag", async () => {
+    dbBatch.findUnique.mockResolvedValue({ id: "bt1", name: "READY STOCK" });
+
+    const result = await deleteBatch("bt1");
+
+    expect(result).toEqual({ ok: true });
+    expect(dbBatch.delete).toHaveBeenCalledWith({ where: { id: "bt1" } });
+    expect(updateTag).toHaveBeenCalledWith("batches");
+  });
+
+  it("deleteBatch refuses a batch still referenced by order items", async () => {
+    dbBatch.findUnique.mockResolvedValue({ id: "bt1", name: "READY STOCK" });
+    orderItemCount.mockResolvedValue(3);
+    const result = await deleteBatch("bt1");
+
+    expect(result).toEqual({ ok: false, error: 'Batch "READY STOCK" masih dipakai 3 item pesanan' });
+    expect(dbBatch.delete).not.toHaveBeenCalled();
+    expect(updateTag).not.toHaveBeenCalled();
   });
 });

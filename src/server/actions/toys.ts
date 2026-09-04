@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { Prisma, type Toy } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -50,6 +50,7 @@ export async function createToy(
         status: data.status,
       },
     });
+    updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };
   } catch (e) {
@@ -82,6 +83,7 @@ export async function updateToy(
         status: data.status,
       },
     });
+    updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };
   } catch (e) {
@@ -96,6 +98,7 @@ export async function deleteToy(id: string) {
   await requireAdmin();
 
   await db.toy.delete({ where: { id } });
+  updateTag("toys");
   revalidatePath("/admin/toys");
 }
 

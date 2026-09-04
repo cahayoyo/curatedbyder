@@ -45,6 +45,27 @@ vi.mock("@/components/ToyForm", () => ({ ToyForm: () => null }));
 vi.mock("@/components/OrderForm", () => ({ OrderForm: () => null }));
 vi.mock("@/components/BuyerForm", () => ({ BuyerForm: () => null }));
 
+vi.mock("@/server/queries/catalog", async () => {
+  const { db } = await import("@/lib/db");
+  return {
+    getBatches: () => db.batch.findMany({ orderBy: { name: "asc" } }),
+    getBooksForOrderForm: () =>
+      db.book.findMany({
+        select: { id: true, title: true, price: true, stock: true, formats: true },
+        orderBy: { title: "asc" },
+      }),
+    getToysForOrderForm: () =>
+      db.toy.findMany({
+        select: { id: true, title: true, price: true, stock: true },
+        orderBy: { title: "asc" },
+      }),
+    getBookBatchPricesForOrderForm: () =>
+      db.bookBatchPrice.findMany({
+        select: { batchId: true, bookId: true, price: true, formats: true },
+      }),
+  };
+});
+
 import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 import AdminBooksPage from "@/app/admin/(panel)/books/page";

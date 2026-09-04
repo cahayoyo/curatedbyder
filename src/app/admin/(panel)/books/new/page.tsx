@@ -1,11 +1,8 @@
-import { db } from "@/lib/db";
+import { getBatches } from "@/server/queries/catalog";
 import { BookForm } from "@/components/BookForm";
 
 export default async function NewBookPage() {
-  const batches = await db.batch.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const batches = await getBatches();
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ToyForm } from "@/components/ToyForm";
+import { getBatches } from "@/server/queries/catalog";
 
 export default async function EditToyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -9,7 +10,7 @@ export default async function EditToyPage({ params }: { params: Promise<{ id: st
       where: { id },
       include: { batchPrices: { select: { batchId: true, price: true } } },
     }),
-    db.batch.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    getBatches(),
   ]);
   if (!toy) notFound();
 
