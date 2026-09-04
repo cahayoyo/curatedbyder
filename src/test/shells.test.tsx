@@ -29,7 +29,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/image", () => ({
-  default: () => <img alt="" />,
+  default: () => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt="" />
+  ),
 }));
 
 vi.mock("@/assets/img/logoderbaru.jpeg", () => ({ default: "logo.jpeg" }));
