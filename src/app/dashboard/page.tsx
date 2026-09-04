@@ -25,8 +25,9 @@ type DashboardSearchParams = {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: DashboardSearchParams;
+  searchParams: Promise<DashboardSearchParams>;
 }) {
+  const sp = await searchParams;
   const session = await requireRole("USER");
   const userId = session.user.id;
 
@@ -63,7 +64,7 @@ export default async function DashboardPage({
 
         <PendingDim>
           <Suspense fallback={<ListLoader label="Memuat pesanan..." />}>
-            <OrdersSection userId={userId} searchParams={searchParams} />
+            <OrdersSection userId={userId} searchParams={sp} />
           </Suspense>
         </PendingDim>
       </div>

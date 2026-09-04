@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { OrderForm } from "@/components/OrderForm";
 import { ShoppingCart } from "lucide-react";
 
-export default async function EditOrderPage({ params }: { params: { id: string } }) {
+export default async function EditOrderPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [order, buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.order.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         items: {
           orderBy: { id: "asc" },

@@ -5,10 +5,11 @@ import { BuyerForm } from "@/components/BuyerForm";
 export default async function EditBuyerPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const buyer = await db.user.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { id: true, name: true, phone: true, contact: true },
   });
   if (!buyer) notFound();

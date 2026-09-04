@@ -2,10 +2,11 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ToyForm } from "@/components/ToyForm";
 
-export default async function EditToyPage({ params }: { params: { id: string } }) {
+export default async function EditToyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [toy, batches] = await Promise.all([
     db.toy.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { batchPrices: { select: { batchId: true, price: true } } },
     }),
     db.batch.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),

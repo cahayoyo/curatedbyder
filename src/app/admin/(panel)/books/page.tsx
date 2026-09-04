@@ -451,11 +451,12 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
   );
 }
 
-export default function AdminBooksPage({
+export default async function AdminBooksPage({
   searchParams,
 }: {
-  searchParams: BookSearchParams;
+  searchParams: Promise<BookSearchParams>;
 }) {
+  const sp = await searchParams;
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
@@ -474,11 +475,11 @@ export default function AdminBooksPage({
         </div>
 
         <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
-          <BooksStats searchParams={searchParams} />
+          <BooksStats searchParams={sp} />
         </Suspense>
 
         <Suspense fallback={null}>
-          <BookOrderCount searchParams={searchParams} />
+          <BookOrderCount searchParams={sp} />
         </Suspense>
 
         <div className="flex flex-col gap-2 md:flex-row md:items-start">
@@ -492,7 +493,7 @@ export default function AdminBooksPage({
         </div>
 
         <Suspense fallback={<ListLoader />}>
-          <BooksList searchParams={searchParams} />
+          <BooksList searchParams={sp} />
         </Suspense>
       </div>
     </div>

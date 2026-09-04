@@ -48,7 +48,7 @@ async function main() {
   const wb = XLSX.readFile(FILE);
   const ws = wb.Sheets[SHEET];
   if (!ws) throw new Error(`Sheet ${SHEET} not found`);
-  const rows = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: null, raw: false });
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: null, raw: false });
 
   const headerRow = rows.findIndex((r) => r.some((c) => String(c).trim().toUpperCase() === "BATCH"));
   if (headerRow < 0) throw new Error("Header row not found");

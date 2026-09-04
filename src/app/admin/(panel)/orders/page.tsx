@@ -580,8 +580,9 @@ async function OrdersSummary() {
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: OrderSearchParams;
+  searchParams: Promise<OrderSearchParams>;
 }) {
+  const sp = await searchParams;
   const batches = await db.batch.findMany({ orderBy: { name: "asc" } });
 
   return (
@@ -624,7 +625,7 @@ export default async function AdminOrdersPage({
       </div>
 
       <Suspense fallback={<ListLoader />}>
-        <OrdersList searchParams={searchParams} />
+        <OrdersList searchParams={sp} />
       </Suspense>
     </div>
   );

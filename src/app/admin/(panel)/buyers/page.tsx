@@ -177,8 +177,9 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
 export default async function AdminBuyersPage({
   searchParams,
 }: {
-  searchParams: BuyerSearchParams;
+  searchParams: Promise<BuyerSearchParams>;
 }) {
+  const sp = await searchParams;
   const totalBuyers = await db.user.count({ where: { role: "USER" } });
 
   return (
@@ -216,7 +217,7 @@ export default async function AdminBuyersPage({
         </div>
 
         <Suspense fallback={<ListLoader />}>
-          <BuyersList searchParams={searchParams} />
+          <BuyersList searchParams={sp} />
         </Suspense>
       </div>
     </div>
