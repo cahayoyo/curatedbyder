@@ -116,7 +116,7 @@ export function PhotoCarousel() {
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerLeave}
       >
-      <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9]">
+      <div className="relative aspect-[2/1] w-full overflow-hidden sm:aspect-[16/9]">
         {!loadedSlides.has(index) && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
