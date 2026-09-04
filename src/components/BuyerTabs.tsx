@@ -530,7 +530,7 @@ function TrackCard({ order }: { order: OrderDTO }) {
           <div className="mt-3 h-px w-full bg-black/15" />
           <p className="mt-2 text-xs">
             No Resi :{" "}
-            <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
+            <span className="font-mono text-xs font-semibold break-all">{order.trackingNumber || "—"}</span>
           </p>
         </>
       )}
