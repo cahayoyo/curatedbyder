@@ -53,9 +53,10 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          <p className="mb-8 max-w-xl text-lg text-gray-600">
+          <p className="mb-2 max-w-xl text-sm font-bold text-gray-900 sm:text-xl">
             Welcome! Your Order Is on Its Way 📦
-            <br />
+          </p>
+          <p className="mb-8 max-w-xl text-sm text-gray-600 sm:text-base">
             Keep track of your books from order placement to delivery.
           </p>
         </div>

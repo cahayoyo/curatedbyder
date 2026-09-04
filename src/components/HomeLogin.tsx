@@ -65,7 +65,7 @@ export function HomeLogin() {
                 required
                 autoComplete="username"
                 placeholder="Contoh: curatedbyder123"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.username}
               />
@@ -73,7 +73,7 @@ export function HomeLogin() {
             {fieldError.username && (
               <p className="text-xs font-medium text-red-600">Username tidak ditemukan!</p>
             )}
-            <p className="text-xs text-black/60">
+            <p className="text-xs text-gray-500">
               Masukkan username yang sudah pernah diberikan oleh admin
             </p>
           </div>
@@ -89,7 +89,7 @@ export function HomeLogin() {
                 required
                 autoComplete="tel"
                 placeholder="Contoh: 08128312345"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.phone}
               />

@@ -23,6 +23,8 @@ const slides = [
 ] as const;
 
 const SWIPE_THRESHOLD = 50;
+const VISIBLE = 3;
+const POSITIONS = slides.length - VISIBLE + 1;
 
 export function PhotoCarousel() {
   const [index, setIndex] = useState(0);
@@ -45,7 +47,7 @@ export function PhotoCarousel() {
   }, []);
 
   function goTo(i: number) {
-    setIndex(((i % count) + count) % count);
+    setIndex(((i % POSITIONS) + POSITIONS) % POSITIONS);
   }
 
   function prev() {
@@ -56,7 +58,7 @@ export function PhotoCarousel() {
   }
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), 2000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % POSITIONS), 2000);
     return () => clearInterval(id);
   }, [count]);
 
@@ -70,8 +72,9 @@ export function PhotoCarousel() {
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStart === null) return;
     const delta = e.clientX - dragStart;
-    // Add slight resistance beyond a slide width
-    setDragX(Math.max(-(slideW || 900) * 0.5, Math.min((slideW || 900) * 0.5, delta)));
+    // Add slight resistance beyond half a visible window
+    const half = ((slideW || 900) / VISIBLE) * 0.5;
+    setDragX(Math.max(-half, Math.min(half, delta)));
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -101,7 +104,7 @@ export function PhotoCarousel() {
   }
 
   const w = slideW || 900;
-  const offset = -index * w + (dragX ?? 0);
+  const offset = -index * (w / VISIBLE) + (dragX ?? 0);
 
   return (
     <>
@@ -121,14 +124,13 @@ export function PhotoCarousel() {
           className={`absolute inset-0 flex ${dragging ? "" : "transition-transform duration-500 ease-out"}`}
           style={{
             transform: `translateX(${offset}px)`,
-            width: w * count,
           }}
         >
           {slides.map((s, i) => (
             <div
               key={i}
               className="relative h-full shrink-0"
-              style={{ width: w }}
+              style={{ width: w / VISIBLE }}
             >
               <Image
                 src={s.src}
@@ -176,7 +178,7 @@ export function PhotoCarousel() {
       </div>
 
       <div className="mt-4 flex justify-center gap-2">
-        {slides.map((s, i) => (
+        {Array.from({ length: POSITIONS }, (_, i) => (
           <button
             key={i}
             aria-label={`Photo ${i + 1}`}
