@@ -58,6 +58,7 @@ import EditBuyerPage from "@/app/admin/(panel)/buyers/[id]/edit/page";
 import EditOrderPage from "@/app/admin/(panel)/orders/[id]/edit/page";
 import { GET as downloadOrder } from "@/app/api/download/orders/[id]/route";
 import { customSignOut } from "@/server/actions/auth";
+import type { NextRequest } from "next/server";
 
 const bookMock = {
   id: "bk1",
@@ -174,14 +175,14 @@ describe("async request APIs (Next.js 16)", () => {
   });
 
   it("order PDF route awaits params and returns PDF", async () => {
-    const res = await downloadOrder({} as Request, {
+    const res = await downloadOrder({} as NextRequest, {
       params: Promise.resolve({ id: "abcdef12" }),
     });
     expect(res.status).toBe(200);
   });
 
   it("order PDF route rejects invalid id", async () => {
-    const res = await downloadOrder({} as Request, {
+    const res = await downloadOrder({} as NextRequest, {
       params: Promise.resolve({ id: "bad id!" }),
     });
     expect(res.status).toBe(404);
@@ -189,7 +190,7 @@ describe("async request APIs (Next.js 16)", () => {
 
   it("order PDF route returns 404 for unknown order", async () => {
     (db.order.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    const res = await downloadOrder({} as Request, {
+    const res = await downloadOrder({} as NextRequest, {
       params: Promise.resolve({ id: "abcdef12" }),
     });
     expect(res.status).toBe(404);

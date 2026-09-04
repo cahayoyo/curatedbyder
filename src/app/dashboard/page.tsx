@@ -9,7 +9,7 @@ import { BuyerFilter } from "@/components/BuyerFilter";
 import { BuyerShell, PendingDim } from "@/components/BuyerShell";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
-import { BUYER_DEFAULT_PAGE_SIZE, parsePerPage, perQuery } from "@/lib/pagination";
+import { BUYER_DEFAULT_PAGE_SIZE, parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 import { ShoppingCart } from "lucide-react";
 
 type DashboardSearchParams = {
@@ -27,7 +27,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<DashboardSearchParams>;
 }) {
-  const sp = await searchParams;
+  const sp = scalarize(await searchParams, ["paymentStatus"]) as DashboardSearchParams;
   const session = await requireRole("USER");
   const userId = session.user.id;
 

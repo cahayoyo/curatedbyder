@@ -41,7 +41,7 @@ import { BookCard } from "@/components/BookCard";
 import { FormatBadge } from "@/components/FormatBadge";
 import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
-import { parsePerPage, perQuery } from "@/lib/pagination";
+import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 
 type BookSearchParams = { q?: string; bookQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
@@ -456,7 +456,7 @@ export default async function AdminBooksPage({
 }: {
   searchParams: Promise<BookSearchParams>;
 }) {
-  const sp = await searchParams;
+  const sp = scalarize(await searchParams, ["status"]) as BookSearchParams;
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">

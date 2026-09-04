@@ -18,7 +18,7 @@ import { Pagination } from "@/components/Pagination";
 import { BuyerCard } from "@/components/BuyerCard";
 import { SortButton } from "@/components/SortButton";
 import { ListLoader } from "@/components/ListLoader";
-import { parsePerPage, perQuery } from "@/lib/pagination";
+import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 
 type BuyerSearchParams = { q?: string; page?: string; per?: string; sort?: string; dir?: string };
 
@@ -179,7 +179,7 @@ export default async function AdminBuyersPage({
 }: {
   searchParams: Promise<BuyerSearchParams>;
 }) {
-  const sp = await searchParams;
+  const sp = scalarize(await searchParams) as BuyerSearchParams;
   const totalBuyers = await db.user.count({ where: { role: "USER" } });
 
   return (

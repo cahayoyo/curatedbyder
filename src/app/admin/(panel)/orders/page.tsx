@@ -17,7 +17,7 @@ import { OrderViewButton } from "@/components/OrderViewButton";
 import { OrderFilter } from "@/components/OrderFilter";
 import { SortButton } from "@/components/SortButton";
 import { ListLoader } from "@/components/ListLoader";
-import { parsePerPage, perQuery } from "@/lib/pagination";
+import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
 import {
   Table,
@@ -582,7 +582,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<OrderSearchParams>;
 }) {
-  const sp = await searchParams;
+  const sp = scalarize(await searchParams, ["paymentStatus"]) as OrderSearchParams;
   const batches = await db.batch.findMany({ orderBy: { name: "asc" } });
 
   return (
