@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Instagram, Phone, ShoppingBag, UserRound } from "lucide-react";
+import { ArrowRight, Camera, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
-  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: Instagram },
+  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: Camera },
   { label: "Shopee", href: "https://shopee.co.id/projectbyder", icon: ShoppingBag },
 ];
 
