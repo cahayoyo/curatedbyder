@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ExternalLink } from "lucide-react";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -49,11 +49,26 @@ export function AdminLoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm" style={{ backgroundColor: "#F6F1E7" }}>
-      <CardContent className="pt-6">
-        <form onSubmit={onSubmit} className="space-y-3">
+    <Card className="w-full rounded-3xl border-none bg-white shadow-xl shadow-rose-200/50">
+      <CardContent className="px-6 pb-8 pt-8 sm:px-8">
+        <div className="mb-6 flex flex-col items-center">
+          <div
+            className="flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: "#F9DDDD" }}
+          >
+            <Lock className="h-7 w-7" style={{ color: "#C96A6A" }} />
+          </div>
+          <h1 className="mt-4 text-center font-serif text-3xl font-bold text-gray-900">
+            Admin Login
+          </h1>
+          <p className="mt-1 text-center text-sm text-gray-500">
+            Masuk untuk mengakses dashboard administrator.
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="login-email">Email</Label>
+            <Label htmlFor="login-email" className="font-semibold text-gray-900">Email</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -73,7 +88,7 @@ export function AdminLoginForm() {
             )}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="login-password">Password</Label>
+            <Label htmlFor="login-password" className="font-semibold text-gray-900">Password</Label>
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -82,7 +97,7 @@ export function AdminLoginForm() {
                 type={showPassword ? "text" : "password"}
                 required
                 autoComplete="current-password"
-                placeholder="******"
+                placeholder="Masukkan password"
                 className={`pl-9 pr-10 placeholder:text-[#b5b5b5] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.password}
@@ -102,22 +117,29 @@ export function AdminLoginForm() {
           </div>
           <Button
             type="submit"
-            variant="outline"
-            className="w-full transition-all "
-            style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
+            className="h-11 w-full rounded-lg text-white transition-colors hover:bg-[#C96A6A]"
+            style={{ backgroundColor: "#D97A7A" }}
             disabled={loading}
           >
-            {loading ? "Memproses..." : "Masuk"}
+            {loading ? (
+              "Memproses..."
+            ) : (
+              <>
+                Masuk
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </Button>
         </form>
 
         <div className="mt-4">
-          <Link href="/" className="block">
+          <Link href="/login" className="block">
             <Button
               type="button"
               variant="outline"
-              className="w-full border border-black bg-transparent text-black transition-colors hover:bg-black hover:text-white"
+              className="h-11 w-full rounded-lg border-gray-300 bg-white text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-900"
             >
+              <ExternalLink className="h-4 w-4" />
               Kunjungi Website Dashboard User
             </Button>
           </Link>
