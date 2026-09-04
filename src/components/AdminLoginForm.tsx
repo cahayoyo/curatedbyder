@@ -49,14 +49,14 @@ export function AdminLoginForm() {
   }
 
   return (
-    <Card className="w-full rounded-3xl border-none bg-white shadow-xl shadow-rose-200/50">
+    <Card className="w-full rounded-2xl border-none bg-[#FDF1F1] shadow-lg shadow-rose-200/40">
       <CardContent className="px-6 pb-8 pt-8 sm:px-8">
         <div className="mb-6 flex flex-col items-center">
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ backgroundColor: "#F9DDDD" }}
+            className="flex h-14 w-14 items-center justify-center rounded-full"
+            style={{ backgroundColor: "#F8D7D7" }}
           >
-            <Lock className="h-7 w-7" style={{ color: "#C96A6A" }} />
+            <Lock className="h-6 w-6" style={{ color: "#C96A6A" }} />
           </div>
           <h1 className="mt-4 text-center font-serif text-3xl font-bold text-gray-900">
             Admin Login
@@ -78,7 +78,7 @@ export function AdminLoginForm() {
                 required
                 autoComplete="email"
                 placeholder="curatedbyderadmin@mail.com"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg bg-white pl-9 placeholder:text-[#c9c9c9] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.email}
               />
@@ -98,7 +98,7 @@ export function AdminLoginForm() {
                 required
                 autoComplete="current-password"
                 placeholder="Masukkan password"
-                className={`pl-9 pr-10 placeholder:text-[#b5b5b5] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.password}
               />
