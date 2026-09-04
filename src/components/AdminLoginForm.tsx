@@ -78,7 +78,7 @@ export function AdminLoginForm() {
                 required
                 autoComplete="email"
                 placeholder="curatedbyderadmin@mail.com"
-                className={`rounded-lg bg-white pl-9 placeholder:text-[#c9c9c9] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.email}
               />
@@ -98,7 +98,7 @@ export function AdminLoginForm() {
                 required
                 autoComplete="current-password"
                 placeholder="Masukkan password"
-                className={`rounded-lg bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.password}
               />
