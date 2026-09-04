@@ -1,6 +1,15 @@
 # CuratedByDer
 
-Online bookstore (books & toys) built with Next.js 14 (App Router), Prisma, and PostgreSQL on Neon. Monorepo of buyer and admin dashboards.
+Online bookstore (books & toys) built with Next.js 16 (App Router), Prisma, and PostgreSQL on Neon. Monorepo of buyer and admin dashboards.
+
+## Tech Stack
+
+- Next.js 16.3.4 (App Router, Turbopack) + React 19.2.8 + TypeScript 5.9
+- Tailwind CSS 3.4 + shadcn/ui (Radix)
+- Prisma 6.19 + PostgreSQL on Neon
+- NextAuth.js v4 (Credentials, JWT sessions, role-based proxy guards)
+- Zod 4, Uploadthing (file uploads), jsPDF (order PDFs), Recharts
+- Vitest 5 + Testing Library (tests/coverage), ESLint 9 (flat config), SonarQube Cloud
 
 ## Local Development
 
