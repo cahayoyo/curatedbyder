@@ -2,6 +2,12 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { OrderForm } from "@/components/OrderForm";
 import { ShoppingCart } from "lucide-react";
+import {
+  getBatches,
+  getBookBatchPricesForOrderForm,
+  getBooksForOrderForm,
+  getToysForOrderForm,
+} from "@/server/queries/catalog";
 
 export default async function EditOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,21 +26,10 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
-    db.book.findMany({
-      select: { id: true, title: true, price: true, stock: true, formats: true },
-      orderBy: { title: "asc" },
-    }),
-    db.toy.findMany({
-      select: { id: true, title: true, price: true, stock: true },
-      orderBy: { title: "asc" },
-    }),
-    db.batch.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
-    db.bookBatchPrice.findMany({
-      select: { batchId: true, bookId: true, price: true, formats: true },
-    }),
+    getBooksForOrderForm(),
+    getToysForOrderForm(),
+    getBatches(),
+    getBookBatchPricesForOrderForm(),
   ]);
 
   if (!order) notFound();

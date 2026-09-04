@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { Prisma, type Order } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -97,6 +97,7 @@ export async function createBatch(name: string) {
   if (existing) return { ok: false, error: "Batch sudah ada" };
 
   await db.batch.create({ data: { name: batchName } });
+  updateTag("batches");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
   return { ok: true as const };
@@ -117,6 +118,7 @@ export async function updateBatch(id: string, name: string) {
   if (existing) return { ok: false, error: "Batch sudah ada" };
 
   await db.batch.update({ where: { id }, data: { name: batchName } });
+  updateTag("batches");
   revalidatePath("/admin/orders");
   return { ok: true as const };
 }
@@ -133,6 +135,7 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
   }
 
   await db.batch.delete({ where: { id } });
+  updateTag("batches");
   revalidatePath("/admin/orders");
   return { ok: true };
 }
@@ -258,6 +261,8 @@ export async function createOrder(
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const order = await run(attempt);
+      updateTag("books");
+      updateTag("toys");
       revalidatePath("/admin");
       revalidatePath("/admin/orders");
       revalidatePath("/dashboard");
@@ -428,6 +433,8 @@ export async function updateOrder(
     throw e;
   }
 
+  updateTag("books");
+  updateTag("toys");
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
@@ -478,6 +485,8 @@ export async function deleteOrder(id: string) {
     await tx.order.delete({ where: { id } });
   });
 
+  updateTag("books");
+  updateTag("toys");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");

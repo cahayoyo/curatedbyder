@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { Prisma, type Toy } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -16,6 +16,17 @@ const toySchema = z.object({
   stock: z.number().int().min(0),
   status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
 });
+
+function toyData(data: z.infer<typeof toySchema>) {
+  return {
+    title: data.title,
+    info: orNull(data.info),
+    image: orNull(data.image),
+    price: data.price,
+    stock: data.stock,
+    status: data.status,
+  };
+}
 
 function orNull(v: string | undefined | null): string | null {
   const t = v?.trim();
@@ -40,16 +51,8 @@ export async function createToy(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const toy = await db.toy.create({
-      data: {
-        title: data.title,
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-      },
-    });
+    const toy = await db.toy.create({ data: toyData(data) });
+    updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };
   } catch (e) {
@@ -71,17 +74,8 @@ export async function updateToy(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const toy = await db.toy.update({
-      where: { id },
-      data: {
-        title: data.title,
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-      },
-    });
+    const toy = await db.toy.update({ where: { id }, data: toyData(data) });
+    updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };
   } catch (e) {
@@ -96,6 +90,7 @@ export async function deleteToy(id: string) {
   await requireAdmin();
 
   await db.toy.delete({ where: { id } });
+  updateTag("toys");
   revalidatePath("/admin/toys");
 }
 

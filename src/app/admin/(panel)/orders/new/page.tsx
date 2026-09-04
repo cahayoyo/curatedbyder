@@ -1,6 +1,12 @@
 import { db } from "@/lib/db";
 import { OrderForm } from "@/components/OrderForm";
 import { ShoppingCart } from "lucide-react";
+import {
+  getBatches,
+  getBookBatchPricesForOrderForm,
+  getBooksForOrderForm,
+  getToysForOrderForm,
+} from "@/server/queries/catalog";
 
 export default async function NewOrderPage() {
   const [buyers, books, toys, batches, batchPrices] = await Promise.all([
@@ -9,21 +15,10 @@ export default async function NewOrderPage() {
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
-    db.book.findMany({
-      select: { id: true, title: true, price: true, stock: true, formats: true },
-      orderBy: { title: "asc" },
-    }),
-    db.toy.findMany({
-      select: { id: true, title: true, price: true, stock: true },
-      orderBy: { title: "asc" },
-    }),
-    db.batch.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
-    db.bookBatchPrice.findMany({
-      select: { batchId: true, bookId: true, price: true, formats: true },
-    }),
+    getBooksForOrderForm(),
+    getToysForOrderForm(),
+    getBatches(),
+    getBookBatchPricesForOrderForm(),
   ]);
 
   return (
