@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, ArrowRight, Phone, ShoppingBag, UserRound } from "lucide-react";
+import { ArrowRight, Instagram, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
-  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: AtSign },
+  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: Instagram },
   { label: "Shopee", href: "https://shopee.co.id/projectbyder", icon: ShoppingBag },
 ];
 
@@ -135,7 +135,7 @@ export function HomeLogin() {
             key={p.label}
             asChild
             variant="outline"
-            className="w-full border-rose-200 bg-[#FDF1F1] text-[#C96A6A] shadow-sm transition-colors hover:bg-[#F8D7D7] hover:text-[#C96A6A] hover:shadow"
+            className="w-full border-[#D9A3A3] bg-[#FDF1F1] text-[#C96A6A] shadow-sm transition-colors hover:bg-[#F8D7D7] hover:text-[#C96A6A] hover:shadow"
           >
             <a href={p.href} target="_blank" rel="noopener noreferrer">
               <p.icon className="h-4 w-4" />
