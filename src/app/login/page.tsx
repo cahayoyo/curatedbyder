@@ -53,7 +53,7 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          <p className="mb-1 max-w-xl text-sm font-bold text-gray-900 sm:text-xl">
+          <p className="mb-1 max-w-xl text-base font-bold text-gray-900 sm:text-2xl">
             Welcome! Your Order Is on Its Way 📦
           </p>
           <p className="mb-3 max-w-xl text-sm text-gray-600 sm:text-base">
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <HomeLogin />
         </div>
 
-        <div className="relative z-10 mt-3 w-full max-w-sm sm:mt-4 sm:max-w-md">
+        <div className="relative z-10 mt-2 w-full max-w-sm sm:mt-3 sm:max-w-md">
           <PhotoCarousel />
         </div>
 
