@@ -53,7 +53,7 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          <p className="mb-2 max-w-xl text-sm font-bold text-gray-900 sm:text-xl">
+          <p className="mb-1 max-w-xl text-sm font-bold text-gray-900 sm:text-xl">
             Welcome! Your Order Is on Its Way 📦
           </p>
           <p className="mb-8 max-w-xl text-sm text-gray-600 sm:text-base">
