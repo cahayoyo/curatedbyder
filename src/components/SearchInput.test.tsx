@@ -85,6 +85,13 @@ describe("SearchInput", () => {
     expect(screen.getByPlaceholderText("Cari")).toHaveValue("");
   });
 
+  it("syncs the input when the URL param changes externally", () => {
+    const view = render(<SearchInput basePath="/items" placeholder="Cari" />);
+    nav.searchParams = new URLSearchParams("q=xyz");
+    view.rerender(<SearchInput basePath="/items" placeholder="Cari" />);
+    expect(screen.getByPlaceholderText("Cari")).toHaveValue("xyz");
+  });
+
   it("canceling pending debounce on unmount never navigates", () => {
     vi.useFakeTimers();
     const { unmount } = render(<SearchInput basePath="/items" placeholder="Cari" />);
