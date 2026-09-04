@@ -2,10 +2,11 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { BookForm } from "@/components/BookForm";
 
-export default async function EditBookPage({ params }: { params: { id: string } }) {
+export default async function EditBookPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [book, batches] = await Promise.all([
     db.book.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { batchPrices: { select: { batchId: true, price: true, formats: true } } },
     }),
     db.batch.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),

@@ -45,15 +45,11 @@ function normalizeFormat(v: unknown): string | null {
   return f;
 }
 
-function uniq<T>(arr: T[]): T[] {
-  return Array.from(new Set(arr));
-}
-
 async function main() {
   const wb = XLSX.readFile(FILE);
   const ws = wb.Sheets[SHEET];
   if (!ws) throw new Error(`Sheet ${SHEET} not found`);
-  const rows = XLSX.utils.sheet_to_json<any[]>(ws, {
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
     header: 1,
     defval: null,
     raw: false,

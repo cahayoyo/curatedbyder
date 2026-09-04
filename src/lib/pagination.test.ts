@@ -5,6 +5,7 @@ import {
   PAGE_SIZES,
   parsePerPage,
   perQuery,
+  scalarize,
 } from "./pagination";
 
 describe("parsePerPage", () => {
@@ -55,5 +56,21 @@ describe("perQuery", () => {
   it("omits the per param when size equals the passed default", () => {
     expect(perQuery(BUYER_DEFAULT_PAGE_SIZE, BUYER_DEFAULT_PAGE_SIZE)).toBe("");
     expect(perQuery(DEFAULT_PAGE_SIZE, BUYER_DEFAULT_PAGE_SIZE)).toBe("20");
+  });
+});
+
+describe("scalarize", () => {
+  it("takes the last value of repeated params", () => {
+    expect(scalarize({ q: ["a", "b"], page: "2" })).toEqual({ q: "b", page: "2" });
+  });
+
+  it("joins repeated keys listed in joinedKeys", () => {
+    expect(scalarize({ status: ["READY_STOCK", "PRE_ORDER"] }, ["status"])).toEqual({
+      status: "READY_STOCK,PRE_ORDER",
+    });
+  });
+
+  it("passes plain values through", () => {
+    expect(scalarize({ q: "x", status: undefined })).toEqual({ q: "x", status: undefined });
   });
 });

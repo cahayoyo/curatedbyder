@@ -12,7 +12,7 @@ const SESSION_COOKIE_NAMES = [
 ];
 
 export async function customSignOut() {
-  const store = cookies();
+  const store = await cookies();
   for (const name of SESSION_COOKIE_NAMES) {
     store.set(name, "", {
       path: "/",

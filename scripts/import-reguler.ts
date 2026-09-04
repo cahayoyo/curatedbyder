@@ -1,6 +1,6 @@
 import "dotenv/config";
 import * as XLSX from "xlsx";
-import { PrismaClient } from "@prisma/client";
+import { Format, PrismaClient } from "@prisma/client";
 
 const FILE = "src/assets/temp/order2026.xlsx";
 const SHEET = "REGULER";
@@ -47,7 +47,7 @@ async function main() {
   const wb = XLSX.readFile(FILE);
   const ws = wb.Sheets[SHEET];
   if (!ws) throw new Error(`Sheet ${SHEET} not found`);
-  const rows = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: null, raw: false });
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: null, raw: false });
 
   const headerRow = rows.findIndex((r) => r.some((c) => String(c).trim().toUpperCase() === "BATCH"));
   if (headerRow < 0) throw new Error("Header row not found");
@@ -65,8 +65,6 @@ async function main() {
   const iDp = idx("DP");
   const iRemaining = idx("REMAINING");
   const iPay = idx("STATUS PEMBAYARAN");
-  const iStatus = idx("STATUS ORDER");
-
   const data = rows.slice(headerRow + 1).filter((r) => {
     const b = r[iBatch];
     const j = r[iJudul];
@@ -145,7 +143,7 @@ async function main() {
         data: {
           title: b.title,
           price: b.price,
-          formats: (b.formats as any),
+          formats: b.formats as Format[],
           stock: 1000,
           status: "PRE_ORDER",
         },

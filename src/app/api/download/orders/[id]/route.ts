@@ -5,9 +5,9 @@ import { LOGO_BASE64 } from "@/lib/logo";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  const { id } = await params;
   if (!id || !/^[a-zA-Z0-9_-]{8,}$/.test(id)) {
     return new NextResponse("Order not found", { status: 404 });
   }

@@ -31,11 +31,18 @@ export function PhotoCarousel() {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [slideW, setSlideW] = useState(0);
   const count = slides.length;
 
-  function slideWidth() {
-    return containerRef.current?.clientWidth ?? 900;
-  }
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setSlideW(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   function goTo(i: number) {
     setIndex(((i % count) + count) % count);
@@ -64,7 +71,7 @@ export function PhotoCarousel() {
     if (dragStart === null) return;
     const delta = e.clientX - dragStart;
     // Add slight resistance beyond a slide width
-    setDragX(Math.max(-slideWidth() * 0.5, Math.min(slideWidth() * 0.5, delta)));
+    setDragX(Math.max(-(slideW || 900) * 0.5, Math.min((slideW || 900) * 0.5, delta)));
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -93,7 +100,7 @@ export function PhotoCarousel() {
     setDragX(null);
   }
 
-  const w = slideWidth();
+  const w = slideW || 900;
   const offset = -index * w + (dragX ?? 0);
 
   return (

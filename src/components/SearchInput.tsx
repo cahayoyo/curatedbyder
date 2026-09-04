@@ -18,12 +18,15 @@ export function SearchInput({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get(paramKey) ?? "");
+  const urlQ = searchParams.get(paramKey) ?? "";
+  const [value, setValue] = useState(urlQ);
+  const [lastUrlQ, setLastUrlQ] = useState(urlQ);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    setValue(searchParams.get(paramKey) ?? "");
-  }, [searchParams, paramKey]);
+  if (lastUrlQ !== urlQ) {
+    setLastUrlQ(urlQ);
+    setValue(urlQ);
+  }
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;

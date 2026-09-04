@@ -37,7 +37,7 @@ import { BookThumbnail } from "@/components/BookThumbnail";
 import { ToyCard } from "@/components/ToyCard";
 import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
-import { parsePerPage, perQuery } from "@/lib/pagination";
+import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 
 type ToySearchParams = { q?: string; toyQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
@@ -414,11 +414,12 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
   );
 }
 
-export default function AdminToysPage({
+export default async function AdminToysPage({
   searchParams,
 }: {
-  searchParams: ToySearchParams;
+  searchParams: Promise<ToySearchParams>;
 }) {
+  const sp = scalarize(await searchParams, ["status"]) as ToySearchParams;
   return (
 <div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
@@ -437,11 +438,11 @@ export default function AdminToysPage({
         </div>
 
         <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
-          <ToysStats searchParams={searchParams} />
+          <ToysStats searchParams={sp} />
         </Suspense>
 
         <Suspense fallback={null}>
-          <ToyOrderCount searchParams={searchParams} />
+          <ToyOrderCount searchParams={sp} />
         </Suspense>
 
         <div className="flex flex-col gap-2 md:flex-row md:items-start">
@@ -455,7 +456,7 @@ export default function AdminToysPage({
         </div>
 
         <Suspense fallback={<ListLoader />}>
-          <ToysList searchParams={searchParams} />
+          <ToysList searchParams={sp} />
         </Suspense>
       </div>
     </div>
