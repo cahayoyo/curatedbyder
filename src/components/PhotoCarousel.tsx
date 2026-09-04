@@ -159,7 +159,7 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute left-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A]"
+        className="absolute -left-4 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A] sm:-left-6"
         onClick={prev}
         aria-label="Previous photo"
       >
@@ -169,7 +169,7 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A]"
+        className="absolute -right-4 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A] sm:-right-6"
         onClick={next}
         aria-label="Next photo"
       >
@@ -183,7 +183,7 @@ export function PhotoCarousel() {
             key={i}
             aria-label={`Photo ${i + 1}`}
             className={`h-2 rounded-full transition-all ${
-              i === index ? "w-4 bg-[#C96A6A]" : "bg-[#F0C4C4] hover:bg-[#E8B4B4]"
+              i === index ? "w-4 bg-[#C96A6A]" : "bg-[#E0A2A2] hover:bg-[#D48E8E]"
             }`}
             onClick={() => goTo(i)}
           />

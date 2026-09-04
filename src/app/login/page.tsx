@@ -65,7 +65,7 @@ export default function LoginPage() {
           <HomeLogin />
         </div>
 
-        <div className="relative z-10 mt-5 w-full max-w-sm sm:mt-8 sm:max-w-md">
+        <div className="relative z-10 mt-3 w-full max-w-sm sm:mt-4 sm:max-w-md">
           <PhotoCarousel />
         </div>
 
