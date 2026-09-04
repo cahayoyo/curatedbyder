@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Image from "next/image";
@@ -7,12 +8,13 @@ import { HomeLogin } from "@/components/HomeLogin";
 import { BookAccents } from "@/components/BookAccents";
 import logo from "@/assets/img/logoderbaru.jpeg";
 
-export default async function LoginPage() {
-  const session = await getServerSession(authOptions);
-  if (session) redirect("/dashboard");
-
+export default function LoginPage() {
   return (
-    <main
+    <>
+      <Suspense fallback={null}>
+        <RedirectIfAuthed />
+      </Suspense>
+      <main
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-8 sm:py-12 lg:py-14"
       style={{ backgroundColor: "#FED6D6" }}
     >
@@ -44,5 +46,12 @@ export default async function LoginPage() {
         <PhotoCarousel />
       </div>
     </main>
+    </>
   );
+}
+
+async function RedirectIfAuthed() {
+  const session = await getServerSession(authOptions);
+  if (session) redirect("/dashboard");
+  return null;
 }
