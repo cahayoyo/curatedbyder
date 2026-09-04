@@ -17,7 +17,19 @@ describe("PhotoCarousel", () => {
     fireEvent.pointerMove(track, { clientX: 100, pointerId: 1 });
     fireEvent.pointerUp(track, { clientX: 100, pointerId: 1 });
     expect(track.style.transform).not.toBe(before);
-    expect(track.style.transform).toContain("translateX(-900px)");
+    expect(track.style.transform).toContain("translateX(-300px)");
+  });
+
+  it("next arrow advances one visible window", () => {
+    render(<PhotoCarousel />);
+    fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
+    const track = screen.getAllByRole("img")[0].parentElement!.parentElement!;
+    expect(track.style.transform).toContain("translateX(-300px)");
+  });
+
+  it("renders one dot per visible window position", () => {
+    render(<PhotoCarousel />);
+    expect(screen.getAllByRole("button", { name: /Photo \d/ }).length).toBe(5);
   });
 
   it("pointer leave cancels an active drag", () => {
