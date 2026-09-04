@@ -104,15 +104,16 @@ export function PhotoCarousel() {
   const offset = -index * w + (dragX ?? 0);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden rounded-3xl border bg-[#FED6D6] shadow-md select-none cursor-grab"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerLeave}
-    >
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#FED6D6]">
+    <>
+      <div
+        ref={containerRef}
+        className="relative w-full select-none cursor-grab"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+      >
+      <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9]">
         {!loadedSlides.has(index) && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
@@ -156,7 +157,7 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60"
+        className="absolute left-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A]"
         onClick={prev}
         aria-label="Previous photo"
       >
@@ -166,25 +167,26 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60"
+        className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A]"
         onClick={next}
         aria-label="Next photo"
       >
         <ChevronRight className="h-5 w-5" />
       </Button>
+      </div>
 
-      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/40 px-3 py-1.5 backdrop-blur-sm">
+      <div className="mt-4 flex justify-center gap-2">
         {slides.map((s, i) => (
           <button
             key={i}
             aria-label={`Photo ${i + 1}`}
-            className={`h-2 w-2 rounded-full transition-all ${
-              i === index ? "w-4 bg-white" : "bg-white/60 hover:bg-white/90"
+            className={`h-2 rounded-full transition-all ${
+              i === index ? "w-4 bg-[#C96A6A]" : "bg-[#F0C4C4] hover:bg-[#E8B4B4]"
             }`}
             onClick={() => goTo(i)}
           />
         ))}
       </div>
-    </div>
+    </>
   );
 }

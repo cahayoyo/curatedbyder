@@ -77,7 +77,9 @@ describe("login page", () => {
 
   it("renders the login shell", async () => {
     const html = await toHtml(<LoginPage />);
-    expect(html).toContain("CuratedByDer");
+    expect(html).toContain("CuratedBy<span");
+    expect(html).toContain("#C96A6A");
+    expect(html).toContain("Original Products");
     expect(html).toContain("homelogin");
   });
 
