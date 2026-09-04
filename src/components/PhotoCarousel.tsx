@@ -183,7 +183,7 @@ export function PhotoCarousel() {
             key={i}
             aria-label={`Photo ${i + 1}`}
             className={`h-2 rounded-full transition-all ${
-              i === index ? "w-4 bg-[#C96A6A]" : "bg-[#E0A2A2] hover:bg-[#D48E8E]"
+              i === index ? "w-4 bg-[#C96A6A]" : "bg-white hover:bg-white/80"
             }`}
             onClick={() => goTo(i)}
           />
