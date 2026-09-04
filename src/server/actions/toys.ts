@@ -17,6 +17,17 @@ const toySchema = z.object({
   status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
 });
 
+function toyData(data: z.infer<typeof toySchema>) {
+  return {
+    title: data.title,
+    info: orNull(data.info),
+    image: orNull(data.image),
+    price: data.price,
+    stock: data.stock,
+    status: data.status,
+  };
+}
+
 function orNull(v: string | undefined | null): string | null {
   const t = v?.trim();
   return t ? t : null;
@@ -40,16 +51,7 @@ export async function createToy(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const toy = await db.toy.create({
-      data: {
-        title: data.title,
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-      },
-    });
+    const toy = await db.toy.create({ data: toyData(data) });
     updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };
@@ -72,17 +74,7 @@ export async function updateToy(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const toy = await db.toy.update({
-      where: { id },
-      data: {
-        title: data.title,
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-      },
-    });
+    const toy = await db.toy.update({ where: { id }, data: toyData(data) });
     updateTag("toys");
     revalidatePath("/admin/toys");
     return { ok: true, data: toy };

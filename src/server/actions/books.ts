@@ -24,6 +24,19 @@ function orNull(v: string | undefined | null): string | null {
   return t ? t : null;
 }
 
+function bookData(data: z.infer<typeof bookSchema>) {
+  return {
+    title: data.title,
+    publisher: orNull(data.publisher),
+    info: orNull(data.info),
+    image: orNull(data.image),
+    price: data.price,
+    stock: data.stock,
+    status: data.status,
+    formats: data.formats,
+  };
+}
+
 async function ensureUniqueTitle(title: string, excludeId?: string): Promise<string | null> {
   const existing = await db.book.findUnique({ where: { title } });
   if (existing && existing.id !== excludeId) {
@@ -43,18 +56,7 @@ export async function createBook(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const book = await db.book.create({
-      data: {
-        title: data.title,
-        publisher: orNull(data.publisher),
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-        formats: data.formats,
-      },
-    });
+    const book = await db.book.create({ data: bookData(data) });
     updateTag("books");
     revalidatePath("/admin/books");
     return { ok: true, data: book };
@@ -78,19 +80,7 @@ export async function updateBook(
   if (dupError) return { ok: false, error: dupError };
 
   try {
-    const book = await db.book.update({
-      where: { id },
-      data: {
-        title: data.title,
-        publisher: orNull(data.publisher),
-        info: orNull(data.info),
-        image: orNull(data.image),
-        price: data.price,
-        stock: data.stock,
-        status: data.status,
-        formats: data.formats,
-      },
-    });
+    const book = await db.book.update({ where: { id }, data: bookData(data) });
     updateTag("books");
     revalidatePath("/admin/books");
     return { ok: true, data: book };
