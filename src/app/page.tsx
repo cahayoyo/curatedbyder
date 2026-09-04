@@ -11,7 +11,7 @@ export default function Home() {
   );
 }
 
-async function SessionRedirect() {
+export async function SessionRedirect() {
   const session = await getServerSession(authOptions);
   if (session) redirect("/dashboard");
   redirect("/login");

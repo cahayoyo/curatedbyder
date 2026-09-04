@@ -50,7 +50,7 @@ export default function LoginPage() {
   );
 }
 
-async function RedirectIfAuthed() {
+export async function RedirectIfAuthed() {
   const session = await getServerSession(authOptions);
   if (session) redirect("/dashboard");
   return null;
