@@ -52,6 +52,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+## Branching & Deployment
 
-The app is hosted on Vercel (Hobby plan). Push to `main` to deploy; env vars must match `.env` in the Vercel project settings. Migrations run automatically during the build via `prisma migrate deploy`.
+- `main` = production branch — merging to `main` deploys production on Vercel.
+- `staging` = integration branch — feature PRs target `staging`, and every push creates a staging preview deploy (dev DB, never production data).
+- Workflow: `feat/<short>` or `fix/<short>` branch → PR to `staging` → test on the staging preview → release PR `staging` → `main` (merge commit) → one production deploy for the whole batch of features.
+- Hotfixes for fatal production bugs may PR straight to `main`; back-merge `main` → `staging` afterwards.
+- Migrations run automatically on every Vercel build via `prisma migrate deploy`.
+- Vercel env scopes: Production points at the prod DB; Preview points at the dev DB (staging) with its own `NEXTAUTH_URL` and `NEXTAUTH_SECRET`.
