@@ -1,0 +1,34 @@
+import Image from "next/image";
+import logoder from "@/assets/img/logoderbaru.jpeg";
+
+export function AppHeader({
+  badge,
+  mobileNav,
+  desktopNav,
+  menus,
+}: {
+  badge: string;
+  mobileNav: React.ReactNode;
+  desktopNav: React.ReactNode;
+  menus: React.ReactNode;
+}) {
+  return (
+    <header className="border-b" style={{ backgroundColor: "#FED6D6" }}>
+      <div className="mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex">
+        <div className="flex md:hidden">{mobileNav}</div>
+
+        <div className="flex min-w-0 items-center justify-self-center gap-2 md:mr-2 md:justify-self-start">
+          <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate font-semibold">CuratedByDer</span>
+            <span className="truncate text-[11px] font-medium opacity-70">{badge}</span>
+          </div>
+        </div>
+
+        <div className="hidden md:flex md:flex-1 md:justify-center">{desktopNav}</div>
+
+        {menus}
+      </div>
+    </header>
+  );
+}

@@ -1,49 +1,47 @@
-import Image from "next/image";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { UserMenu } from "@/components/UserMenu";
 import { UserNav } from "@/components/UserNav";
-import logoder from "@/assets/img/logoderbaru.jpeg";
+import { NavMenuFallback } from "@/components/NavMenuFallback";
+import { AppHeader } from "@/components/AppHeader";
+import { HeaderMenus, RoleGate } from "@/components/session-gate";
+import { ListLoader } from "@/components/ListLoader";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-  if (session?.user?.role === "SUPER_ADMIN") redirect("/admin");
-  if (session?.user?.role !== "USER") redirect("/login");
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F6F1E7" }}>
-<header className="border-b" style={{ backgroundColor: "#FED6D6" }}>
-        <div className="mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex">
-          <div className="flex md:hidden">
+      <AppHeader
+        badge="USER DASHBOARD"
+        mobileNav={
+          <Suspense fallback={<NavMenuFallback />}>
             <UserNav />
-          </div>
-
-          <div className="flex min-w-0 items-center justify-self-center gap-2 md:mr-2 md:justify-self-start">
-            <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
-            <div className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate font-semibold">CuratedByDer</span>
-              <span className="truncate text-[11px] font-medium opacity-70">USER DASHBOARD</span>
+          </Suspense>
+        }
+        desktopNav={
+          <Suspense fallback={null}>
+            <UserNav />
+          </Suspense>
+        }
+        menus={
+          <Suspense fallback={<UserMenu name={undefined} role={undefined} />}>
+            <HeaderMenus role="USER" />
+          </Suspense>
+        }
+      />
+      <main className="mx-auto max-w-5xl p-4">
+        <Suspense
+          fallback={
+            <div className="space-y-4">
+              <ListLoader label="Memuat halaman..." />
             </div>
-          </div>
-
-          <div className="hidden md:flex md:flex-1 md:justify-center">
-            <UserNav />
-          </div>
-
-          <div className="flex justify-self-end md:hidden">
-            <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
-          </div>
-          <div className="hidden md:flex md:justify-self-end">
-            <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl p-4">{children}</main>
+          }
+        >
+          <RoleGate role="USER">{children}</RoleGate>
+        </Suspense>
+      </main>
     </div>
   );
 }
