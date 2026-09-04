@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
         <AdminLoginForm />
       </main>
 
-      <footer className="relative z-10 mt-6 text-center text-[11px] text-gray-400">
+      <footer className="relative z-10 mt-6 text-center text-[11px] text-gray-600">
         © 2026 CuratedByDer. All rights reserved.
       </footer>
     </div>

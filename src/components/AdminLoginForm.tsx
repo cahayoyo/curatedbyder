@@ -117,8 +117,7 @@ export function AdminLoginForm() {
           </div>
           <Button
             type="submit"
-            className="h-11 w-full rounded-lg text-white transition-colors hover:bg-[#C96A6A]"
-            style={{ backgroundColor: "#D97A7A" }}
+            className="h-11 w-full rounded-lg bg-[#D97A7A] text-white transition-colors hover:bg-[#C96A6A]"
             disabled={loading}
           >
             {loading ? (
@@ -133,16 +132,16 @@ export function AdminLoginForm() {
         </form>
 
         <div className="mt-4">
-          <Link href="/login" className="block">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 w-full rounded-lg border-gray-300 bg-white text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-900"
-            >
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 w-full rounded-lg border-gray-300 bg-white text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
+            <Link href="/login">
               <ExternalLink className="h-4 w-4" />
               Kunjungi Website Dashboard User
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -33,7 +33,7 @@ describe("AdminLoginForm", () => {
     expect(screen.getByText("Admin Login")).toBeTruthy();
     expect(screen.getByText(/Masuk untuk mengakses dashboard administrator/)).toBeTruthy();
     expect(screen.getByPlaceholderText("Masukkan password")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Kunjungi Website Dashboard User/ })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Kunjungi Website Dashboard User/ })).toBeTruthy();
   });
 
   it("signs in with admin mode and redirects to /admin", async () => {
