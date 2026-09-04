@@ -103,7 +103,7 @@ export function HomeLogin() {
         <Button
           type="submit"
           variant="outline"
-          className="h-11 w-full rounded-lg bg-[#D97A7A] text-white transition-colors hover:bg-[#C96A6A] hover:text-white"
+          className="h-11 w-full rounded-lg border-rose-200 bg-[#D97A7A] text-white transition-colors hover:bg-[#C96A6A] hover:text-white"
           disabled={loading}
         >
           {loading ? (
