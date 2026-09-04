@@ -23,6 +23,8 @@ const slides = [
 ] as const;
 
 const SWIPE_THRESHOLD = 50;
+const VISIBLE = 3;
+const POSITIONS = slides.length - VISIBLE + 1;
 
 export function PhotoCarousel() {
   const [index, setIndex] = useState(0);
@@ -45,7 +47,7 @@ export function PhotoCarousel() {
   }, []);
 
   function goTo(i: number) {
-    setIndex(((i % count) + count) % count);
+    setIndex(((i % POSITIONS) + POSITIONS) % POSITIONS);
   }
 
   function prev() {
@@ -56,7 +58,7 @@ export function PhotoCarousel() {
   }
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), 2000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % POSITIONS), 2000);
     return () => clearInterval(id);
   }, [count]);
 
@@ -70,8 +72,9 @@ export function PhotoCarousel() {
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (dragStart === null) return;
     const delta = e.clientX - dragStart;
-    // Add slight resistance beyond a slide width
-    setDragX(Math.max(-(slideW || 900) * 0.5, Math.min((slideW || 900) * 0.5, delta)));
+    // Add slight resistance beyond half a visible window
+    const half = ((slideW || 900) / VISIBLE) * 0.5;
+    setDragX(Math.max(-half, Math.min(half, delta)));
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -101,18 +104,19 @@ export function PhotoCarousel() {
   }
 
   const w = slideW || 900;
-  const offset = -index * w + (dragX ?? 0);
+  const offset = -index * (w / VISIBLE) + (dragX ?? 0);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden rounded-3xl border bg-[#FED6D6] shadow-md select-none cursor-grab"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerLeave}
-    >
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#FED6D6]">
+    <>
+      <div
+        ref={containerRef}
+        className="relative w-full select-none cursor-grab"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+      >
+      <div className="relative aspect-[2/1] w-full overflow-hidden sm:aspect-[16/9]">
         {!loadedSlides.has(index) && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
@@ -120,14 +124,13 @@ export function PhotoCarousel() {
           className={`absolute inset-0 flex ${dragging ? "" : "transition-transform duration-500 ease-out"}`}
           style={{
             transform: `translateX(${offset}px)`,
-            width: w * count,
           }}
         >
           {slides.map((s, i) => (
             <div
               key={i}
               className="relative h-full shrink-0"
-              style={{ width: w }}
+              style={{ width: w / VISIBLE }}
             >
               <Image
                 src={s.src}
@@ -156,7 +159,7 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60"
+        className="absolute -left-4 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A] sm:-left-6"
         onClick={prev}
         aria-label="Previous photo"
       >
@@ -166,25 +169,26 @@ export function PhotoCarousel() {
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60"
+        className="absolute -right-4 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-[#F6CFCF] text-[#C96A6A] hover:bg-[#F0C4C4] hover:text-[#C96A6A] sm:-right-6"
         onClick={next}
         aria-label="Next photo"
       >
         <ChevronRight className="h-5 w-5" />
       </Button>
+      </div>
 
-      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/40 px-3 py-1.5 backdrop-blur-sm">
-        {slides.map((s, i) => (
+      <div className="mt-4 flex justify-center gap-2">
+        {Array.from({ length: POSITIONS }, (_, i) => (
           <button
             key={i}
             aria-label={`Photo ${i + 1}`}
             className={`h-2 w-2 rounded-full transition-all ${
-              i === index ? "w-4 bg-white" : "bg-white/60 hover:bg-white/90"
+              i === index ? "w-4 bg-[#C96A6A]" : "bg-[#C96A6A]/40 hover:bg-[#C96A6A]/60"
             }`}
             onClick={() => goTo(i)}
           />
         ))}
       </div>
-    </div>
+    </>
   );
 }

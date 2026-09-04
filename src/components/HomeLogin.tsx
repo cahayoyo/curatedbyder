@@ -6,18 +6,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AtSign, BookOpen, Phone, ShoppingBag, UserRound } from "lucide-react";
+import { ArrowRight, Camera, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
-  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: AtSign },
+  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: Camera },
   { label: "Shopee", href: "https://shopee.co.id/projectbyder", icon: ShoppingBag },
-];
-
-const BOOK_ACCENTS = [
-  { top: "10%", left: "8%", size: 44, rotate: "-15deg" },
-  { top: "55%", left: "-6%", size: 56, rotate: "15deg" },
-  { top: "8%", right: "6%", size: 50, rotate: "10deg" },
-  { bottom: "5%", right: "12%", size: 40, rotate: "-10deg" },
 ];
 
 export function HomeLogin() {
@@ -56,26 +49,11 @@ export function HomeLogin() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-6">
+    <div className="w-full max-w-sm space-y-4">
       <form
         onSubmit={onSubmit}
-        className="relative space-y-3 overflow-hidden rounded-xl border bg-[#F6F1E7] p-5 shadow-sm"
+        className="relative space-y-3 overflow-hidden rounded-2xl border-none bg-[#FDF1F1] p-5 shadow-lg shadow-rose-200/40 sm:p-6"
       >
-        {BOOK_ACCENTS.map((a, i) => (
-          <BookOpen
-            key={i}
-            className="pointer-events-none absolute z-0 text-black/10"
-            style={{
-              top: a.top,
-              left: a.left,
-              right: a.right,
-              bottom: a.bottom,
-              width: a.size,
-              height: a.size,
-              transform: `rotate(${a.rotate})`,
-            }}
-          />
-        ))}
         <div className="relative z-10 space-y-2">
           <div className="space-y-1.5">
             <Label htmlFor="login-username">Username</Label>
@@ -87,7 +65,7 @@ export function HomeLogin() {
                 required
                 autoComplete="username"
                 placeholder="Contoh: curatedbyder123"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.username}
               />
@@ -95,7 +73,7 @@ export function HomeLogin() {
             {fieldError.username && (
               <p className="text-xs font-medium text-red-600">Username tidak ditemukan!</p>
             )}
-            <p className="text-xs text-black/60">
+            <p className="text-xs text-gray-500">
               Masukkan username yang sudah pernah diberikan oleh admin
             </p>
           </div>
@@ -111,7 +89,7 @@ export function HomeLogin() {
                 required
                 autoComplete="tel"
                 placeholder="Contoh: 08128312345"
-                className={`pl-9 placeholder:text-[#b5b5b5] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className={`rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 onChange={onFieldChange}
                 aria-invalid={fieldError.phone}
               />
@@ -125,19 +103,26 @@ export function HomeLogin() {
         <Button
           type="submit"
           variant="outline"
-          className="w-full bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666] hover:text-white"
+          className="h-11 w-full rounded-lg border-rose-200 bg-[#D97A7A] text-white transition-colors hover:bg-[#C96A6A] hover:text-white"
           disabled={loading}
         >
-          {loading ? "Memproses..." : "Masuk & Lihat Pesanan"}
+          {loading ? (
+            "Memproses..."
+          ) : (
+            <>
+              Masuk &amp; Lihat Pesanan
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </Button>
 
-        <p className="text-center text-xs text-black/70">
+        <p className="text-center text-xs text-gray-600">
           Jika ada kendala,{" "}
           <a
             href="https://wa.me/6281284605363?text=Halo%20Admin%20CuratedByDer%2C%0A%0ASaya%20lupa%20username%20untuk%20masuk%20ke%20Website%20CuratedByDer%0AMohon%20bantuannya%2C%20Terimakasih"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-black underline-offset-2 transition-colors hover:text-[#c96666] hover:underline"
+            className="font-semibold text-[#C96A6A] transition-colors hover:text-[#B85C5C] hover:underline"
           >
             Hubungi Admin
           </a>
@@ -150,7 +135,7 @@ export function HomeLogin() {
             key={p.label}
             asChild
             variant="outline"
-            className="w-full bg-[#D97A7A] text-white shadow-sm transition-colors hover:bg-[#c96666] hover:text-white hover:shadow"
+            className="w-full border-[#D9A3A3] bg-[#FDF1F1] text-[#C96A6A] shadow-sm transition-colors hover:bg-[#F8D7D7] hover:text-[#C96A6A] hover:shadow"
           >
             <a href={p.href} target="_blank" rel="noopener noreferrer">
               <p.icon className="h-4 w-4" />
