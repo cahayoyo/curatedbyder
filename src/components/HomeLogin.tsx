@@ -52,7 +52,7 @@ export function HomeLogin() {
     <div className="w-full max-w-sm space-y-6">
       <form
         onSubmit={onSubmit}
-        className="relative space-y-3 overflow-hidden rounded-2xl border-none bg-[#FDF8F5] p-5 shadow-lg shadow-rose-200/40 sm:p-6"
+        className="relative space-y-3 overflow-hidden rounded-2xl border-none bg-[#FDF1F1] p-5 shadow-lg shadow-rose-200/40 sm:p-6"
       >
         <div className="relative z-10 space-y-2">
           <div className="space-y-1.5">
