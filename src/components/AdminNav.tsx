@@ -52,7 +52,7 @@ export function AdminNav({ variant }: { variant: "desktop" | "mobile" }) {
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-7">
       {links.map((l) => {
         const active = isActive(pathname, l.href);
         return (
