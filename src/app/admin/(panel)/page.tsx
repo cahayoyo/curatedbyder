@@ -43,15 +43,15 @@ const STEPS = [
 
 const TONES = {
   rose: {
-    card: "via-[#FCF3F3] to-[#F9E3E3]",
+    card: "via-[#F9E4E4] to-[#F3CFCF]",
     chip: "bg-[#FBE6E6] text-[#C96A6A]",
   },
   green: {
-    card: "via-[#F0F8F3] to-[#E2F1E8]",
+    card: "via-[#E8F3EC] to-[#CFE7D8]",
     chip: "bg-[#E7F5EC] text-emerald-600",
   },
   violet: {
-    card: "via-[#FBF6E9] to-[#F7EFD8]",
+    card: "via-[#F8F0DC] to-[#F0E3BD]",
     chip: "bg-[#FAF0D7] text-amber-600",
   },
 } as const;
