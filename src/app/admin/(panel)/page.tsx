@@ -224,7 +224,10 @@ function DeltaLine({ delta }: { delta: Delta }) {
 function MiniBars() {
   const heights = ["h-4", "h-7", "h-5", "h-9", "h-11", "h-6"];
   return (
-    <div className="ml-auto flex shrink-0 items-end gap-1.5 pr-1" aria-hidden>
+    <div
+      className="ml-auto hidden shrink-0 items-end gap-1.5 pr-1 md:flex"
+      aria-hidden
+    >
       {heights.map((h, i) => (
         <span
           key={i}
@@ -260,6 +263,7 @@ function StatCard({
   delta,
   tone = "rose",
   decor,
+  compact,
 }: {
   icon: LucideIcon;
   label: string;
@@ -267,25 +271,40 @@ function StatCard({
   delta: Delta;
   tone?: Tone;
   decor?: "bars" | "wave";
+  compact?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white p-5 shadow-sm",
-        TONES[tone].card
+        "rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white shadow-sm",
+        TONES[tone].card,
+        compact ? "p-3 md:p-5" : "p-5"
       )}
     >
-      <div className="flex items-center gap-4">
+      <div
+        className={cn(
+          "flex items-center gap-4",
+          compact && "flex-col gap-2 text-center md:flex-row md:gap-4 md:text-left"
+        )}
+      >
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
-            TONES[tone].chip
+            "flex shrink-0 items-center justify-center rounded-full",
+            TONES[tone].chip,
+            compact ? "h-10 w-10 md:h-12 md:w-12" : "h-12 w-12"
           )}
         >
-          <Icon className="h-6 w-6" />
+          <Icon className={cn("h-6 w-6", compact && "h-5 w-5 md:h-6 md:w-6")} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm text-muted-foreground">{label}</p>
+          <p
+            className={cn(
+              "truncate text-sm text-muted-foreground",
+              compact && "text-xs md:text-sm"
+            )}
+          >
+            {label}
+          </p>
           <StatValue value={value} className="text-2xl font-bold text-gray-900 md:text-3xl" />
           <DeltaLine delta={delta} />
         </div>
@@ -378,11 +397,12 @@ export default async function AdminOverviewPage({
       {/* Orders */}
       <section>
         <SectionHeading icon={ShoppingCart} title="Orders" href="/admin/orders" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
           <StatCard
             icon={FileText}
             label="Total Invoice"
             decor="bars"
+            compact
             value={stats.totalOrders}
             delta={stats.orderDeltas.total}
           />
@@ -390,6 +410,7 @@ export default async function AdminOverviewPage({
             icon={BookOpen}
             label="Pesanan Buku"
             decor="bars"
+            compact
             value={stats.bookOrders}
             delta={stats.orderDeltas.book}
           />
@@ -397,6 +418,7 @@ export default async function AdminOverviewPage({
             icon={Blocks}
             label="Pesanan Mainan"
             decor="bars"
+            compact
             value={stats.toyOrders}
             delta={stats.orderDeltas.toy}
           />
