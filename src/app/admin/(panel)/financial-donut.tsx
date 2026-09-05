@@ -86,15 +86,20 @@ export function FinancialDonut({
         </>
       ) : (
         <>
+          <g className="fill-[#F08080]">
+            <rect x="92" y="73" width="4" height="8" rx="1.5" />
+            <rect x="98" y="69" width="4" height="12" rx="1.5" />
+            <rect x="104" y="65" width="4" height="16" rx="1.5" />
+          </g>
           <text
             x="100"
-            y="92"
+            y="99"
             textAnchor="middle"
-            className="fill-gray-900 text-lg font-bold"
+            className="fill-gray-900 text-sm font-bold"
           >
             {formatIDR(revenue)}
           </text>
-          <text x="100" y="113" textAnchor="middle" className="fill-gray-500 text-[11px]">
+          <text x="100" y="115" textAnchor="middle" className="fill-gray-500 text-[10px]">
             Total Transaksi
           </text>
         </>

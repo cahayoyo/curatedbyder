@@ -6,7 +6,7 @@ import { getOverviewStats, type Delta } from "@/server/queries/overview";
 import { requireAdmin } from "@/lib/session";
 import { RangePicker, RangeProvider } from "./range-provider";
 import { StatValue } from "./stat-value";
-import { FinancialDonut, FIN_COLORS } from "./financial-donut";
+import { FinancialDonut } from "./financial-donut";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -181,7 +181,10 @@ function MiniWave({
   return (
     <svg
       viewBox="0 0 64 40"
-      className={cn("ml-auto h-10 w-16 shrink-0", hideOnMobile && "hidden md:block")}
+      className={cn(
+        "ml-auto h-12 w-20 shrink-0",
+        hideOnMobile && "hidden md:block"
+      )}
       aria-hidden
       fill="none"
     >
@@ -234,7 +237,12 @@ function StatCard({
             compact ? "h-10 w-10 md:h-12 md:w-12" : "h-12 w-12"
           )}
         >
-          <Icon className={cn("h-6 w-6", compact && "h-5 w-5 md:h-6 md:w-6")} />
+          <Icon
+            className={cn(
+              "h-6 w-6",
+              compact && "h-5 w-5 md:h-6 md:w-6"
+            )}
+          />
         </div>
         <div className="min-w-0">
           <p
@@ -247,13 +255,19 @@ function StatCard({
           </p>
           <StatValue
             value={value}
-            className={valueClassName ?? "text-2xl font-bold text-gray-900 md:text-3xl"}
+            className={
+              valueClassName ??
+              "text-2xl font-bold text-gray-900 md:text-3xl"
+            }
           />
           <DeltaLine delta={delta} />
         </div>
         {decor === "bars" && <MiniBars />}
         {(decor === "wave" || decor === "wave-desktop") && (
-          <MiniWave stroke={TONES[tone].wave} hideOnMobile={decor === "wave-desktop"} />
+          <MiniWave
+            stroke={TONES[tone].wave}
+            hideOnMobile={decor === "wave-desktop"}
+          />
         )}
       </div>
     </div>
@@ -372,51 +386,51 @@ export default async function AdminOverviewPage({
           title="Financial"
           href="/admin/orders"
         />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
-          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-5 shadow-sm lg:flex-row">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3fr_2fr]">
+          <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-between">
             <FinancialDonut
               revenue={stats.revenue}
               dp={stats.totalDp}
               remaining={stats.totalRemaining}
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 w-full flex-1 lg:max-w-none lg:self-start">
               <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
               <p className="text-sm text-muted-foreground">
                 Proporsi revenue, DP, dan sisa tagihan.
               </p>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-8 grid w-full grid-cols-[minmax(0,1fr)_max-content] gap-x-6 gap-y-6">
                 {(
                   [
-                    { name: "Revenue", desc: "Total nilai semua transaksi", value: stats.revenue, color: FIN_COLORS.revenue, pct: false },
-                    { name: "DP (Uang Muka)", desc: "Uang muka yang sudah diterima", value: stats.totalDp, color: FIN_COLORS.dp, pct: true },
-                    { name: "Sisa Tagihan", desc: "Menunggu pelunasan pembeli", value: stats.totalRemaining, color: FIN_COLORS.remaining, pct: true },
+                    { name: "Revenue", desc: "Total nilai semua transaksi", value: stats.revenue, color: "#7FC49A", pct: false },
+                    { name: "DP (Uang Muka)", desc: "Uang muka yang sudah diterima", value: stats.totalDp, color: "#7FB5E6", pct: true },
+                    { name: "Sisa Tagihan", desc: "Menunggu pelunasan pembeli", value: stats.totalRemaining, color: "#F6D88C", pct: true },
                   ] as const
                 ).map((row) => {
                   return (
-                    <li key={row.name} className="flex items-center gap-3">
-                      <span
-                        className="h-3.5 w-3.5 shrink-0 rounded-full"
-                        style={{ background: row.color }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-gray-900">
-                          {row.name}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">{row.desc}</p>
+                    <li key={row.name} className="contents">
+                      <div className="flex min-w-0 items-start gap-2">
+                        <span
+                          className="mt-2.5 h-5 w-5 shrink-0 rounded-full"
+                          style={{ backgroundColor: row.color }}
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-semibold text-gray-900">
+                            {row.name}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">{row.desc}</p>
+                        </div>
                       </div>
                       <div className="shrink-0 text-right">
                         <StatValue
                           value={formatIDR(row.value)}
-                          className="text-sm font-bold text-gray-900"
+                          className="text-base font-bold text-gray-900"
                         />
-                        <StatValue
-                          value={
-                            row.pct
-                              ? `${stats.revenue ? Math.round((row.value / stats.revenue) * 100) : 0}%`
-                              : "\u00A0"
-                          }
-                          className="text-xs text-muted-foreground"
-                        />
+                        {row.pct && (
+                          <StatValue
+                            value={`${stats.revenue ? Math.round((row.value / stats.revenue) * 100) : 0}%`}
+                            className="text-sm text-muted-foreground"
+                          />
+                        )}
                       </div>
                     </li>
                   );
@@ -424,35 +438,37 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-2">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
               value={formatIDR(stats.revenue)}
+              valueClassName="text-xl font-bold text-gray-900 md:text-2xl"
               delta={stats.financialDeltas.revenue}
-              tone="green"
-              decor="wave"
-              className="col-span-2 md:col-span-1"
+               tone="green"
+               decor="wave-desktop"
+               compact
+               className="col-span-2 md:col-span-1"
             />
             <StatCard
               icon={Wallet}
               label="Total DP"
               value={formatIDR(stats.totalDp)}
+              valueClassName="text-xl font-bold text-gray-900 md:text-2xl"
               delta={stats.financialDeltas.dp}
               tone="blue"
               decor="wave-desktop"
-              className="p-4 md:p-5"
-              valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
+              compact
             />
             <StatCard
               icon={PieChart}
               label="Total Sisa Tagihan"
               value={formatIDR(stats.totalRemaining)}
+              valueClassName="text-xl font-bold text-gray-900 md:text-2xl"
               delta={stats.financialDeltas.remaining}
               tone="violet"
               decor="wave-desktop"
-              className="p-4 md:p-5"
-              valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
+              compact
             />
           </div>
         </div>
