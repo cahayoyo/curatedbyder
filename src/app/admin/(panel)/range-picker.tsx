@@ -3,7 +3,6 @@
 import { CalendarDays, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { cn } from "@/lib/utils";
 
 export function RangePicker({ value }: { value?: number }) {
   const router = useRouter();
