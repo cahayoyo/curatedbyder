@@ -33,11 +33,11 @@ import { STATUS_BADGE } from "@/lib/orderOptions";
 
 const STEPS = [
   { key: "ORDER_PLACED", label: "Order Placed", dot: "bg-teal-500", icon: ClipboardList },
-  { key: "SHIPPING_TO_INDONESIA", label: "Shipping", dot: "bg-sky-500", icon: Truck },
-  { key: "ARRIVED_IN_INDONESIA", label: "In Indonesia", dot: "bg-indigo-500", icon: Plane },
-  { key: "ARRIVED_AT_WAREHOUSE", label: "Warehouse", dot: "bg-violet-500", icon: Warehouse },
-  { key: "SHIPPED_TO_CUSTOMER", label: "Shipped", dot: "bg-orange-500", icon: PackageCheck },
-  { key: "ORDER_DELIVERED", label: "Delivered", dot: "bg-emerald-500", icon: CheckCircle2 },
+  { key: "SHIPPING_TO_INDONESIA", label: "Shipping to Indonesia", dot: "bg-sky-500", icon: Truck },
+  { key: "ARRIVED_IN_INDONESIA", label: "Arrived in Indonesia", dot: "bg-indigo-500", icon: Plane },
+  { key: "ARRIVED_AT_WAREHOUSE", label: "Arrived at Warehouse", dot: "bg-violet-500", icon: Warehouse },
+  { key: "SHIPPED_TO_CUSTOMER", label: "Shipped to Customer", dot: "bg-orange-500", icon: PackageCheck },
+  { key: "ORDER_DELIVERED", label: "Order Delivered", dot: "bg-emerald-500", icon: CheckCircle2 },
 ] as const;
 
 const TONES = {
