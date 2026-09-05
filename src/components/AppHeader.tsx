@@ -42,7 +42,9 @@ export function AppHeader({
           </div>
         </div>
 
-        <div className="hidden md:flex md:flex-1 md:justify-center">{desktopNav}</div>
+        <div className="hidden xl:flex xl:flex-1 xl:justify-center">{desktopNav}</div>
+
+        <div className="hidden flex-1 md:block xl:hidden" />
 
         {menus}
       </div>
