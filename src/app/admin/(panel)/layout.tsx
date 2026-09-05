@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { UserMenu } from "@/components/UserMenu";
 import { AdminNav } from "@/components/AdminNav";
-import { NavMenuFallback } from "@/components/NavMenuFallback";
 import { AppHeader } from "@/components/AppHeader";
 import { HeaderMenus, RoleGate } from "@/components/session-gate";
 import { ListLoader } from "@/components/ListLoader";
@@ -15,14 +14,10 @@ export default function AdminLayout({
     <div className="min-h-screen" style={{ backgroundColor: "#F6F1E7" }}>
       <AppHeader
         badge="ADMIN DASHBOARD"
-        mobileNav={
-          <Suspense fallback={<NavMenuFallback />}>
-            <AdminNav />
-          </Suspense>
-        }
+        className="bg-white"
         desktopNav={
           <Suspense fallback={null}>
-            <AdminNav />
+            <AdminNav variant="desktop" />
           </Suspense>
         }
         menus={
@@ -31,7 +26,10 @@ export default function AdminLayout({
           </Suspense>
         }
       />
-      <main className="p-4">
+      <Suspense fallback={null}>
+        <AdminNav variant="mobile" />
+      </Suspense>
+      <main className="p-4 pb-24 md:pb-4">
         <Suspense
           fallback={
             <div className="space-y-4">
