@@ -47,7 +47,7 @@ const STEPS = [
 const TONES = {
   rose: {
     card: "via-[#F9E4E4] to-[#F3CFCF]",
-    chip: "bg-[#FBE6E6] text-[#C96A6A]",
+    chip: "bg-[#F5CACA] text-[#A84040]",
     wave: "#D97A7A",
   },
   green: {
