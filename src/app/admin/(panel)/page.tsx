@@ -277,32 +277,8 @@ export default async function AdminOverviewPage({
         </div>
       </section>
 
-      {/* Catalog + Top products */}
+      {/* Top products + buyers */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
-          <SectionHeading icon={BookOpen} title="Catalog" href="/admin/books" linkLabel="Lihat semua" />
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 rounded-lg bg-[#FDF1F1] p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
-                <Users className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs text-muted-foreground">Total Pembeli</p>
-                <p className="text-xl font-bold text-gray-900">{stats.buyers}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-lg bg-[#FDF1F1] p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs text-muted-foreground">Total Buku</p>
-                <p className="text-xl font-bold text-gray-900">{stats.totalBooks}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <SectionHeading icon={Trophy} title="Buku Terlaris" href="/admin/books" linkLabel="Lihat semua" />
           {stats.topBooks.length === 0 ? (
@@ -336,6 +312,26 @@ export default async function AdminOverviewPage({
                   </span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {toy.sold} terjual
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
+          <SectionHeading icon={Users} title="Pembeli Terbanyak" href="/admin/buyers" linkLabel="Lihat semua" />
+          {stats.topBuyers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada transaksi</p>
+          ) : (
+            <ol className="space-y-2 text-sm">
+              {stats.topBuyers.map((buyer, i) => (
+                <li key={buyer.id} className="flex justify-between gap-2">
+                  <span className="min-w-0 truncate text-gray-700">
+                    {i + 1}. {buyer.name}
+                  </span>
+                  <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
+                    {buyer.transactions} transaksi
                   </span>
                 </li>
               ))}

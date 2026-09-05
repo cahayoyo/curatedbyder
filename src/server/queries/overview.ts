@@ -19,8 +19,6 @@ export type OverviewStats = {
   orderDeltas: { total: Delta; book: Delta; toy: Delta };
   financialDeltas: { revenue: Delta; dp: Delta; remaining: Delta };
   statusCount: Record<string, number>;
-  buyers: number;
-  totalBooks: number;
   topBooks: TopItem[];
   topToys: TopItem[];
   topBuyers: TopBuyer[];
@@ -71,7 +69,7 @@ export async function getOverviewStats(
   // All Time selected -> totals stay all-time (deltas remain month-scoped)
   const totalsWhere = range ? curWhere : undefined;
 
-  const [totalOrders, bookOrders, toyOrders, financial, prevMonth, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
+  const [totalOrders, bookOrders, toyOrders, financial, prevMonth, byStatus, topBookItems, topToyItems, topBuyerCounts] =
     await Promise.all([
       db.order.count({ where: totalsWhere }),
       db.order.count({ where: { ...totalsWhere, ...BOOK_ITEMS } }),
@@ -91,8 +89,6 @@ export async function getOverviewStats(
         _count: { _all: true },
         where: range ? { order: curWhere } : undefined,
       }),
-      db.user.count({ where: { role: "USER" } }),
-      db.book.count(),
       db.orderItem.groupBy({
         by: ["bookId"],
         where: { bookId: { not: null } },
@@ -147,8 +143,6 @@ export async function getOverviewStats(
       remaining: delta(financial._sum.remaining ?? 0, pFin._sum.remaining ?? 0),
     },
     statusCount: Object.fromEntries(byStatus.map((s) => [s.status as string, s._count._all])),
-    buyers,
-    totalBooks,
     topBooks: topBookItems.flatMap((it) => {
       const book = it.bookId ? bookMap.get(it.bookId) : undefined;
       return book ? [{ id: book.id, title: book.title, sold: it._sum.quantity ?? 0 }] : [];
