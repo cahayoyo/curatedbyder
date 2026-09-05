@@ -10,28 +10,33 @@ import {
   ArrowUp,
   BookOpen,
   CalendarDays,
+  CheckCircle2,
+  ClipboardList,
   Gift,
   LayoutDashboard,
   PackageCheck,
   PieChart,
+  Plane,
   ReceiptText,
   ShoppingCart,
   Trophy,
   ToyBrick,
   TrendingUp,
+  Truck,
   Users,
   Wallet,
+  Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { STATUS_BADGE } from "@/lib/orderOptions";
 
 const STEPS = [
-  { key: "ORDER_PLACED", label: "Order Placed", dot: "bg-teal-500" },
-  { key: "SHIPPING_TO_INDONESIA", label: "Shipping", dot: "bg-sky-500" },
-  { key: "ARRIVED_IN_INDONESIA", label: "In Indonesia", dot: "bg-indigo-500" },
-  { key: "ARRIVED_AT_WAREHOUSE", label: "Warehouse", dot: "bg-violet-500" },
-  { key: "SHIPPED_TO_CUSTOMER", label: "Shipped", dot: "bg-orange-500" },
-  { key: "ORDER_DELIVERED", label: "Delivered", dot: "bg-emerald-500" },
+  { key: "ORDER_PLACED", label: "Order Placed", dot: "bg-teal-500", icon: ClipboardList },
+  { key: "SHIPPING_TO_INDONESIA", label: "Shipping", dot: "bg-sky-500", icon: Truck },
+  { key: "ARRIVED_IN_INDONESIA", label: "In Indonesia", dot: "bg-indigo-500", icon: Plane },
+  { key: "ARRIVED_AT_WAREHOUSE", label: "Warehouse", dot: "bg-violet-500", icon: Warehouse },
+  { key: "SHIPPED_TO_CUSTOMER", label: "Shipped", dot: "bg-orange-500", icon: PackageCheck },
+  { key: "ORDER_DELIVERED", label: "Delivered", dot: "bg-emerald-500", icon: CheckCircle2 },
 ] as const;
 
 const TONES = {
@@ -225,7 +230,7 @@ export default async function AdminOverviewPage() {
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
         <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
           <div className="relative flex min-w-[640px] justify-between">
-            <span className="absolute left-[8%] right-[8%] top-[41px] h-0.5 bg-[#F0CBCB]" />
+            <span className="absolute left-[8%] right-[8%] top-[47px] h-0.5 bg-[#F0CBCB]" />
             {STEPS.map((step) => (
               <div
                 key={step.key}
@@ -234,7 +239,14 @@ export default async function AdminOverviewPage() {
                 <span className="text-xl font-bold text-gray-900">
                   {stats.statusCount[step.key] ?? 0}
                 </span>
-                <span className={cn("h-3.5 w-3.5 rounded-full ring-4 ring-white", step.dot)} />
+                <span
+                  className={cn(
+                    "flex h-7 w-7 items-center justify-center rounded-full ring-4 ring-white",
+                    step.dot
+                  )}
+                >
+                  <step.icon className="h-4 w-4 text-white" />
+                </span>
                 <span
                   className={cn(
                     "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
