@@ -13,7 +13,7 @@ export default function AdminLayout({
   return (
     <div
       className="flex min-h-screen flex-col md:px-14"
-      style={{ background: "linear-gradient(180deg, #FBE6E6 0%, #F5CFCF 50%, #FBE6E6 100%)" }}
+      style={{ background: "linear-gradient(180deg, #F6D6D6 0%, #EEBFBF 50%, #F6D6D6 100%)" }}
     >
       <div className="flex flex-1 flex-col overflow-hidden rounded-none bg-[#F6F1E7] md:rounded-b-xl">
         <AppHeader
