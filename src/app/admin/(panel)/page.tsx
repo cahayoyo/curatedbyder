@@ -529,11 +529,22 @@ export default async function AdminOverviewPage({
         <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <div className="relative grid grid-cols-3 gap-y-5 md:flex md:min-w-[640px] md:justify-between">
             <span className="absolute left-[8%] right-[8%] top-[47px] hidden h-0.5 bg-[#F0CBCB] md:block" />
-            {STEPS.map((step) => (
+            {STEPS.map((step, i) => (
               <div
                 key={step.key}
-                className="relative z-10 flex flex-1 flex-col items-center gap-1.5"
+                className={cn(
+                  "relative z-10 flex flex-1 flex-col items-center gap-1.5",
+                  i === 3 && "order-6 md:order-none",
+                  i === 4 && "order-5 md:order-none",
+                  i === 5 && "order-4 md:order-none"
+                )}
               >
+                <span
+                  className={cn(
+                    "absolute top-[47px] h-0.5 bg-[#F0CBCB] md:hidden",
+                    i === 0 || i === 5 ? "left-1/2 right-0" : "left-0 right-0"
+                  )}
+                />
                 <StatValue
                   value={stats.statusCount[step.key] ?? 0}
                   className="text-xl font-bold text-gray-900"
