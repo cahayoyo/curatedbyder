@@ -42,7 +42,7 @@ export function AppHeader({
           </div>
         </div>
 
-        <div className="hidden md:flex md:flex-1 md:justify-center">{desktopNav}</div>
+        <div className="hidden lg:flex lg:flex-1 lg:justify-center">{desktopNav}</div>
 
         {menus}
       </div>
