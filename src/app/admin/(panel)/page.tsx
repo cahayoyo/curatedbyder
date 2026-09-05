@@ -60,10 +60,6 @@ const TONES = {
     card: "via-[#E4EEF7] to-[#CFE2F0]",
     chip: "bg-[#E3EEF9] text-sky-600",
   },
-  red: {
-    card: "via-[#FADDDD] to-[#F3BEBE]",
-    chip: "bg-[#FADDDD] text-red-500",
-  },
 } as const;
 
 type Tone = keyof typeof TONES;
@@ -98,7 +94,7 @@ function BuyerAvatar({ name, index }: { name: string; index: number }) {
   );
 }
 
-const FIN_COLORS = { revenue: "#7FC49A", dp: "#7FB5E6", remaining: "#E87070" };
+const FIN_COLORS = { revenue: "#7FC49A", dp: "#7FB5E6", remaining: "#F6D88C" };
 
 function FinancialDonut({
   revenue,
@@ -438,7 +434,7 @@ export default async function AdminOverviewPage({
               label="Total Sisa Tagihan"
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
-              tone="red"
+              tone="violet"
             />
           </div>
         </div>
