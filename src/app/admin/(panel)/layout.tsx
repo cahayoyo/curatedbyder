@@ -14,7 +14,8 @@ export default function AdminLayout({
     <div className="min-h-screen" style={{ backgroundColor: "#F6F1E7" }}>
       <AppHeader
         badge="ADMIN DASHBOARD"
-        className="bg-white"
+        wide
+        className="bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5]"
         desktopNav={
           <Suspense fallback={null}>
             <AdminNav variant="desktop" />

@@ -8,16 +8,23 @@ export function AppHeader({
   desktopNav,
   menus,
   className,
+  wide,
 }: {
   badge: string;
   mobileNav?: React.ReactNode;
   desktopNav: React.ReactNode;
   menus: React.ReactNode;
   className?: string;
+  wide?: boolean;
 }) {
   return (
     <header className={cn("border-b bg-[#FED6D6]", className)}>
-      <div className="mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex">
+      <div
+        className={cn(
+          "mx-auto grid h-14 grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex md:px-6",
+          !wide && "max-w-5xl"
+        )}
+      >
         {mobileNav ? <div className="flex md:hidden">{mobileNav}</div> : null}
 
         <div

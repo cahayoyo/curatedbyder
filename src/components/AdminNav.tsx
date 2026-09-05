@@ -28,7 +28,7 @@ export function AdminNav({ variant }: { variant: "desktop" | "mobile" }) {
         className="fixed inset-x-0 bottom-0 z-50 border-t bg-white md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto grid max-w-lg grid-cols-5 px-1 py-1">
+        <div className="grid grid-cols-5 px-2 py-1">
           {links.map((l) => {
             const active = isActive(pathname, l.href);
             return (
