@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { cn } from "@/lib/utils";
@@ -11,9 +11,11 @@ export function RangePicker({ value }: { value?: number }) {
 
   return (
     <label className="flex w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
-      <CalendarDays
-        className={cn("h-6 w-6 shrink-0 text-[#C96A6A]", pending && "animate-pulse")}
-      />
+      {pending ? (
+        <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#C96A6A]" />
+      ) : (
+        <CalendarDays className="h-6 w-6 shrink-0 text-[#C96A6A]" />
+      )}
       <select
         value={value ?? ""}
         aria-label="Pilih rentang statistik"
