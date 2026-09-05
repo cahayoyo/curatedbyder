@@ -34,7 +34,7 @@ export default function AdminLayout({
         <Suspense fallback={null}>
           <AdminNav variant="mobile" />
         </Suspense>
-        <main className="flex-1 p-4 pb-24 lg:pb-4">
+        <main className="flex-1 p-4 pb-24 xl:pb-4">
           <Suspense
             fallback={
               <div className="space-y-4">

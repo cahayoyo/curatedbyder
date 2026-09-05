@@ -25,7 +25,7 @@ export function AdminNav({ variant }: { variant: "desktop" | "mobile" }) {
     return (
       <nav
         aria-label="Admin navigation"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-[#FDF1F1] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-[#FDF1F1] xl:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="grid grid-cols-5 px-2 py-1">
