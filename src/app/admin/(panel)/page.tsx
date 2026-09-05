@@ -60,6 +60,36 @@ const TONES = {
 
 type Tone = keyof typeof TONES;
 
+const AVATAR_TONES = [
+  "bg-[#FBE6E6] text-[#C96A6A]",
+  "bg-sky-100 text-sky-600",
+  "bg-violet-100 text-violet-600",
+  "bg-emerald-100 text-emerald-600",
+  "bg-amber-100 text-amber-600",
+] as const;
+
+function buyerInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
+}
+
+function BuyerAvatar({ name, index }: { name: string; index: number }) {
+  return (
+    <span
+      className={cn(
+        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+        AVATAR_TONES[index % AVATAR_TONES.length]
+      )}
+    >
+      {buyerInitials(name)}
+    </span>
+  );
+}
+
 function ItemThumb({
   image,
   title,
@@ -359,10 +389,9 @@ export default async function AdminOverviewPage({
           ) : (
             <ol className="space-y-2 text-sm">
               {stats.topBuyers.map((buyer, i) => (
-                <li key={buyer.id} className="flex justify-between gap-2">
-                  <span className="min-w-0 truncate text-gray-700">
-                    {i + 1}. {buyer.name}
-                  </span>
+                <li key={buyer.id} className="flex items-center gap-2.5">
+                  <BuyerAvatar name={buyer.name} index={i} />
+                  <span className="min-w-0 flex-1 truncate text-gray-700">{buyer.name}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {buyer.transactions} transaksi
                   </span>
