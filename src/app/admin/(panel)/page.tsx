@@ -416,7 +416,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-4">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
@@ -424,6 +424,7 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.revenue}
               tone="green"
               decor="wave"
+              className="col-span-2"
             />
             <StatCard
               icon={Wallet}
@@ -432,6 +433,8 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.dp}
               tone="blue"
               decor="wave"
+              className="p-4 md:p-5"
+              valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
             />
             <StatCard
               icon={PieChart}
@@ -440,6 +443,8 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.remaining}
               tone="violet"
               decor="wave"
+              className="p-4 md:p-5"
+              valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
             />
           </div>
         </div>
