@@ -593,7 +593,7 @@ export default async function AdminOverviewPage({
             <ol className="space-y-2 text-sm">
               {stats.topBooks.map((book) => (
                 <li key={book.id} className="flex items-center gap-2.5">
-                  <ItemThumb image={book.image} title={book.title} size="h-12 w-9" />
+                  <ItemThumb image={book.image} title={book.title} size="h-12 w-12" />
                   <span className="min-w-0 flex-1 truncate text-gray-700">{book.title}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {book.sold} terjual
