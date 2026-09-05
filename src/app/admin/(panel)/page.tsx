@@ -1,5 +1,6 @@
-import { db } from "@/lib/db";
 import { formatIDR } from "@/lib/format";
+import { getOverviewStats } from "@/server/queries/overview";
+import { connection } from "next/server";
 import {
   LayoutDashboard,
   Wallet,
@@ -33,67 +34,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminOverviewPage() {
-  const [totalOrders, bookOrders, toyOrders, financial, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
-    await Promise.all([
-      db.order.count(),
-      db.order.count({ where: { items: { some: { book: { isNot: null } } } } }),
-      db.order.count({ where: { items: { some: { toy: { isNot: null } } } } }),
-      db.order.aggregate({
-        _sum: { total: true, dp: true, remaining: true },
-      }),
-      db.orderItem.groupBy({
-        by: ["status"],
-        _count: { _all: true },
-      }),
-      db.user.count({ where: { role: "USER" } }),
-      db.book.count(),
-      db.orderItem.groupBy({
-        by: ["bookId"],
-        where: { bookId: { not: null } },
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: "desc" } },
-        take: 5,
-      }),
-      db.orderItem.groupBy({
-        by: ["toyId"],
-        where: { toyId: { not: null } },
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: "desc" } },
-        take: 5,
-      }),
-      db.order.groupBy({
-        by: ["buyerId"],
-        _count: { buyerId: true },
-        orderBy: { _count: { buyerId: "desc" } },
-        take: 5,
-      }),
-    ]);
-
-  const statusCount = new Map(byStatus.map((s) => [s.status, s._count._all]));
-
-  const topBookIds = topBookItems
-    .map((b) => b.bookId)
-    .filter((id): id is string => id !== null);
-  const topBooks = topBookIds.length
-    ? await db.book.findMany({ where: { id: { in: topBookIds } } })
-    : [];
-  const topBookMap = new Map(topBooks.map((b) => [b.id, b]));
-
-  const topToyIds = topToyItems
-    .map((t) => t.toyId)
-    .filter((id): id is string => id !== null);
-  const topToys = topToyIds.length
-    ? await db.toy.findMany({ where: { id: { in: topToyIds } } })
-    : [];
-  const topToyMap = new Map(topToys.map((t) => [t.id, t]));
-
-  const topBuyerIds = topBuyerCounts
-    .map((b) => b.buyerId)
-    .filter((id): id is string => id !== null);
-  const topBuyers = topBuyerIds.length
-    ? await db.user.findMany({ where: { id: { in: topBuyerIds } } })
-    : [];
-  const topBuyerMap = new Map(topBuyers.map((u) => [u.id, u]));
+  await connection();
+  const stats = await getOverviewStats();
+  const { totalOrders, bookOrders, toyOrders, statusCount } = stats;
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -150,7 +93,7 @@ export default async function AdminOverviewPage() {
             <ReceiptText className="h-4 w-4" />
             Total Revenue
           </p>
-          <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.total ?? 0)}</p>
+          <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(stats.revenue)}</p>
         </div>
 
         {/* DP + Sisa Tagihan side by side */}
@@ -160,14 +103,14 @@ export default async function AdminOverviewPage() {
               <Wallet className="h-4 w-4" />
               Total DP
             </p>
-            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.dp ?? 0)}</p>
+            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(stats.totalDp)}</p>
           </div>
           <div className="rounded-lg border p-4">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <PiggyBank className="h-4 w-4" />
               Total Sisa Tagihan
             </p>
-            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(financial._sum.remaining ?? 0)}</p>
+            <p className="text-lg font-bold break-words md:text-2xl">{formatIDR(stats.totalRemaining)}</p>
           </div>
         </div>
       </div>
@@ -183,7 +126,7 @@ export default async function AdminOverviewPage() {
             {FULL_STATUSES.map((s) => (
               <li key={s} className="flex justify-between">
                 <span>{STATUS_LABEL[s]}</span>
-                <span className="font-medium">{statusCount.get(s) ?? 0}</span>
+                <span className="font-medium">{statusCount[s] ?? 0}</span>
               </li>
             ))}
           </ul>
@@ -202,14 +145,14 @@ export default async function AdminOverviewPage() {
               <Users className="h-4 w-4" />
               Total Pembeli
             </p>
-            <p className="text-2xl font-bold">{buyers}</p>
+            <p className="text-2xl font-bold">{stats.buyers}</p>
           </div>
           <div className="rounded-lg border p-4">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <BookOpen className="h-4 w-4" />
               Total Buku
             </p>
-            <p className="text-2xl font-bold">{totalBooks}</p>
+            <p className="text-2xl font-bold">{stats.totalBooks}</p>
           </div>
         </div>
       </div>
@@ -221,22 +164,18 @@ export default async function AdminOverviewPage() {
           Buku Terlaris
         </p>
         <div className="rounded-lg border p-4">
-          {topBookItems.length === 0 ? (
+          {stats.topBooks.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada penjualan buku</p>
           ) : (
             <ol className="space-y-1 text-sm">
-              {topBookItems.map((item, i) => {
-                const book = item.bookId ? topBookMap.get(item.bookId) : undefined;
-                if (!book) return null;
-                return (
-                  <li key={item.bookId} className="flex justify-between">
-                    <span className="min-w-0">
-                      {i + 1}. {book.title}
-                    </span>
-                    <span className="shrink-0 font-medium whitespace-nowrap">{item._sum.quantity ?? 0} terjual</span>
-                  </li>
-                );
-              })}
+              {stats.topBooks.map((book, i) => (
+                <li key={book.id} className="flex justify-between">
+                  <span className="min-w-0">
+                    {i + 1}. {book.title}
+                  </span>
+                  <span className="shrink-0 font-medium whitespace-nowrap">{book.sold} terjual</span>
+                </li>
+              ))}
             </ol>
           )}
         </div>
@@ -249,22 +188,18 @@ export default async function AdminOverviewPage() {
           Mainan Terlaris
         </p>
         <div className="rounded-lg border p-4">
-          {topToyItems.length === 0 ? (
+          {stats.topToys.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada penjualan mainan</p>
           ) : (
             <ol className="space-y-1 text-sm">
-              {topToyItems.map((item, i) => {
-                const toy = item.toyId ? topToyMap.get(item.toyId) : undefined;
-                if (!toy) return null;
-                return (
-                  <li key={item.toyId} className="flex justify-between">
-                    <span className="min-w-0">
-                      {i + 1}. {toy.title}
-                    </span>
-                    <span className="shrink-0 font-medium whitespace-nowrap">{item._sum.quantity ?? 0} terjual</span>
-                  </li>
-                );
-              })}
+              {stats.topToys.map((toy, i) => (
+                <li key={toy.id} className="flex justify-between">
+                  <span className="min-w-0">
+                    {i + 1}. {toy.title}
+                  </span>
+                  <span className="shrink-0 font-medium whitespace-nowrap">{toy.sold} terjual</span>
+                </li>
+              ))}
             </ol>
           )}
         </div>
@@ -277,20 +212,16 @@ export default async function AdminOverviewPage() {
           Pembeli Transaksi Terbanyak
         </p>
         <div className="rounded-lg border p-4">
-          {topBuyerCounts.length === 0 ? (
+          {stats.topBuyers.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada transaksi pembeli</p>
           ) : (
             <ol className="space-y-1 text-sm">
-              {topBuyerCounts.map((b, i) => {
-                const user = b.buyerId ? topBuyerMap.get(b.buyerId) : undefined;
-                if (!user) return null;
-                return (
-                  <li key={b.buyerId} className="flex justify-between">
-                    <span className="min-w-0 truncate pr-4">{i + 1}. {user.name}</span>
-                    <span className="shrink-0 font-medium whitespace-nowrap">{b._count.buyerId} transaksi</span>
-                  </li>
-                );
-              })}
+              {stats.topBuyers.map((buyer, i) => (
+                <li key={buyer.id} className="flex justify-between">
+                  <span className="min-w-0 truncate pr-4">{i + 1}. {buyer.name}</span>
+                  <span className="shrink-0 font-medium whitespace-nowrap">{buyer.transactions} transaksi</span>
+                </li>
+              ))}
             </ol>
           )}
         </div>
