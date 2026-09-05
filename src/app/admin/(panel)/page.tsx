@@ -195,7 +195,7 @@ function ItemThumb({
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden rounded border border-input bg-black/5",
+        "relative shrink-0 overflow-hidden rounded bg-black/5",
         size
       )}
     >
@@ -593,7 +593,7 @@ export default async function AdminOverviewPage({
             <ol className="space-y-2 text-sm">
               {stats.topBooks.map((book) => (
                 <li key={book.id} className="flex items-center gap-2.5">
-                  <ItemThumb image={book.image} title={book.title} size="h-10 w-8" />
+                  <ItemThumb image={book.image} title={book.title} size="h-12 w-9" />
                   <span className="min-w-0 flex-1 truncate text-gray-700">{book.title}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {book.sold} terjual
@@ -612,7 +612,7 @@ export default async function AdminOverviewPage({
             <ol className="space-y-2 text-sm">
               {stats.topToys.map((toy) => (
                 <li key={toy.id} className="flex items-center gap-2.5">
-                  <ItemThumb image={toy.image} title={toy.title} size="h-10 w-10" />
+                  <ItemThumb image={toy.image} title={toy.title} size="h-12 w-12" />
                   <span className="min-w-0 flex-1 truncate text-gray-700">{toy.title}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {toy.sold} terjual
