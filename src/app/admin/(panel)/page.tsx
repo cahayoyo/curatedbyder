@@ -56,6 +56,14 @@ const TONES = {
     card: "via-[#F8F0DC] to-[#F0E3BD]",
     chip: "bg-[#FAF0D7] text-amber-600",
   },
+  blue: {
+    card: "via-[#E4EEF7] to-[#CFE2F0]",
+    chip: "bg-[#E3EEF9] text-sky-600",
+  },
+  red: {
+    card: "via-[#FADDDD] to-[#F3BEBE]",
+    chip: "bg-[#FADDDD] text-red-500",
+  },
 } as const;
 
 type Tone = keyof typeof TONES;
@@ -90,7 +98,7 @@ function BuyerAvatar({ name, index }: { name: string; index: number }) {
   );
 }
 
-const FIN_COLORS = { revenue: "#7FC49A", dp: "#F2A2AF", remaining: "#F6D88C" };
+const FIN_COLORS = { revenue: "#7FC49A", dp: "#7FB5E6", remaining: "#E87070" };
 
 function FinancialDonut({
   revenue,
@@ -423,13 +431,14 @@ export default async function AdminOverviewPage({
               label="Total DP"
               value={formatIDR(stats.totalDp)}
               delta={stats.financialDeltas.dp}
+              tone="blue"
             />
             <StatCard
               icon={PieChart}
               label="Total Sisa Tagihan"
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
-              tone="violet"
+              tone="red"
             />
           </div>
         </div>
