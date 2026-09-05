@@ -105,18 +105,16 @@ function FinancialDonut({
   dp: number;
   remaining: number;
 }) {
-  const total = revenue + dp + remaining;
   const R = 78;
   const C = 2 * Math.PI * R;
   let acc = 0;
   const segs = [
-    { value: revenue, color: FIN_COLORS.revenue },
     { value: dp, color: FIN_COLORS.dp },
     { value: remaining, color: FIN_COLORS.remaining },
   ]
-    .filter((p) => p.value > 0)
+    .filter((p) => revenue > 0 && p.value > 0)
     .map((p) => {
-      const len = (p.value / total) * C;
+      const len = (p.value / revenue) * C;
       const seg = { ...p, len, start: acc };
       acc += len;
       return seg;
@@ -149,7 +147,7 @@ function FinancialDonut({
             dominantBaseline="central"
             className="fill-gray-900 text-xs font-bold"
           >
-            {Math.round((s.value / total) * 100)}%
+            {Math.round((s.value / revenue) * 100)}%
           </text>
         );
       })}
@@ -159,7 +157,7 @@ function FinancialDonut({
         textAnchor="middle"
         className="fill-gray-900 text-sm font-bold"
       >
-        {formatIDR(total)}
+        {formatIDR(revenue)}
       </text>
       <text x="100" y="112" textAnchor="middle" className="fill-gray-500 text-[10px]">
         Total Transaksi
@@ -384,12 +382,11 @@ export default async function AdminOverviewPage({
               <ul className="mt-4 space-y-3">
                 {(
                   [
-                    { name: "Revenue", desc: "Pendapatan telah diterima", value: stats.revenue, color: FIN_COLORS.revenue },
-                    { name: "DP (Uang Muka)", desc: "Pembayaran di awal", value: stats.totalDp, color: FIN_COLORS.dp },
-                    { name: "Sisa Tagihan", desc: "Menunggu pembayaran", value: stats.totalRemaining, color: FIN_COLORS.remaining },
+                    { name: "Revenue", desc: "Total nilai semua transaksi", value: stats.revenue, color: FIN_COLORS.revenue, pct: false },
+                    { name: "DP (Uang Muka)", desc: "Uang muka yang sudah diterima", value: stats.totalDp, color: FIN_COLORS.dp, pct: true },
+                    { name: "Sisa Tagihan", desc: "Menunggu pelunasan pembeli", value: stats.totalRemaining, color: FIN_COLORS.remaining, pct: true },
                   ] as const
                 ).map((row) => {
-                  const total = stats.revenue + stats.totalDp + stats.totalRemaining;
                   return (
                     <li key={row.name} className="flex items-center gap-3">
                       <span
@@ -405,7 +402,9 @@ export default async function AdminOverviewPage({
                       <div className="shrink-0 text-right">
                         <p className="text-sm font-bold text-gray-900">{formatIDR(row.value)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {total ? Math.round((row.value / total) * 100) : 0}%
+                          {row.pct
+                            ? `${stats.revenue ? Math.round((row.value / stats.revenue) * 100) : 0}%`
+                            : "\u00A0"}
                         </p>
                       </div>
                     </li>
