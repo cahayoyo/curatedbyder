@@ -10,42 +10,29 @@ import {
   ArrowUp,
   BookOpen,
   CalendarDays,
-  CheckCircle2,
-  ClipboardList,
   Gift,
   LayoutDashboard,
   PackageCheck,
   PieChart,
-  Plane,
   ReceiptText,
   ShoppingCart,
-  Truck,
   Trophy,
   ToyBrick,
   TrendingUp,
   Users,
   Wallet,
-  Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { STATUS_BADGE } from "@/lib/orderOptions";
 
-const STATUS_LABEL: Record<string, string> = {
-  ORDER_PLACED: "Order Placed",
-  SHIPPING_TO_INDONESIA: "Shipping to Indonesia",
-  ARRIVED_IN_INDONESIA: "Arrived in Indonesia",
-  ARRIVED_AT_WAREHOUSE: "Arrived at Warehouse",
-  SHIPPED_TO_CUSTOMER: "Shipped to Customer",
-  ORDER_DELIVERED: "Order Delivered",
-};
-
-const STATUS_ICON: Record<string, LucideIcon> = {
-  ORDER_PLACED: ClipboardList,
-  SHIPPING_TO_INDONESIA: Truck,
-  ARRIVED_IN_INDONESIA: Plane,
-  ARRIVED_AT_WAREHOUSE: Warehouse,
-  SHIPPED_TO_CUSTOMER: PackageCheck,
-  ORDER_DELIVERED: CheckCircle2,
-};
+const STEPS = [
+  { key: "ORDER_PLACED", label: "Order Placed", dot: "bg-teal-500" },
+  { key: "SHIPPING_TO_INDONESIA", label: "Shipping", dot: "bg-sky-500" },
+  { key: "ARRIVED_IN_INDONESIA", label: "In Indonesia", dot: "bg-indigo-500" },
+  { key: "ARRIVED_AT_WAREHOUSE", label: "Warehouse", dot: "bg-violet-500" },
+  { key: "SHIPPED_TO_CUSTOMER", label: "Shipped", dot: "bg-orange-500" },
+  { key: "ORDER_DELIVERED", label: "Delivered", dot: "bg-emerald-500" },
+] as const;
 
 const TONES = {
   rose: {
@@ -159,10 +146,6 @@ export default async function AdminOverviewPage() {
     year: "numeric",
   }).format(new Date());
 
-  const statuses = Object.keys(STATUS_LABEL);
-  const statusesLeft = statuses.slice(0, 3);
-  const statusesRight = statuses.slice(3);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -240,29 +223,30 @@ export default async function AdminOverviewPage() {
       {/* Operational */}
       <section>
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
-        <div className="grid grid-cols-1 gap-6 rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm md:grid-cols-2 md:gap-0">
-          {[statusesLeft, statusesRight].map((group, col) => (
-            <ul
-              key={col}
-              className={cn(
-                "space-y-4",
-                col === 1 && "md:border-l md:border-[#F0CBCB]/60 md:pl-8"
-              )}
-            >
-              {group.map((s) => {
-                const Icon = STATUS_ICON[s];
-                return (
-                  <li key={s} className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FDF1F1] text-[#C96A6A]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="flex-1 text-sm text-gray-700">{STATUS_LABEL[s]}</span>
-                    <span className="text-sm font-bold text-gray-900">{stats.statusCount[s] ?? 0}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          ))}
+        <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
+          <div className="relative flex min-w-[640px] justify-between">
+            <span className="absolute left-[8%] right-[8%] top-[41px] h-0.5 bg-[#F0CBCB]" />
+            {STEPS.map((step) => (
+              <div
+                key={step.key}
+                className="relative z-10 flex flex-1 flex-col items-center gap-1.5"
+              >
+                <span className="text-xl font-bold text-gray-900">
+                  {stats.statusCount[step.key] ?? 0}
+                </span>
+                <span className={cn("h-3.5 w-3.5 rounded-full ring-4 ring-white", step.dot)} />
+                <span className="text-xs font-medium text-gray-700">{step.label}</span>
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                    STATUS_BADGE[step.key]
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
