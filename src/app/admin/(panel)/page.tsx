@@ -368,7 +368,7 @@ export default async function AdminOverviewPage({
           href="/admin/orders"
         />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
-          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#F0CBCB]/60 bg-white/70 p-5 shadow-sm lg:flex-row">
+          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-5 shadow-sm lg:flex-row">
             <FinancialDonut
               revenue={stats.revenue}
               dp={stats.totalDp}
