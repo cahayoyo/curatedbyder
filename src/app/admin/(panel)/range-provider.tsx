@@ -28,7 +28,7 @@ export function RangePicker({ value }: { value?: number }) {
   const { pending, select } = useContext(RangeContext);
 
   return (
-    <label className="flex h-full w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
+    <label className="flex h-full w-fit shrink-0 items-center gap-2 rounded-xl bg-[#FBE6E6] px-3.5 py-3 sm:gap-3 sm:px-5">
       {pending ? (
         <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#C96A6A]" />
       ) : (
