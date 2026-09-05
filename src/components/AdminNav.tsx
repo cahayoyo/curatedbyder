@@ -1,22 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Menu, LayoutDashboard, BookOpen, ToyBrick, Users, ShoppingCart } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutGrid, BookOpen, Package, Users, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin", label: "Overview", icon: LayoutGrid },
   { href: "/admin/books", label: "Buku", icon: BookOpen },
-  { href: "/admin/toys", label: "Mainan", icon: ToyBrick },
+  { href: "/admin/toys", label: "Mainan", icon: Package },
   { href: "/admin/buyers", label: "Pembeli", icon: Users },
   { href: "/admin/orders", label: "Pesanan", icon: ShoppingCart },
 ];
@@ -26,69 +18,58 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function AdminNav() {
+export function AdminNav({ variant }: { variant: "desktop" | "mobile" }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
 
-  return (
-    <div className="flex items-center">
-      {/* Mobile: Menu dropdown */}
-      <div className="md:hidden">
-        <DropdownMenu open={open} onOpenChange={setOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              style={{ backgroundColor: "#D97A7A", color: "#ffffff" }}
-              className="h-10 items-center gap-1.5 border border-input px-2 py-1 text-sm transition-colors hover:bg-[#c96666] hover:text-white"
-            >
-              <Menu className="h-4 w-4" />
-              Menu
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" style={{ backgroundColor: "#FED6D6" }}>
-            {links.map((l) => (
-              <DropdownMenuItem
+  if (variant === "mobile") {
+    return (
+      <nav
+        aria-label="Admin navigation"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-[#FDF1F1] xl:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="grid grid-cols-5 px-2 py-1">
+          {links.map((l) => {
+            const active = isActive(pathname, l.href);
+            return (
+              <Link
                 key={l.href}
-                asChild={false}
-                onSelect={() => {
-                  setOpen(false);
-                  router.push(l.href);
-                }}
+                href={l.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "cursor-pointer text-black/80 hover:bg-black/10 focus:bg-black/10 focus:text-black",
-                  isActive(pathname, l.href) && "bg-[#D97A7A] font-semibold text-white"
+                  "flex flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[10px] font-medium text-[#C96A6A] transition-colors",
+                  active && "bg-[#D97A7A] text-white shadow-sm"
                 )}
               >
-                <span className="flex w-full items-center gap-2">
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+                <l.icon className="h-5 w-5" />
+                {l.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    );
+  }
 
-      {/* Desktop: centered links */}
-      <div className="hidden md:flex items-center gap-2">
-        {links.map((l) => {
-          const active = isActive(pathname, l.href);
-          return (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={cn(
-                "flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm text-black/70 transition-colors hover:bg-black/10 hover:text-black",
-                active && "bg-[#D97A7A] font-semibold text-white shadow-sm"
-              )}
-            >
-              <l.icon className="h-4 w-4" />
-              {l.label}
-            </Link>
-          );
-        })}
-      </div>
+  return (
+    <div className="flex items-center gap-7">
+      {links.map((l) => {
+        const active = isActive(pathname, l.href);
+        return (
+          <Link
+            key={l.href}
+            href={l.href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-base font-medium text-[#B04A4A] transition-colors hover:bg-black/5",
+              active && "bg-[#D97A7A] font-semibold text-white shadow-sm hover:bg-[#D97A7A]"
+            )}
+          >
+            <l.icon className="h-5 w-5" />
+            {l.label}
+          </Link>
+        );
+      })}
     </div>
   );
 }
