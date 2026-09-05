@@ -50,25 +50,35 @@ const BOOK_ITEMS = { items: { some: { book: { isNot: null } } } };
 const TOY_ITEMS = { items: { some: { toy: { isNot: null } } } };
 const FINANCIAL_SUM = { total: true, dp: true, remaining: true } as const;
 
-export async function getOverviewStats(): Promise<OverviewStats> {
+export async function getOverviewStats(
+  period?: { year: number; month: number }
+): Promise<OverviewStats> {
   const now = new Date();
-  const curStart = monthStart(now);
-  const prevStart = monthStart(addMonths(now, -1));
-  const prevEnd = addMonths(now, -1); // same span as month-to-date
+  let curStart: Date, curEnd: Date, prevStart: Date, prevEnd: Date;
+  if (period) {
+    curStart = new Date(Date.UTC(period.year, period.month - 1, 1));
+    const next = addMonths(curStart, 1);
+    const isCurrent = curStart <= now && now < next;
+    curEnd = isCurrent ? now : next;
+    prevStart = addMonths(curStart, -1);
+    prevEnd = isCurrent ? addMonths(now, -1) : curStart;
+  } else {
+    curStart = monthStart(now);
+    curEnd = now;
+    prevStart = monthStart(addMonths(now, -1));
+    prevEnd = addMonths(now, -1); // same span as month-to-date
+  }
   const soldAt = (from: Date, to: Date) => ({ soldAt: { gte: from, lt: to } });
+  const curWhere = soldAt(curStart, curEnd);
+  // no period picked -> totals stay all-time (deltas remain month-scoped)
+  const totalsWhere = period ? curWhere : undefined;
 
-  const [totalOrders, bookOrders, toyOrders, financial, curMonth, prevMonth, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
+  const [totalOrders, bookOrders, toyOrders, financial, prevMonth, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
     await Promise.all([
-      db.order.count(),
-      db.order.count({ where: BOOK_ITEMS }),
-      db.order.count({ where: TOY_ITEMS }),
-      db.order.aggregate({ _sum: { ...FINANCIAL_SUM } }),
-      Promise.all([
-        db.order.count({ where: soldAt(curStart, now) }),
-        db.order.count({ where: { ...soldAt(curStart, now), ...BOOK_ITEMS } }),
-        db.order.count({ where: { ...soldAt(curStart, now), ...TOY_ITEMS } }),
-        db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(curStart, now) }),
-      ]),
+      db.order.count({ where: totalsWhere }),
+      db.order.count({ where: { ...totalsWhere, ...BOOK_ITEMS } }),
+      db.order.count({ where: { ...totalsWhere, ...TOY_ITEMS } }),
+      db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: totalsWhere }),
       Promise.all([
         db.order.count({ where: soldAt(prevStart, prevEnd) }),
         db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...BOOK_ITEMS } }),
@@ -78,6 +88,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
       db.orderItem.groupBy({
         by: ["status"],
         _count: { _all: true },
+        where: period ? { order: curWhere } : undefined,
       }),
       db.user.count({ where: { role: "USER" } }),
       db.book.count(),
@@ -103,7 +114,6 @@ export async function getOverviewStats(): Promise<OverviewStats> {
       }),
     ]);
 
-  const [cTotal, cBook, cToy, cFin] = curMonth;
   const [pTotal, pBook, pToy, pFin] = prevMonth;
 
   const topBookIds = topBookItems.map((b) => b.bookId).filter((id): id is string => id !== null);
@@ -126,14 +136,14 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     totalDp: financial._sum.dp ?? 0,
     totalRemaining: financial._sum.remaining ?? 0,
     orderDeltas: {
-      total: delta(cTotal, pTotal),
-      book: delta(cBook, pBook),
-      toy: delta(cToy, pToy),
+      total: delta(totalOrders, pTotal),
+      book: delta(bookOrders, pBook),
+      toy: delta(toyOrders, pToy),
     },
     financialDeltas: {
-      revenue: delta(cFin._sum.total ?? 0, pFin._sum.total ?? 0),
-      dp: delta(cFin._sum.dp ?? 0, pFin._sum.dp ?? 0),
-      remaining: delta(cFin._sum.remaining ?? 0, pFin._sum.remaining ?? 0),
+      revenue: delta(financial._sum.total ?? 0, pFin._sum.total ?? 0),
+      dp: delta(financial._sum.dp ?? 0, pFin._sum.dp ?? 0),
+      remaining: delta(financial._sum.remaining ?? 0, pFin._sum.remaining ?? 0),
     },
     statusCount: Object.fromEntries(byStatus.map((s) => [s.status as string, s._count._all])),
     buyers,

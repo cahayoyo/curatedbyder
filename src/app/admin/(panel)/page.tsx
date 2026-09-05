@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { formatIDR } from "@/lib/format";
 import { getOverviewStats, type Delta } from "@/server/queries/overview";
 import { requireAdmin } from "@/lib/session";
+import { MonthPicker } from "./month-picker";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -140,9 +141,19 @@ function SectionHeading({
   );
 }
 
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ m?: string | string[] }>;
+}) {
   await connection();
-  const [stats, session] = await Promise.all([getOverviewStats(), requireAdmin()]);
+  const params = await searchParams;
+  const m = typeof params.m === "string" ? params.m : undefined;
+  const period =
+    m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
+      ? { year: Number(m.slice(0, 4)), month: Number(m.slice(5, 7)) }
+      : undefined;
+  const [stats, session] = await Promise.all([getOverviewStats(period), requireAdmin()]);
 
   const dateLabel = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
@@ -164,12 +175,17 @@ export default async function AdminOverviewPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
-          <CalendarDays className="h-6 w-6 shrink-0 text-[#C96A6A]" />
-          <div>
-            <p className="text-sm font-bold text-[#B04A4A]">{dateLabel}</p>
-            <p className="text-xs text-[#C96A6A]">Selamat bekerja, {session?.user?.name ?? "Admin"}!</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
+            <CalendarDays className="h-6 w-6 shrink-0 text-[#C96A6A]" />
+            <div>
+              <p className="text-sm font-bold text-[#B04A4A]">{dateLabel}</p>
+              <p className="text-xs text-[#C96A6A]">
+                Selamat Datang, {session?.user?.role === "SUPER_ADMIN" ? "Admin" : "Pengguna"}!
+              </p>
+            </div>
           </div>
+          <MonthPicker value={m} />
         </div>
       </div>
 
