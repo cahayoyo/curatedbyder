@@ -545,6 +545,18 @@ export default async function AdminOverviewPage({
                     i === 0 || i === 5 ? "left-1/2 right-0" : "left-0 right-0"
                   )}
                 />
+                {i === 2 && (
+                  <>
+                    <span
+                      className="absolute right-0 top-[47px] h-[calc(100%+20px)] w-0.5 bg-[#F0CBCB] md:hidden"
+                      aria-hidden
+                    />
+                    <span
+                      className="absolute right-0 top-[47px] h-0.5 w-1/2 bg-[#F0CBCB] md:hidden"
+                      aria-hidden
+                    />
+                  </>
+                )}
                 <StatValue
                   value={stats.statusCount[step.key] ?? 0}
                   className="text-xl font-bold text-gray-900"
