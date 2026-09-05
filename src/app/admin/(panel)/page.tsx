@@ -432,7 +432,7 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.revenue}
               tone="green"
               decor="wave"
-              className="col-span-2"
+              className="col-span-2 md:col-span-1"
             />
             <StatCard
               icon={Wallet}
