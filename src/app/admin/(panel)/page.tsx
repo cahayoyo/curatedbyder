@@ -424,7 +424,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-1">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-4">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
