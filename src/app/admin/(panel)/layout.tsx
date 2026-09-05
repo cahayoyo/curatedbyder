@@ -13,13 +13,13 @@ export default function AdminLayout({
   return (
     <div
       className="flex min-h-screen flex-col md:px-14"
-      style={{ background: "linear-gradient(180deg, #F6D6D6 0%, #EEBFBF 50%, #F6D6D6 100%)" }}
+      style={{ background: "linear-gradient(180deg, #F2CACA 0%, #E9B5B5 50%, #F2CACA 100%)" }}
     >
       <div className="flex flex-1 flex-col overflow-hidden rounded-none bg-[#F6F1E7] md:rounded-b-xl">
         <AppHeader
           badge="ADMIN DASHBOARD"
           wide
-          className="bg-gradient-to-r from-[#FDF4F4] to-[#F9E0E0] border-[#F0CBCB]"
+          className="bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] border-[#F0CBCB]"
           desktopNav={
             <Suspense fallback={null}>
               <AdminNav variant="desktop" />
