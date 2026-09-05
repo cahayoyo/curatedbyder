@@ -243,7 +243,7 @@ export default async function AdminOverviewPage({
       {/* Operational */}
       <section>
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
-        <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <div className="relative flex min-w-[640px] justify-between">
             <span className="absolute left-[8%] right-[8%] top-[47px] h-0.5 bg-[#F0CBCB]" />
             {STEPS.map((step) => (
@@ -279,7 +279,7 @@ export default async function AdminOverviewPage({
 
       {/* Catalog + Top products */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <SectionHeading icon={BookOpen} title="Catalog" href="/admin/books" linkLabel="Lihat semua" />
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-3 rounded-lg bg-[#FDF1F1] p-4">
@@ -303,7 +303,7 @@ export default async function AdminOverviewPage({
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <SectionHeading icon={Trophy} title="Buku Terlaris" href="/admin/books" linkLabel="Lihat semua" />
           {stats.topBooks.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada penjualan buku</p>
@@ -323,7 +323,7 @@ export default async function AdminOverviewPage({
           )}
         </div>
 
-        <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <SectionHeading icon={ToyBrick} title="Mainan Terlaris" href="/admin/toys" linkLabel="Lihat semua" />
           {stats.topToys.length === 0 ? (
             <p className="text-sm text-muted-foreground">Belum ada penjualan mainan</p>
