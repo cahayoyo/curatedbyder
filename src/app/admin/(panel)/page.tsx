@@ -387,13 +387,13 @@ export default async function AdminOverviewPage({
           href="/admin/orders"
         />
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3fr_2fr]">
-          <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-between">
+          <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-center lg:gap-14">
             <FinancialDonut
               revenue={stats.revenue}
               dp={stats.totalDp}
               remaining={stats.totalRemaining}
             />
-            <div className="min-w-0 w-full flex-1 lg:max-w-none lg:self-start">
+            <div className="min-w-0 w-full flex-1 lg:w-[420px] lg:flex-none lg:self-start">
               <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
               <p className="text-sm text-muted-foreground">
                 Proporsi revenue, DP, dan sisa tagihan.
