@@ -57,8 +57,8 @@ const TONES = {
     chip: "bg-[#E7F5EC] text-emerald-600",
   },
   violet: {
-    card: "via-[#F4F1FB] to-[#E9E3F8]",
-    chip: "bg-[#EFEAFB] text-violet-600",
+    card: "via-[#FBF6E9] to-[#F7EFD8]",
+    chip: "bg-[#FAF0D7] text-amber-600",
   },
 } as const;
 
