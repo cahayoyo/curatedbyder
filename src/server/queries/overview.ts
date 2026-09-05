@@ -6,7 +6,7 @@ export type Delta = {
   percentChange: number | null;
 };
 
-export type TopItem = { id: string; title: string; sold: number };
+export type TopItem = { id: string; title: string; image: string | null; sold: number };
 export type TopBuyer = { id: string; name: string; transactions: number };
 
 export type OverviewStats = {
@@ -19,8 +19,6 @@ export type OverviewStats = {
   orderDeltas: { total: Delta; book: Delta; toy: Delta };
   financialDeltas: { revenue: Delta; dp: Delta; remaining: Delta };
   statusCount: Record<string, number>;
-  buyers: number;
-  totalBooks: number;
   topBooks: TopItem[];
   topToys: TopItem[];
   topBuyers: TopBuyer[];
@@ -50,37 +48,47 @@ const BOOK_ITEMS = { items: { some: { book: { isNot: null } } } };
 const TOY_ITEMS = { items: { some: { toy: { isNot: null } } } };
 const FINANCIAL_SUM = { total: true, dp: true, remaining: true } as const;
 
-export async function getOverviewStats(): Promise<OverviewStats> {
+export async function getOverviewStats(
+  range?: { days: number }
+): Promise<OverviewStats> {
   const now = new Date();
-  const curStart = monthStart(now);
-  const prevStart = monthStart(addMonths(now, -1));
-  const prevEnd = addMonths(now, -1); // same span as month-to-date
+  let curStart: Date, curEnd: Date, prevStart: Date, prevEnd: Date;
+  if (range) {
+    curEnd = now;
+    curStart = new Date(now.getTime() - range.days * 86_400_000);
+    prevEnd = curStart;
+    prevStart = new Date(curStart.getTime() - range.days * 86_400_000);
+  } else {
+    curStart = monthStart(now);
+    curEnd = now;
+    prevStart = monthStart(addMonths(now, -1));
+    prevEnd = addMonths(now, -1); // same span as month-to-date
+  }
   const soldAt = (from: Date, to: Date) => ({ soldAt: { gte: from, lt: to } });
+  const curWhere = soldAt(curStart, curEnd);
+  // All Time selected -> totals stay all-time (deltas remain month-scoped)
+  const totalsWhere = range ? curWhere : undefined;
 
-  const [totalOrders, bookOrders, toyOrders, financial, curMonth, prevMonth, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
+  const [totalOrders, bookOrders, toyOrders, financial, prevMonth, byStatus, topBookItems, topToyItems, topBuyerCounts] =
     await Promise.all([
-      db.order.count(),
-      db.order.count({ where: BOOK_ITEMS }),
-      db.order.count({ where: TOY_ITEMS }),
-      db.order.aggregate({ _sum: { ...FINANCIAL_SUM } }),
-      Promise.all([
-        db.order.count({ where: soldAt(curStart, now) }),
-        db.order.count({ where: { ...soldAt(curStart, now), ...BOOK_ITEMS } }),
-        db.order.count({ where: { ...soldAt(curStart, now), ...TOY_ITEMS } }),
-        db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(curStart, now) }),
-      ]),
-      Promise.all([
-        db.order.count({ where: soldAt(prevStart, prevEnd) }),
-        db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...BOOK_ITEMS } }),
-        db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...TOY_ITEMS } }),
-        db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(prevStart, prevEnd) }),
-      ]),
+      db.order.count({ where: totalsWhere }),
+      db.order.count({ where: { ...totalsWhere, ...BOOK_ITEMS } }),
+      db.order.count({ where: { ...totalsWhere, ...TOY_ITEMS } }),
+      db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: totalsWhere }),
+      // range mode -> delta lines hidden in UI, skip previous-period queries entirely
+      range
+        ? Promise.resolve(null)
+        : Promise.all([
+            db.order.count({ where: soldAt(prevStart, prevEnd) }),
+            db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...BOOK_ITEMS } }),
+            db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...TOY_ITEMS } }),
+            db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(prevStart, prevEnd) }),
+          ]),
       db.orderItem.groupBy({
         by: ["status"],
         _count: { _all: true },
+        where: range ? { order: curWhere } : undefined,
       }),
-      db.user.count({ where: { role: "USER" } }),
-      db.book.count(),
       db.orderItem.groupBy({
         by: ["bookId"],
         where: { bookId: { not: null } },
@@ -103,8 +111,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
       }),
     ]);
 
-  const [cTotal, cBook, cToy, cFin] = curMonth;
-  const [pTotal, pBook, pToy, pFin] = prevMonth;
+  const [pTotal, pBook, pToy, pFin] = prevMonth ?? [0, 0, 0, { _sum: { total: null, dp: null, remaining: null } }];
 
   const topBookIds = topBookItems.map((b) => b.bookId).filter((id): id is string => id !== null);
   const bookRows = topBookIds.length ? await db.book.findMany({ where: { id: { in: topBookIds } } }) : [];
@@ -126,25 +133,23 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     totalDp: financial._sum.dp ?? 0,
     totalRemaining: financial._sum.remaining ?? 0,
     orderDeltas: {
-      total: delta(cTotal, pTotal),
-      book: delta(cBook, pBook),
-      toy: delta(cToy, pToy),
+      total: delta(totalOrders, pTotal),
+      book: delta(bookOrders, pBook),
+      toy: delta(toyOrders, pToy),
     },
     financialDeltas: {
-      revenue: delta(cFin._sum.total ?? 0, pFin._sum.total ?? 0),
-      dp: delta(cFin._sum.dp ?? 0, pFin._sum.dp ?? 0),
-      remaining: delta(cFin._sum.remaining ?? 0, pFin._sum.remaining ?? 0),
+      revenue: delta(financial._sum.total ?? 0, pFin._sum.total ?? 0),
+      dp: delta(financial._sum.dp ?? 0, pFin._sum.dp ?? 0),
+      remaining: delta(financial._sum.remaining ?? 0, pFin._sum.remaining ?? 0),
     },
     statusCount: Object.fromEntries(byStatus.map((s) => [s.status as string, s._count._all])),
-    buyers,
-    totalBooks,
     topBooks: topBookItems.flatMap((it) => {
       const book = it.bookId ? bookMap.get(it.bookId) : undefined;
-      return book ? [{ id: book.id, title: book.title, sold: it._sum.quantity ?? 0 }] : [];
+      return book ? [{ id: book.id, title: book.title, image: book.image ?? null, sold: it._sum.quantity ?? 0 }] : [];
     }),
     topToys: topToyItems.flatMap((it) => {
       const toy = it.toyId ? toyMap.get(it.toyId) : undefined;
-      return toy ? [{ id: toy.id, title: toy.title, sold: it._sum.quantity ?? 0 }] : [];
+      return toy ? [{ id: toy.id, title: toy.title, image: toy.image ?? null, sold: it._sum.quantity ?? 0 }] : [];
     }),
     topBuyers: topBuyerCounts.flatMap((b) => {
       const user = b.buyerId ? buyerMap.get(b.buyerId) : undefined;
