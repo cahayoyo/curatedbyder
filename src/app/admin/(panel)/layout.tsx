@@ -15,7 +15,7 @@ export default function AdminLayout({
       className="flex min-h-screen flex-col md:px-14"
       style={{ background: "linear-gradient(180deg, #F2CACA 0%, #E9B5B5 50%, #F2CACA 100%)" }}
     >
-      <div className="flex flex-1 flex-col overflow-hidden rounded-none bg-[#F6F1E7] md:rounded-b-xl">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-none bg-[#FDF1F1] md:rounded-b-xl">
         <AppHeader
           badge="ADMIN DASHBOARD"
           wide

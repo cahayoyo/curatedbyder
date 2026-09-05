@@ -49,15 +49,15 @@ const STATUS_ICON: Record<string, LucideIcon> = {
 
 const TONES = {
   rose: {
-    card: "to-[#FDF1F1]",
+    card: "via-[#FCF3F3] to-[#F9E3E3]",
     chip: "bg-[#FBE6E6] text-[#C96A6A]",
   },
   green: {
-    card: "to-[#EDF7F0]",
+    card: "via-[#F0F8F3] to-[#E2F1E8]",
     chip: "bg-[#E7F5EC] text-emerald-600",
   },
   violet: {
-    card: "to-[#F3F0FC]",
+    card: "via-[#F4F1FB] to-[#E9E3F8]",
     chip: "bg-[#EFEAFB] text-violet-600",
   },
 } as const;
@@ -164,7 +164,7 @@ export default async function AdminOverviewPage() {
   const statusesRight = statuses.slice(3);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
@@ -336,7 +336,10 @@ export default async function AdminOverviewPage() {
       {/* Footer */}
       <footer className="flex flex-col items-center justify-between gap-1 border-t border-[#F0CBCB]/60 pt-4 text-xs text-muted-foreground sm:flex-row">
         <p>© {new Date().getFullYear()} CuratedByDer. All rights reserved.</p>
-        <p>Books • Stories • To You</p>
+        <p className="flex items-center gap-2">
+          Books • Stories • To You
+          <span className="hidden h-px w-16 bg-[#D97A7A] sm:inline-block" />
+        </p>
       </footer>
     </div>
   );
