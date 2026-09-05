@@ -9,7 +9,7 @@ Online bookstore (books & toys) built with Next.js 16 (App Router), Prisma, and 
 - Prisma 6.19 + PostgreSQL on Neon
 - NextAuth.js v4 (Credentials, JWT sessions, role-based proxy guards)
 - Zod 4, Uploadthing (file uploads), jsPDF (order PDFs), Recharts
-- Vitest 5 + Testing Library (tests/coverage), ESLint 9 (flat config), SonarQube Cloud
+- ESLint 9 (flat config)
 
 ## Local Development
 
