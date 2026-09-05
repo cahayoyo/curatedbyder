@@ -48,18 +48,22 @@ const TONES = {
   rose: {
     card: "via-[#F9E4E4] to-[#F3CFCF]",
     chip: "bg-[#FBE6E6] text-[#C96A6A]",
+    wave: "#D97A7A",
   },
   green: {
     card: "via-[#E8F3EC] to-[#CFE7D8]",
     chip: "bg-[#E7F5EC] text-emerald-600",
+    wave: "#6FBD8E",
   },
   violet: {
     card: "via-[#F8F0DC] to-[#F0E3BD]",
     chip: "bg-[#FAF0D7] text-amber-600",
+    wave: "#DFB560",
   },
   blue: {
     card: "via-[#E4EEF7] to-[#CFE2F0]",
     chip: "bg-[#E3EEF9] text-sky-600",
+    wave: "#7FB5E6",
   },
 } as const;
 
@@ -234,6 +238,21 @@ function MiniBars() {
   );
 }
 
+function MiniWave({ stroke }: { stroke: string }) {
+  const line = "M2 32 C10 22 16 34 24 26 C32 18 36 30 44 20 C52 10 58 18 62 8";
+  return (
+    <svg
+      viewBox="0 0 64 40"
+      className="ml-auto h-10 w-16 shrink-0"
+      aria-hidden
+      fill="none"
+    >
+      <path d={`${line} L62 40 L2 40 Z`} fill={stroke} opacity="0.18" stroke="none" />
+      <path d={line} stroke={stroke} strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function StatCard({
   icon: Icon,
   label,
@@ -247,7 +266,7 @@ function StatCard({
   value: string | number;
   delta: Delta;
   tone?: Tone;
-  decor?: boolean;
+  decor?: "bars" | "wave";
 }) {
   return (
     <div
@@ -270,7 +289,8 @@ function StatCard({
           <StatValue value={value} className="text-2xl font-bold text-gray-900 md:text-3xl" />
           <DeltaLine delta={delta} />
         </div>
-        {decor && <MiniBars />}
+        {decor === "bars" && <MiniBars />}
+        {decor === "wave" && <MiniWave stroke={TONES[tone].wave} />}
       </div>
     </div>
   );
@@ -362,21 +382,21 @@ export default async function AdminOverviewPage({
           <StatCard
             icon={FileText}
             label="Total Invoice"
-            decor
+            decor="bars"
             value={stats.totalOrders}
             delta={stats.orderDeltas.total}
           />
           <StatCard
             icon={BookOpen}
             label="Pesanan Buku"
-            decor
+            decor="bars"
             value={stats.bookOrders}
             delta={stats.orderDeltas.book}
           />
           <StatCard
             icon={Blocks}
             label="Pesanan Mainan"
-            decor
+            decor="bars"
             value={stats.toyOrders}
             delta={stats.orderDeltas.toy}
           />
@@ -444,6 +464,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.revenue)}
               delta={stats.financialDeltas.revenue}
               tone="green"
+              decor="wave"
             />
             <StatCard
               icon={Wallet}
@@ -451,6 +472,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalDp)}
               delta={stats.financialDeltas.dp}
               tone="blue"
+              decor="wave"
             />
             <StatCard
               icon={PieChart}
@@ -458,6 +480,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
               tone="violet"
+              decor="wave"
             />
           </div>
         </div>
