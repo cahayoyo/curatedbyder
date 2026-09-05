@@ -172,7 +172,7 @@ export default async function AdminOverviewPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
             <p className="text-sm text-muted-foreground">
-              Ringkasan aktivitas toko buku dan mainan CuratedByDer.
+              Ringkasan Aktivitas CuratedByDer.
             </p>
           </div>
         </div>
