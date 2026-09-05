@@ -170,12 +170,18 @@ function MiniBars() {
   );
 }
 
-function MiniWave({ stroke }: { stroke: string }) {
+function MiniWave({
+  stroke,
+  hideOnMobile,
+}: {
+  stroke: string;
+  hideOnMobile?: boolean;
+}) {
   const line = "M2 32 C10 22 16 34 24 26 C32 18 36 30 44 20 C52 10 58 18 62 8";
   return (
     <svg
       viewBox="0 0 64 40"
-      className="ml-auto h-10 w-16 shrink-0"
+      className={cn("ml-auto h-10 w-16 shrink-0", hideOnMobile && "hidden md:block")}
       aria-hidden
       fill="none"
     >
@@ -201,7 +207,7 @@ function StatCard({
   value: string | number;
   delta: Delta;
   tone?: Tone;
-  decor?: "bars" | "wave";
+  decor?: "bars" | "wave" | "wave-desktop";
   compact?: boolean;
   className?: string;
   valueClassName?: string;
@@ -246,7 +252,9 @@ function StatCard({
           <DeltaLine delta={delta} />
         </div>
         {decor === "bars" && <MiniBars />}
-        {decor === "wave" && <MiniWave stroke={TONES[tone].wave} />}
+        {(decor === "wave" || decor === "wave-desktop") && (
+          <MiniWave stroke={TONES[tone].wave} hideOnMobile={decor === "wave-desktop"} />
+        )}
       </div>
     </div>
   );
@@ -432,7 +440,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalDp)}
               delta={stats.financialDeltas.dp}
               tone="blue"
-              decor="wave"
+              decor="wave-desktop"
               className="p-4 md:p-5"
               valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
             />
@@ -442,7 +450,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
               tone="violet"
-              decor="wave"
+              decor="wave-desktop"
               className="p-4 md:p-5"
               valueClassName="text-lg font-bold text-gray-900 md:text-3xl"
             />
