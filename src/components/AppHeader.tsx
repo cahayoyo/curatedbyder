@@ -21,7 +21,7 @@ export function AppHeader({
     <header className={cn("border-b bg-[#FED6D6]", className)}>
       <div
         className={cn(
-          "mx-auto grid h-16 grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:flex md:px-6",
+          "mx-auto grid h-16 grid-cols-[auto_1fr_auto] items-center gap-2 px-5 md:flex md:px-8",
           !wide && "max-w-5xl"
         )}
       >
