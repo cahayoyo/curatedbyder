@@ -52,17 +52,17 @@ const TONES = {
   },
   green: {
     card: "via-[#E8F3EC] to-[#CFE7D8]",
-    chip: "bg-[#E7F5EC] text-emerald-600",
+    chip: "bg-[#CDEBDA] text-emerald-700",
     wave: "#6FBD8E",
   },
   violet: {
     card: "via-[#F8F0DC] to-[#F0E3BD]",
-    chip: "bg-[#FAF0D7] text-amber-600",
+    chip: "bg-[#F3E3B8] text-amber-700",
     wave: "#DFB560",
   },
   blue: {
     card: "via-[#E4EEF7] to-[#CFE2F0]",
-    chip: "bg-[#E3EEF9] text-sky-600",
+    chip: "bg-[#CBE2F5] text-sky-700",
     wave: "#7FB5E6",
   },
 } as const;
