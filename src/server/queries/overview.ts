@@ -51,17 +51,15 @@ const TOY_ITEMS = { items: { some: { toy: { isNot: null } } } };
 const FINANCIAL_SUM = { total: true, dp: true, remaining: true } as const;
 
 export async function getOverviewStats(
-  period?: { year: number; month: number }
+  range?: { days: number }
 ): Promise<OverviewStats> {
   const now = new Date();
   let curStart: Date, curEnd: Date, prevStart: Date, prevEnd: Date;
-  if (period) {
-    curStart = new Date(Date.UTC(period.year, period.month - 1, 1));
-    const next = addMonths(curStart, 1);
-    const isCurrent = curStart <= now && now < next;
-    curEnd = isCurrent ? now : next;
-    prevStart = addMonths(curStart, -1);
-    prevEnd = isCurrent ? addMonths(now, -1) : curStart;
+  if (range) {
+    curEnd = now;
+    curStart = new Date(now.getTime() - range.days * 86_400_000);
+    prevEnd = curStart;
+    prevStart = new Date(curStart.getTime() - range.days * 86_400_000);
   } else {
     curStart = monthStart(now);
     curEnd = now;
@@ -70,8 +68,8 @@ export async function getOverviewStats(
   }
   const soldAt = (from: Date, to: Date) => ({ soldAt: { gte: from, lt: to } });
   const curWhere = soldAt(curStart, curEnd);
-  // no period picked -> totals stay all-time (deltas remain month-scoped)
-  const totalsWhere = period ? curWhere : undefined;
+  // All Time selected -> totals stay all-time (deltas remain month-scoped)
+  const totalsWhere = range ? curWhere : undefined;
 
   const [totalOrders, bookOrders, toyOrders, financial, prevMonth, byStatus, buyers, totalBooks, topBookItems, topToyItems, topBuyerCounts] =
     await Promise.all([
@@ -88,7 +86,7 @@ export async function getOverviewStats(
       db.orderItem.groupBy({
         by: ["status"],
         _count: { _all: true },
-        where: period ? { order: curWhere } : undefined,
+        where: range ? { order: curWhere } : undefined,
       }),
       db.user.count({ where: { role: "USER" } }),
       db.book.count(),

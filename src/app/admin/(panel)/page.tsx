@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { formatIDR } from "@/lib/format";
 import { getOverviewStats, type Delta } from "@/server/queries/overview";
 import { requireAdmin } from "@/lib/session";
-import { MonthPicker } from "./month-picker";
+import { RangePicker } from "./range-picker";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -57,7 +57,7 @@ const TONES = {
 
 type Tone = keyof typeof TONES;
 
-function DeltaLine({ delta }: { delta: Delta }) {
+function DeltaLine({ delta, label = "dari bulan lalu" }: { delta: Delta; label?: string }) {
   if (delta.percentChange == null) return null;
   const up = delta.percentChange >= 0;
   return (
@@ -69,7 +69,7 @@ function DeltaLine({ delta }: { delta: Delta }) {
     >
       {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       {up ? "+" : ""}
-      {delta.percentChange}% dari bulan lalu
+      {delta.percentChange}% {label}
     </p>
   );
 }
@@ -79,12 +79,14 @@ function StatCard({
   label,
   value,
   delta,
+  deltaLabel,
   tone = "rose",
 }: {
   icon: LucideIcon;
   label: string;
   value: string | number;
   delta: Delta;
+  deltaLabel?: string;
   tone?: Tone;
 }) {
   return (
@@ -106,7 +108,7 @@ function StatCard({
         <div className="min-w-0">
           <p className="truncate text-sm text-muted-foreground">{label}</p>
           <p className="text-2xl font-bold text-gray-900 md:text-3xl">{value}</p>
-          <DeltaLine delta={delta} />
+          <DeltaLine delta={delta} label={deltaLabel} />
         </div>
       </div>
     </div>
@@ -144,16 +146,14 @@ function SectionHeading({
 export default async function AdminOverviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ m?: string | string[] }>;
+  searchParams: Promise<{ r?: string | string[] }>;
 }) {
   await connection();
   const params = await searchParams;
-  const m = typeof params.m === "string" ? params.m : undefined;
-  const period =
-    m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
-      ? { year: Number(m.slice(0, 4)), month: Number(m.slice(5, 7)) }
-      : undefined;
-  const [stats, session] = await Promise.all([getOverviewStats(period), requireAdmin()]);
+  const r = Number(typeof params.r === "string" ? params.r : undefined);
+  const range = r === 7 || r === 14 || r === 30 ? { days: r } : undefined;
+  const deltaLabel = range ? "dari periode sebelumnya" : undefined;
+  const [stats, session] = await Promise.all([getOverviewStats(range), requireAdmin()]);
 
   const dateLabel = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
@@ -185,7 +185,7 @@ export default async function AdminOverviewPage({
               </p>
             </div>
           </div>
-          <MonthPicker value={m} />
+          <RangePicker value={range?.days} />
         </div>
       </div>
 
@@ -198,18 +198,21 @@ export default async function AdminOverviewPage({
             label="Total Pesanan"
             value={stats.totalOrders}
             delta={stats.orderDeltas.total}
+            deltaLabel={deltaLabel}
           />
           <StatCard
             icon={BookOpen}
             label="Pesanan Buku"
             value={stats.bookOrders}
             delta={stats.orderDeltas.book}
+            deltaLabel={deltaLabel}
           />
           <StatCard
             icon={Gift}
             label="Pesanan Mainan"
             value={stats.toyOrders}
             delta={stats.orderDeltas.toy}
+            deltaLabel={deltaLabel}
           />
         </div>
       </section>
@@ -223,6 +226,7 @@ export default async function AdminOverviewPage({
             label="Total Revenue"
             value={formatIDR(stats.revenue)}
             delta={stats.financialDeltas.revenue}
+            deltaLabel={deltaLabel}
             tone="green"
           />
           <StatCard
@@ -230,12 +234,14 @@ export default async function AdminOverviewPage({
             label="Total DP"
             value={formatIDR(stats.totalDp)}
             delta={stats.financialDeltas.dp}
+            deltaLabel={deltaLabel}
           />
           <StatCard
             icon={PieChart}
             label="Total Sisa Tagihan"
             value={formatIDR(stats.totalRemaining)}
             delta={stats.financialDeltas.remaining}
+            deltaLabel={deltaLabel}
             tone="violet"
           />
         </div>
