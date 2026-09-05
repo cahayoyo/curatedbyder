@@ -35,10 +35,10 @@ export function AppHeader({
         >
           <Image src={logoder} alt="Logo" width={32} height={32} className="rounded-full object-cover" />
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-semibold">
+            <span className="truncate text-lg font-semibold">
               CuratedBy<span className="text-[#D97A7A]">Der</span>
             </span>
-            <span className="truncate text-[11px] font-medium opacity-70">{badge}</span>
+            <span className="truncate text-xs font-medium opacity-70">{badge}</span>
           </div>
         </div>
 
