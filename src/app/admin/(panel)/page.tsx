@@ -241,12 +241,18 @@ function MiniBars() {
   );
 }
 
-function MiniWave({ stroke }: { stroke: string }) {
+function MiniWave({
+  stroke,
+  hideOnMobile,
+}: {
+  stroke: string;
+  hideOnMobile?: boolean;
+}) {
   const line = "M2 32 C10 22 16 34 24 26 C32 18 36 30 44 20 C52 10 58 18 62 8";
   return (
     <svg
       viewBox="0 0 64 40"
-      className="ml-auto h-10 w-16 shrink-0"
+      className={cn("ml-auto h-10 w-16 shrink-0", hideOnMobile && "hidden md:block")}
       aria-hidden
       fill="none"
     >
@@ -264,21 +270,26 @@ function StatCard({
   tone = "rose",
   decor,
   compact,
+  className,
+  valueClassName,
 }: {
   icon: LucideIcon;
   label: string;
   value: string | number;
   delta: Delta;
   tone?: Tone;
-  decor?: "bars" | "wave";
+  decor?: "bars" | "wave" | "wave-desktop";
   compact?: boolean;
+  className?: string;
+  valueClassName?: string;
 }) {
   return (
     <div
       className={cn(
         "rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white shadow-sm",
         TONES[tone].card,
-        compact ? "p-3 md:p-5" : "p-5"
+        compact ? "p-3 md:p-5" : "p-5",
+        className
       )}
     >
       <div
@@ -305,11 +316,16 @@ function StatCard({
           >
             {label}
           </p>
-          <StatValue value={value} className="text-2xl font-bold text-gray-900 md:text-3xl" />
+          <StatValue
+            value={value}
+            className={valueClassName ?? "text-2xl font-bold text-gray-900 md:text-3xl"}
+          />
           <DeltaLine delta={delta} />
         </div>
         {decor === "bars" && <MiniBars />}
-        {decor === "wave" && <MiniWave stroke={TONES[tone].wave} />}
+        {(decor === "wave" || decor === "wave-desktop") && (
+          <MiniWave stroke={TONES[tone].wave} hideOnMobile={decor === "wave-desktop"} />
+        )}
       </div>
     </div>
   );
@@ -319,24 +335,19 @@ function SectionHeading({
   icon: Icon,
   title,
   href,
-  description,
   linkLabel = "Lihat detail",
 }: {
   icon: LucideIcon;
   title: string;
   href: string;
-  description?: string;
   linkLabel?: string;
 }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-2">
-      <div>
-        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-          <Icon className="h-5 w-5 text-[#C96A6A]" />
-          {title}
-        </h2>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
-      </div>
+      <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+        <Icon className="h-5 w-5 text-[#C96A6A]" />
+        {title}
+      </h2>
       <Link
         href={href}
         className="flex shrink-0 items-center gap-1 text-sm font-medium text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
@@ -430,7 +441,6 @@ export default async function AdminOverviewPage({
         <SectionHeading
           icon={TrendingUp}
           title="Financial"
-          description="Ringkasan keuangan dari seluruh transaksi."
           href="/admin/orders"
         />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
@@ -479,7 +489,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-1">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
@@ -487,6 +497,7 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.revenue}
               tone="green"
               decor="wave"
+              className="col-span-2"
             />
             <StatCard
               icon={Wallet}
@@ -494,7 +505,9 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalDp)}
               delta={stats.financialDeltas.dp}
               tone="blue"
-              decor="wave"
+              decor="wave-desktop"
+              className="p-4 md:p-5"
+              valueClassName="text-lg font-bold text-gray-900 md:text-2xl lg:text-3xl"
             />
             <StatCard
               icon={PieChart}
@@ -502,7 +515,9 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
               tone="violet"
-              decor="wave"
+              decor="wave-desktop"
+              className="p-4 md:p-5"
+              valueClassName="text-lg font-bold text-gray-900 md:text-2xl lg:text-3xl"
             />
           </div>
         </div>
