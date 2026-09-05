@@ -334,12 +334,12 @@ export default async function AdminOverviewPage({
             </p>
           </div>
         </div>
-        <div className="flex flex-nowrap items-stretch justify-between gap-3">
-          <div className="flex w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
+        <div className="flex flex-nowrap items-stretch justify-between gap-2 sm:gap-3">
+          <div className="flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#FBE6E6] px-3.5 py-3 sm:gap-3 sm:px-5">
             <CalendarDays className="h-6 w-6 shrink-0 text-[#C96A6A]" />
             <div>
-              <p className="text-sm font-bold text-[#B04A4A]">{dateLabel}</p>
-              <p className="text-xs text-[#C96A6A]">
+              <p className="whitespace-nowrap text-[13px] font-bold text-[#B04A4A] sm:text-sm">{dateLabel}</p>
+              <p className="whitespace-nowrap text-xs text-[#C96A6A]">
                 Selamat Datang, {session?.user?.role === "SUPER_ADMIN" ? "Admin" : "Pengguna"}!
               </p>
             </div>
