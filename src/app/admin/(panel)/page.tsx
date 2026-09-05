@@ -235,7 +235,6 @@ export default async function AdminOverviewPage() {
                   {stats.statusCount[step.key] ?? 0}
                 </span>
                 <span className={cn("h-3.5 w-3.5 rounded-full ring-4 ring-white", step.dot)} />
-                <span className="text-xs font-medium text-gray-700">{step.label}</span>
                 <span
                   className={cn(
                     "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
