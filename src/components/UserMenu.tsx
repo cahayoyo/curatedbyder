@@ -33,7 +33,7 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
           aria-label="Account menu"
           className="flex h-auto items-center gap-2 rounded-xl px-1.5 py-1 hover:bg-black/5"
         >
-          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D97A7A]">
+          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#D97A7A]">
             <UserRound className="h-5 w-5 text-white" />
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
           </span>

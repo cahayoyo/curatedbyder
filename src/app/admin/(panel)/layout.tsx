@@ -15,7 +15,7 @@ export default function AdminLayout({
       <AppHeader
         badge="ADMIN DASHBOARD"
         wide
-        className="bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5]"
+        className="bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] border-[#F0CBCB]"
         desktopNav={
           <Suspense fallback={null}>
             <AdminNav variant="desktop" />
