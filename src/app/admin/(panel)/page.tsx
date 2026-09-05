@@ -369,12 +369,14 @@ export default async function AdminOverviewPage({
           <StatCard
             icon={BookOpen}
             label="Pesanan Buku"
+            decor
             value={stats.bookOrders}
             delta={stats.orderDeltas.book}
           />
           <StatCard
             icon={Blocks}
             label="Pesanan Mainan"
+            decor
             value={stats.toyOrders}
             delta={stats.orderDeltas.toy}
           />
