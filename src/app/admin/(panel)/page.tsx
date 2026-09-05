@@ -401,15 +401,6 @@ export default async function AdminOverviewPage({
           )}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="flex flex-col items-center justify-between gap-1 border-t border-[#F0CBCB]/60 pt-4 text-xs text-muted-foreground sm:flex-row">
-        <p>© {new Date().getFullYear()} CuratedByDer. All rights reserved.</p>
-        <p className="flex items-center gap-2">
-          Books • Stories • To You
-          <span className="hidden h-px w-16 bg-[#D97A7A] sm:inline-block" />
-        </p>
-      </footer>
       </div>
     </RangeProvider>
   );
