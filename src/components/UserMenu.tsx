@@ -43,7 +43,7 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
               {isAdmin ? "ADMIN" : role || "USER"}
             </span>
           </span>
-          <ChevronDown className="h-5 w-5 text-black/70" strokeWidth={2.5} />
+          <ChevronDown className="hidden h-5 w-5 text-black/70 sm:block" strokeWidth={2.5} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
