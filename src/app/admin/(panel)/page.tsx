@@ -90,7 +90,7 @@ function BuyerAvatar({ name, index }: { name: string; index: number }) {
   return (
     <span
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+        "flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold",
         AVATAR_TONES[index % AVATAR_TONES.length]
       )}
     >
