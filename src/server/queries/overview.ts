@@ -77,12 +77,15 @@ export async function getOverviewStats(
       db.order.count({ where: { ...totalsWhere, ...BOOK_ITEMS } }),
       db.order.count({ where: { ...totalsWhere, ...TOY_ITEMS } }),
       db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: totalsWhere }),
-      Promise.all([
-        db.order.count({ where: soldAt(prevStart, prevEnd) }),
-        db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...BOOK_ITEMS } }),
-        db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...TOY_ITEMS } }),
-        db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(prevStart, prevEnd) }),
-      ]),
+      // range mode -> delta lines hidden in UI, skip previous-period queries entirely
+      range
+        ? Promise.resolve(null)
+        : Promise.all([
+            db.order.count({ where: soldAt(prevStart, prevEnd) }),
+            db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...BOOK_ITEMS } }),
+            db.order.count({ where: { ...soldAt(prevStart, prevEnd), ...TOY_ITEMS } }),
+            db.order.aggregate({ _sum: { ...FINANCIAL_SUM }, where: soldAt(prevStart, prevEnd) }),
+          ]),
       db.orderItem.groupBy({
         by: ["status"],
         _count: { _all: true },
@@ -112,7 +115,7 @@ export async function getOverviewStats(
       }),
     ]);
 
-  const [pTotal, pBook, pToy, pFin] = prevMonth;
+  const [pTotal, pBook, pToy, pFin] = prevMonth ?? [0, 0, 0, { _sum: { total: null, dp: null, remaining: null } }];
 
   const topBookIds = topBookItems.map((b) => b.bookId).filter((id): id is string => id !== null);
   const bookRows = topBookIds.length ? await db.book.findMany({ where: { id: { in: topBookIds } } }) : [];
