@@ -38,7 +38,7 @@ export function AppHeader({
             <span className="truncate text-lg font-semibold">
               CuratedBy<span className="text-[#D97A7A]">Der</span>
             </span>
-            <span className="truncate text-xs font-medium opacity-70">{badge}</span>
+            <span className="truncate text-xs font-medium text-[#C96A6A]">{badge}</span>
           </div>
         </div>
 

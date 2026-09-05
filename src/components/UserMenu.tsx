@@ -39,7 +39,7 @@ export function UserMenu({ name, role }: { name?: string; role?: string }) {
           </span>
           <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
             <span className="max-w-28 truncate text-sm font-semibold text-black/80">{name || "Account"}</span>
-            <span className="text-[10px] font-medium uppercase tracking-wide text-black/50">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-[#C96A6A]">
               {isAdmin ? "ADMIN" : role || "USER"}
             </span>
           </span>
