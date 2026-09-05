@@ -175,7 +175,7 @@ export default async function AdminOverviewPage({
           </div>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-          <div className="flex items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
+          <div className="flex w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
             <CalendarDays className="h-6 w-6 shrink-0 text-[#C96A6A]" />
             <div>
               <p className="text-sm font-bold text-[#B04A4A]">{dateLabel}</p>
