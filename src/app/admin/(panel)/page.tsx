@@ -551,7 +551,7 @@ export default async function AdminOverviewPage({
                 />
                 <span
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full",
+                    "relative flex h-7 w-7 items-center justify-center rounded-full",
                     step.dot
                   )}
                 >
