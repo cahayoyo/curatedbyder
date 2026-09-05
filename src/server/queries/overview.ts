@@ -6,7 +6,7 @@ export type Delta = {
   percentChange: number | null;
 };
 
-export type TopItem = { id: string; title: string; sold: number };
+export type TopItem = { id: string; title: string; image: string | null; sold: number };
 export type TopBuyer = { id: string; name: string; transactions: number };
 
 export type OverviewStats = {
@@ -145,11 +145,11 @@ export async function getOverviewStats(
     statusCount: Object.fromEntries(byStatus.map((s) => [s.status as string, s._count._all])),
     topBooks: topBookItems.flatMap((it) => {
       const book = it.bookId ? bookMap.get(it.bookId) : undefined;
-      return book ? [{ id: book.id, title: book.title, sold: it._sum.quantity ?? 0 }] : [];
+      return book ? [{ id: book.id, title: book.title, image: book.image ?? null, sold: it._sum.quantity ?? 0 }] : [];
     }),
     topToys: topToyItems.flatMap((it) => {
       const toy = it.toyId ? toyMap.get(it.toyId) : undefined;
-      return toy ? [{ id: toy.id, title: toy.title, sold: it._sum.quantity ?? 0 }] : [];
+      return toy ? [{ id: toy.id, title: toy.title, image: toy.image ?? null, sold: it._sum.quantity ?? 0 }] : [];
     }),
     topBuyers: topBuyerCounts.flatMap((b) => {
       const user = b.buyerId ? buyerMap.get(b.buyerId) : undefined;

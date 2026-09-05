@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connection } from "next/server";
 import { formatIDR } from "@/lib/format";
 import { getOverviewStats, type Delta } from "@/server/queries/overview";
@@ -16,6 +17,7 @@ import {
   ClipboardList,
   Gift,
   LayoutDashboard,
+  ImageIcon,
   PackageCheck,
   PieChart,
   Plane,
@@ -57,6 +59,39 @@ const TONES = {
 } as const;
 
 type Tone = keyof typeof TONES;
+
+function ItemThumb({
+  image,
+  title,
+  size,
+}: {
+  image: string | null;
+  title: string;
+  size: string;
+}) {
+  if (!image) {
+    return (
+      <div
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-[#D97A7A]/70",
+          size
+        )}
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={cn(
+        "relative shrink-0 overflow-hidden rounded border border-input bg-black/5",
+        size
+      )}
+    >
+      <Image src={image} alt={title} fill sizes="40px" className="object-cover object-center" />
+    </div>
+  );
+}
 
 function DeltaLine({ delta }: { delta: Delta }) {
   if (delta.percentChange == null) return null;
@@ -285,11 +320,10 @@ export default async function AdminOverviewPage({
             <p className="text-sm text-muted-foreground">Belum ada penjualan buku</p>
           ) : (
             <ol className="space-y-2 text-sm">
-              {stats.topBooks.map((book, i) => (
-                <li key={book.id} className="flex justify-between gap-2">
-                  <span className="min-w-0 truncate text-gray-700">
-                    {i + 1}. {book.title}
-                  </span>
+              {stats.topBooks.map((book) => (
+                <li key={book.id} className="flex items-center gap-2.5">
+                  <ItemThumb image={book.image} title={book.title} size="h-10 w-8" />
+                  <span className="min-w-0 flex-1 truncate text-gray-700">{book.title}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {book.sold} terjual
                   </span>
@@ -305,11 +339,10 @@ export default async function AdminOverviewPage({
             <p className="text-sm text-muted-foreground">Belum ada penjualan mainan</p>
           ) : (
             <ol className="space-y-2 text-sm">
-              {stats.topToys.map((toy, i) => (
-                <li key={toy.id} className="flex justify-between gap-2">
-                  <span className="min-w-0 truncate text-gray-700">
-                    {i + 1}. {toy.title}
-                  </span>
+              {stats.topToys.map((toy) => (
+                <li key={toy.id} className="flex items-center gap-2.5">
+                  <ItemThumb image={toy.image} title={toy.title} size="h-10 w-10" />
+                  <span className="min-w-0 flex-1 truncate text-gray-700">{toy.title}</span>
                   <span className="shrink-0 font-medium whitespace-nowrap text-muted-foreground">
                     {toy.sold} terjual
                   </span>
