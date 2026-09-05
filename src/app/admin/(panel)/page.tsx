@@ -528,7 +528,7 @@ export default async function AdminOverviewPage({
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
         <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
           <div className="relative grid grid-cols-3 gap-y-5 md:flex md:min-w-[640px] md:justify-between">
-            <span className="absolute left-[8%] right-[8%] top-[47px] hidden h-0.5 bg-[#F0CBCB] md:block" />
+            <span className="absolute left-[8%] right-[8%] top-[47px] hidden h-0.5 bg-[#DFA6A6] md:block" />
             {STEPS.map((step, i) => (
               <div
                 key={step.key}
@@ -541,18 +541,18 @@ export default async function AdminOverviewPage({
               >
                 <span
                   className={cn(
-                    "absolute top-[47px] h-0.5 bg-[#F0CBCB] md:hidden",
+                    "absolute top-[47px] h-0.5 bg-[#DFA6A6] md:hidden",
                     i === 0 || i === 5 ? "left-1/2 right-0" : "left-0 right-0"
                   )}
                 />
                 {i === 2 && (
                   <>
                     <span
-                      className="absolute right-0 top-[47px] h-[calc(100%+20px)] w-0.5 bg-[#F0CBCB] md:hidden"
+                      className="absolute right-0 top-[47px] h-[calc(100%+20px)] w-0.5 bg-[#DFA6A6] md:hidden"
                       aria-hidden
                     />
                     <span
-                      className="absolute right-0 top-[47px] h-0.5 w-1/2 bg-[#F0CBCB] md:hidden"
+                      className="absolute right-0 top-[47px] h-0.5 w-1/2 bg-[#DFA6A6] md:hidden"
                       aria-hidden
                     />
                   </>
