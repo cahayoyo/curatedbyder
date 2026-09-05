@@ -2,11 +2,30 @@
 
 import { CalendarDays, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { createContext, useContext, useTransition, type ReactNode } from "react";
 
-export function RangePicker({ value }: { value?: number }) {
+const RangeContext = createContext<{ pending: boolean; select: (v: string) => void }>({
+  pending: false,
+  select: () => {},
+});
+
+export const useRangePending = () => useContext(RangeContext).pending;
+
+export function RangeProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const select = (v: string) =>
+    startTransition(() =>
+      router.replace(v ? `/admin?r=${v}` : "/admin", { scroll: false })
+    );
+
+  return (
+    <RangeContext.Provider value={{ pending, select }}>{children}</RangeContext.Provider>
+  );
+}
+
+export function RangePicker({ value }: { value?: number }) {
+  const { pending, select } = useContext(RangeContext);
 
   return (
     <label className="flex h-full w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
@@ -18,12 +37,7 @@ export function RangePicker({ value }: { value?: number }) {
       <select
         value={value ?? ""}
         aria-label="Pilih rentang statistik"
-        onChange={(e) => {
-          const v = e.target.value;
-          startTransition(() =>
-            router.replace(v ? `/admin?r=${v}` : "/admin", { scroll: false })
-          );
-        }}
+        onChange={(e) => select(e.target.value)}
         className="h-full bg-transparent py-1.5 text-sm font-bold text-[#B04A4A] outline-none"
       >
         <option value="">All Time</option>

@@ -3,7 +3,8 @@ import { connection } from "next/server";
 import { formatIDR } from "@/lib/format";
 import { getOverviewStats, type Delta } from "@/server/queries/overview";
 import { requireAdmin } from "@/lib/session";
-import { RangePicker } from "./range-picker";
+import { RangePicker, RangeProvider } from "./range-provider";
+import { StatValue } from "./stat-value";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -107,7 +108,7 @@ function StatCard({
         </div>
         <div className="min-w-0">
           <p className="truncate text-sm text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 md:text-3xl">{value}</p>
+          <StatValue value={value} className="text-2xl font-bold text-gray-900 md:text-3xl" />
           <DeltaLine delta={delta} label={deltaLabel} />
         </div>
       </div>
@@ -163,7 +164,8 @@ export default async function AdminOverviewPage({
   }).format(new Date());
 
   return (
-    <div className="space-y-6">
+    <RangeProvider>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
@@ -258,9 +260,10 @@ export default async function AdminOverviewPage({
                 key={step.key}
                 className="relative z-10 flex flex-1 flex-col items-center gap-1.5"
               >
-                <span className="text-xl font-bold text-gray-900">
-                  {stats.statusCount[step.key] ?? 0}
-                </span>
+                <StatValue
+                  value={stats.statusCount[step.key] ?? 0}
+                  className="text-xl font-bold text-gray-900"
+                />
                 <span
                   className={cn(
                     "flex h-7 w-7 items-center justify-center rounded-full ring-4 ring-white",
@@ -358,6 +361,7 @@ export default async function AdminOverviewPage({
           <span className="hidden h-px w-16 bg-[#D97A7A] sm:inline-block" />
         </p>
       </footer>
-    </div>
+      </div>
+    </RangeProvider>
   );
 }
