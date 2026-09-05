@@ -217,18 +217,37 @@ function DeltaLine({ delta }: { delta: Delta }) {
   );
 }
 
+function MiniBars() {
+  const heights = ["h-4", "h-7", "h-5", "h-9", "h-11", "h-6"];
+  return (
+    <div className="ml-auto flex shrink-0 items-end gap-1.5 pr-1" aria-hidden>
+      {heights.map((h, i) => (
+        <span
+          key={i}
+          className={cn(
+            "w-2.5 rounded-full bg-gradient-to-t from-[#D97A7A]/50 to-[#D97A7A]/10",
+            h
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 function StatCard({
   icon: Icon,
   label,
   value,
   delta,
   tone = "rose",
+  decor,
 }: {
   icon: LucideIcon;
   label: string;
   value: string | number;
   delta: Delta;
   tone?: Tone;
+  decor?: boolean;
 }) {
   return (
     <div
@@ -251,6 +270,7 @@ function StatCard({
           <StatValue value={value} className="text-2xl font-bold text-gray-900 md:text-3xl" />
           <DeltaLine delta={delta} />
         </div>
+        {decor && <MiniBars />}
       </div>
     </div>
   );
@@ -342,6 +362,7 @@ export default async function AdminOverviewPage({
           <StatCard
             icon={FileText}
             label="Total Invoice"
+            decor
             value={stats.totalOrders}
             delta={stats.orderDeltas.total}
           />
