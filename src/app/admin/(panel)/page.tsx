@@ -170,18 +170,12 @@ function MiniBars() {
   );
 }
 
-function MiniWave({
-  stroke,
-  hideOnMobile,
-}: {
-  stroke: string;
-  hideOnMobile?: boolean;
-}) {
+function MiniWave({ stroke }: { stroke: string }) {
   const line = "M2 32 C10 22 16 34 24 26 C32 18 36 30 44 20 C52 10 58 18 62 8";
   return (
     <svg
       viewBox="0 0 64 40"
-      className={cn("ml-auto h-10 w-16 shrink-0", hideOnMobile && "hidden md:block")}
+      className="ml-auto h-10 w-16 shrink-0"
       aria-hidden
       fill="none"
     >
@@ -207,7 +201,7 @@ function StatCard({
   value: string | number;
   delta: Delta;
   tone?: Tone;
-  decor?: "bars" | "wave" | "wave-desktop";
+  decor?: "bars" | "wave";
   compact?: boolean;
   className?: string;
   valueClassName?: string;
@@ -252,9 +246,7 @@ function StatCard({
           <DeltaLine delta={delta} />
         </div>
         {decor === "bars" && <MiniBars />}
-        {(decor === "wave" || decor === "wave-desktop") && (
-          <MiniWave stroke={TONES[tone].wave} hideOnMobile={decor === "wave-desktop"} />
-        )}
+        {decor === "wave" && <MiniWave stroke={TONES[tone].wave} />}
       </div>
     </div>
   );
@@ -424,7 +416,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-4">
+          <div className="flex flex-col gap-4">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
@@ -432,7 +424,6 @@ export default async function AdminOverviewPage({
               delta={stats.financialDeltas.revenue}
               tone="green"
               decor="wave"
-              className="col-span-2"
             />
             <StatCard
               icon={Wallet}
@@ -440,9 +431,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalDp)}
               delta={stats.financialDeltas.dp}
               tone="blue"
-              decor="wave-desktop"
-              className="p-4 md:p-5"
-              valueClassName="text-lg font-bold text-gray-900 md:text-2xl lg:text-3xl"
+              decor="wave"
             />
             <StatCard
               icon={PieChart}
@@ -450,9 +439,7 @@ export default async function AdminOverviewPage({
               value={formatIDR(stats.totalRemaining)}
               delta={stats.financialDeltas.remaining}
               tone="violet"
-              decor="wave-desktop"
-              className="p-4 md:p-5"
-              valueClassName="text-lg font-bold text-gray-900 md:text-2xl lg:text-3xl"
+              decor="wave"
             />
           </div>
         </div>
