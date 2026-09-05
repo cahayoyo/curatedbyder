@@ -15,7 +15,8 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardList,
-  Gift,
+  Blocks,
+  FileText,
   LayoutDashboard,
   ImageIcon,
   PackageCheck,
@@ -339,8 +340,8 @@ export default async function AdminOverviewPage({
         <SectionHeading icon={ShoppingCart} title="Orders" href="/admin/orders" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <StatCard
-            icon={ShoppingCart}
-            label="Total Pesanan"
+            icon={FileText}
+            label="Total Invoice"
             value={stats.totalOrders}
             delta={stats.orderDeltas.total}
           />
@@ -351,7 +352,7 @@ export default async function AdminOverviewPage({
             delta={stats.orderDeltas.book}
           />
           <StatCard
-            icon={Gift}
+            icon={Blocks}
             label="Pesanan Mainan"
             value={stats.toyOrders}
             delta={stats.orderDeltas.toy}
