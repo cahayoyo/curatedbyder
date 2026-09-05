@@ -9,7 +9,7 @@ export function RangePicker({ value }: { value?: number }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <label className="flex w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
+    <label className="flex h-full w-fit items-center gap-3 rounded-xl bg-[#FBE6E6] px-5 py-3">
       {pending ? (
         <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#C96A6A]" />
       ) : (
@@ -24,7 +24,7 @@ export function RangePicker({ value }: { value?: number }) {
             router.replace(v ? `/admin?r=${v}` : "/admin", { scroll: false })
           );
         }}
-        className="bg-transparent text-sm font-bold text-[#B04A4A] outline-none"
+        className="h-full bg-transparent py-1.5 text-sm font-bold text-[#B04A4A] outline-none"
       >
         <option value="">All Time</option>
         <option value="7">Last 7 Days</option>
