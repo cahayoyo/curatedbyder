@@ -527,8 +527,8 @@ export default async function AdminOverviewPage({
       <section>
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
         <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
-          <div className="relative flex min-w-[640px] justify-between">
-            <span className="absolute left-[8%] right-[8%] top-[47px] h-0.5 bg-[#F0CBCB]" />
+          <div className="relative grid grid-cols-3 gap-y-5 md:flex md:min-w-[640px] md:justify-between">
+            <span className="absolute left-[8%] right-[8%] top-[47px] hidden h-0.5 bg-[#F0CBCB] md:block" />
             {STEPS.map((step) => (
               <div
                 key={step.key}
