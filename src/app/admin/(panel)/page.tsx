@@ -90,6 +90,80 @@ function BuyerAvatar({ name, index }: { name: string; index: number }) {
   );
 }
 
+const FIN_COLORS = { revenue: "#7FC49A", dp: "#F2A2AF", remaining: "#F6D88C" };
+
+function FinancialDonut({
+  revenue,
+  dp,
+  remaining,
+}: {
+  revenue: number;
+  dp: number;
+  remaining: number;
+}) {
+  const total = revenue + dp + remaining;
+  const R = 78;
+  const C = 2 * Math.PI * R;
+  let acc = 0;
+  const segs = [
+    { value: revenue, color: FIN_COLORS.revenue },
+    { value: dp, color: FIN_COLORS.dp },
+    { value: remaining, color: FIN_COLORS.remaining },
+  ]
+    .filter((p) => p.value > 0)
+    .map((p) => {
+      const len = (p.value / total) * C;
+      const seg = { ...p, len, start: acc };
+      acc += len;
+      return seg;
+    });
+  return (
+    <svg viewBox="0 0 200 200" className="h-44 w-44 shrink-0 lg:h-52 lg:w-52">
+      <circle cx="100" cy="100" r={R} fill="none" stroke="#F6E8E8" strokeWidth="40" />
+      {segs.map((s) => (
+        <circle
+          key={s.color}
+          cx="100"
+          cy="100"
+          r={R}
+          fill="none"
+          stroke={s.color}
+          strokeWidth="40"
+          strokeDasharray={`${s.len} ${C - s.len}`}
+          strokeDashoffset={-s.start}
+          transform="rotate(-90 100 100)"
+        />
+      ))}
+      {segs.map((s) => {
+        const mid = ((s.start + s.len / 2) / C) * 2 * Math.PI - Math.PI / 2;
+        return (
+          <text
+            key={s.color}
+            x={100 + R * Math.cos(mid)}
+            y={100 + R * Math.sin(mid)}
+            textAnchor="middle"
+            dominantBaseline="central"
+            className="fill-gray-900 text-xs font-bold"
+          >
+            {Math.round((s.value / total) * 100)}%
+          </text>
+        );
+      })}
+      <text
+        x="100"
+        y="94"
+        textAnchor="middle"
+        className="fill-gray-900 text-sm font-bold"
+      >
+        {formatIDR(total)}
+      </text>
+      <text x="100" y="112" textAnchor="middle" className="fill-gray-500 text-[10px]">
+        Total Transaksi
+      </text>
+    </svg>
+  );
+}
+
 function ItemThumb({
   image,
   title,
@@ -183,19 +257,24 @@ function SectionHeading({
   icon: Icon,
   title,
   href,
+  description,
   linkLabel = "Lihat detail",
 }: {
   icon: LucideIcon;
   title: string;
   href: string;
+  description?: string;
   linkLabel?: string;
 }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-2">
-      <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-        <Icon className="h-5 w-5 text-[#C96A6A]" />
-        {title}
-      </h2>
+      <div>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+          <Icon className="h-5 w-5 text-[#C96A6A]" />
+          {title}
+        </h2>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
       <Link
         href={href}
         className="flex shrink-0 items-center gap-1 text-sm font-medium text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
@@ -280,28 +359,79 @@ export default async function AdminOverviewPage({
 
       {/* Financial */}
       <section>
-        <SectionHeading icon={TrendingUp} title="Financial" href="/admin/orders" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <StatCard
-            icon={ReceiptText}
-            label="Total Revenue"
-            value={formatIDR(stats.revenue)}
-            delta={stats.financialDeltas.revenue}
-            tone="green"
-          />
-          <StatCard
-            icon={Wallet}
-            label="Total DP"
-            value={formatIDR(stats.totalDp)}
-            delta={stats.financialDeltas.dp}
-          />
-          <StatCard
-            icon={PieChart}
-            label="Total Sisa Tagihan"
-            value={formatIDR(stats.totalRemaining)}
-            delta={stats.financialDeltas.remaining}
-            tone="violet"
-          />
+        <SectionHeading
+          icon={TrendingUp}
+          title="Financial"
+          description="Ringkasan keuangan dari seluruh transaksi."
+          href="/admin/orders"
+        />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
+          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#F0CBCB]/60 bg-white/70 p-5 shadow-sm lg:flex-row">
+            <FinancialDonut
+              revenue={stats.revenue}
+              dp={stats.totalDp}
+              remaining={stats.totalRemaining}
+            />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
+              <p className="text-sm text-muted-foreground">
+                Proporsi revenue, DP, dan sisa tagihan.
+              </p>
+              <ul className="mt-4 space-y-3">
+                {(
+                  [
+                    { name: "Revenue", desc: "Pendapatan telah diterima", value: stats.revenue, color: FIN_COLORS.revenue },
+                    { name: "DP (Uang Muka)", desc: "Pembayaran di awal", value: stats.totalDp, color: FIN_COLORS.dp },
+                    { name: "Sisa Tagihan", desc: "Menunggu pembayaran", value: stats.totalRemaining, color: FIN_COLORS.remaining },
+                  ] as const
+                ).map((row) => {
+                  const total = stats.revenue + stats.totalDp + stats.totalRemaining;
+                  return (
+                    <li key={row.name} className="flex items-center gap-3">
+                      <span
+                        className="h-3.5 w-3.5 shrink-0 rounded-full"
+                        style={{ background: row.color }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {row.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">{row.desc}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-gray-900">{formatIDR(row.value)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {total ? Math.round((row.value / total) * 100) : 0}%
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <StatCard
+              icon={ReceiptText}
+              label="Total Revenue"
+              value={formatIDR(stats.revenue)}
+              delta={stats.financialDeltas.revenue}
+              tone="green"
+            />
+            <StatCard
+              icon={Wallet}
+              label="Total DP"
+              value={formatIDR(stats.totalDp)}
+              delta={stats.financialDeltas.dp}
+            />
+            <StatCard
+              icon={PieChart}
+              label="Total Sisa Tagihan"
+              value={formatIDR(stats.totalRemaining)}
+              delta={stats.financialDeltas.remaining}
+              tone="violet"
+            />
+          </div>
         </div>
       </section>
 
