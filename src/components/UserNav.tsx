@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart } from "lucide-react";
+import { BookOpen, LayoutGrid, ShoppingCart, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const links = [{ href: "/dashboard", label: "Pesanan", icon: ShoppingCart }];
+const links = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+  { href: "/dashboard/catalog", label: "Katalog", icon: BookOpen },
+  { href: "/dashboard/orders", label: "Pesanan", icon: ShoppingCart },
+  { href: "/dashboard/profile", label: "Profile", icon: UserRound },
+];
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -22,7 +27,7 @@ export function UserNav({ variant }: { variant: "desktop" | "mobile" }) {
         className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-[#FDF1F1] xl:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="grid grid-cols-1 px-2 py-1">
+        <div className="grid grid-cols-4 px-2 py-1">
           {links.map((l) => {
             const active = isActive(pathname, l.href);
             return (

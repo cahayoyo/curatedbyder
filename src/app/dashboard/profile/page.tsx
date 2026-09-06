@@ -1,17 +1,17 @@
 import { requireRole } from "@/lib/session";
-import { LayoutGrid } from "lucide-react";
+import { UserRound } from "lucide-react";
 
-export default async function DashboardPage() {
+export default async function ProfilePage() {
   const session = await requireRole("USER");
 
   return (
     <div className="space-y-4">
       <h2 className="flex items-center gap-2 text-2xl font-bold">
-        <LayoutGrid className="h-6 w-6 text-[#D97A7A]" />
-        Dashboard
+        <UserRound className="h-6 w-6 text-[#D97A7A]" />
+        Profile
       </h2>
       <p className="text-muted-foreground">
-        Selamat datang di dashboard CuratedByDer, {session.user.name}!
+        Login sebagai <span className="font-semibold text-foreground">{session.user.name}</span>
       </p>
     </div>
   );
