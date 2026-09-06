@@ -34,7 +34,7 @@ export default function DashboardLayout({
         <Suspense fallback={null}>
           <UserNav variant="mobile" />
         </Suspense>
-        <main className="w-full flex-1 px-4 py-4 pb-24 xl:pb-4">
+        <main className="w-full flex-1 px-5 py-4 pb-24 md:px-8 xl:pb-4">
           <Suspense
             fallback={
               <div className="space-y-4">
