@@ -75,6 +75,50 @@ function toDTO(s: OrderWithItems): OrderDTO {
   };
 }
 
+function HeroDecor() {
+  return (
+    <svg
+      viewBox="0 0 170 130"
+      fill="none"
+      className="h-24 w-auto shrink-0"
+      aria-hidden="true"
+    >
+      <path
+        d="M85 52 C85 34 97 22 112 18 C112 34 102 48 85 52 Z"
+        fill="#B5CBA4"
+        opacity="0.9"
+      />
+      <path
+        d="M83 52 C80 36 68 26 52 24 C54 40 66 50 83 52 Z"
+        fill="#C9DBBA"
+        opacity="0.9"
+      />
+      <path
+        d="M84 54 C84 42 84 32 84 22"
+        stroke="#9FB98E"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M140 34 c3-6 12-5 12 2 0 6-7 10-12 13 -5-3-12-7-12-13 0-7 9-8 12-2Z"
+        fill="#D97A7A"
+        opacity="0.85"
+      />
+      <circle cx="30" cy="30" r="3" fill="#F2CACA" />
+      <circle cx="150" cy="74" r="4" fill="#F2CACA" />
+      <circle cx="22" cy="80" r="2.5" fill="#E9B5B5" />
+      <rect x="35" y="88" width="100" height="16" rx="6" fill="#D97A7A" />
+      <rect x="42" y="72" width="88" height="16" rx="6" fill="#E9B5B5" />
+      <rect x="50" y="56" width="72" height="16" rx="6" fill="#F6D5D5" />
+      <rect x="58" y="60" width="6" height="8" rx="2" fill="#fff" opacity="0.7" />
+      <rect x="52" y="76" width="6" height="8" rx="2" fill="#fff" opacity="0.7" />
+      <rect x="46" y="92" width="6" height="8" rx="2" fill="#fff" opacity="0.7" />
+      <circle cx="132" cy="50" r="7" fill="#F2CACA" />
+      <path d="M125 50 a7 7 0 0 1 14 0" fill="#D97A7A" opacity="0.5" />
+    </svg>
+  );
+}
+
 function firstTitle(o: OrderDTO) {
   const t = o.items[0]?.book.title ?? "—";
   return o.items.length > 1 ? `${t} +${o.items.length - 1} lainnya` : t;
@@ -210,7 +254,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] p-5">
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] px-12 py-5 md:px-16">
         <div className="min-w-0">
           <h3 className="text-xl font-bold">Halo, {session.user.name ?? "Pembaca"} 👋</h3>
           <p className="mt-1 max-w-md text-sm text-black/70">
@@ -218,7 +262,9 @@ export default async function DashboardPage() {
             buat harimu lebih bermakna!
           </p>
         </div>
-        <div className="hidden shrink-0 flex-col items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-4 md:flex">
+          <HeroDecor />
+          <div className="flex flex-col items-center gap-3">
           <p className="text-right font-serif text-2xl italic leading-tight text-[#C96A6A]">
             Good Books,
             <br />
@@ -232,6 +278,7 @@ export default async function DashboardPage() {
             <BookOpen className="h-3.5 w-3.5" />
             Jelajahi Katalog
           </Link>
+          </div>
         </div>
       </div>
 
