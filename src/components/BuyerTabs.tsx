@@ -270,12 +270,12 @@ Saya ${order.buyerName} ingin menanyakan terkait invoice pembelian berikut ${ord
 Terimakasih`;
 }
 
-function openAdminWa(order: OrderDTO) {
+export function openAdminWa(order: OrderDTO) {
   const link = waLink(ADMIN_WA, buildAdminWaText(order));
   if (link) window.open(link, "_blank");
 }
 
-function BuyerOrderDetail({
+export function BuyerOrderDetail({
   order,
   open,
   onOpenChange,
@@ -487,7 +487,7 @@ function PaymentCard({ order }: { order: OrderDTO }) {
   );
 }
 
-function TrackCard({ order }: { order: OrderDTO }) {
+export function TrackCard({ order }: { order: OrderDTO }) {
   const current = STATUSES.find((s) => order.items.some((it) => it.status === s.value))?.value ?? "ORDER_PLACED";
   const done = TRACK_STATUSES.findIndex((x) => x === current);
 
