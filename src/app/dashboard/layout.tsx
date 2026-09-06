@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { UserMenu } from "@/components/UserMenu";
 import { UserNav } from "@/components/UserNav";
-import { NavMenuFallback } from "@/components/NavMenuFallback";
 import { AppHeader } from "@/components/AppHeader";
 import { HeaderMenus, RoleGate } from "@/components/session-gate";
 import { ListLoader } from "@/components/ListLoader";
@@ -15,14 +14,9 @@ export default function DashboardLayout({
     <div className="min-h-screen" style={{ backgroundColor: "#F6F1E7" }}>
       <AppHeader
         badge="USER DASHBOARD"
-        mobileNav={
-          <Suspense fallback={<NavMenuFallback />}>
-            <UserNav />
-          </Suspense>
-        }
         desktopNav={
           <Suspense fallback={null}>
-            <UserNav />
+            <UserNav variant="desktop" />
           </Suspense>
         }
         menus={
@@ -31,7 +25,10 @@ export default function DashboardLayout({
           </Suspense>
         }
       />
-      <main className="mx-auto max-w-5xl p-4">
+      <Suspense fallback={null}>
+        <UserNav variant="mobile" />
+      </Suspense>
+      <main className="mx-auto max-w-5xl p-4 pb-24 xl:pb-4">
         <Suspense
           fallback={
             <div className="space-y-4">
