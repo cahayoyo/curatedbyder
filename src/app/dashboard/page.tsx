@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import {
   ArrowRight,
@@ -8,6 +9,7 @@ import {
   FileText,
   Heart,
   Home,
+  ImageIcon,
   ReceiptText,
   ShoppingCart,
   Truck,
@@ -22,6 +24,7 @@ import {
   STATUS_LABEL,
 } from "@/lib/orderOptions";
 import { dateLabel, formatIDR } from "@/lib/format";
+import { FormatBadge } from "@/components/FormatBadge";
 import { OrderDTO, TrackCard } from "@/components/BuyerTabs";
 import {
   OrderDetailButton,
@@ -101,7 +104,7 @@ export default async function DashboardPage() {
   const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const [activeCount, unpaidCount, shippingCount, doneCount, recent, unpaid, shipped] =
+  const [activeCount, unpaidCount, shippingCount, doneCount, recent, unpaid, shipped, catalogBooks, catalogToys] =
     await Promise.all([
       db.order.count({
         where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
@@ -129,11 +132,40 @@ export default async function DashboardPage() {
         orderBy: { soldAt: "desc" },
         include: orderInclude,
       }),
+      db.book.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: { id: true, title: true, image: true, info: true, formats: true },
+      }),
+      db.toy.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: { id: true, title: true, image: true, info: true },
+      }),
     ]);
 
   const recentOrders = recent.map(toDTO);
   const unpaidOrder = unpaid ? toDTO(unpaid) : null;
   const shippedOrder = shipped ? toDTO(shipped) : null;
+
+  const catalogItems = [
+    ...catalogBooks.map((b) => ({
+      id: b.id,
+      title: b.title,
+      image: b.image,
+      info: b.info,
+      kind: "BUKU" as const,
+      formats: b.formats as string[],
+    })),
+    ...catalogToys.map((t) => ({
+      id: t.id,
+      title: t.title,
+      image: t.image,
+      info: t.info,
+      kind: "MAINAN" as const,
+      formats: [] as string[],
+    })),
+  ];
 
   const stats = [
     {
@@ -221,20 +253,21 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        <div className="rounded-lg border bg-white p-4 lg:col-span-3">
-          <div className="flex items-center justify-between gap-2">
-            <h4 className="flex items-center gap-2 font-semibold">
-              <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
-              Pesanan Terbaru
-            </h4>
-            <Link
-              href="/dashboard/orders"
-              className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-            >
-              Lihat Semua
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+        <div className="space-y-4 lg:col-span-3">
+          <div className="rounded-lg border bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="flex items-center gap-2 font-semibold">
+                <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
+                Pesanan Terbaru
+              </h4>
+              <Link
+                href="/dashboard/orders"
+                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+              >
+                Lihat Semua
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
 
           {recentOrders.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Belum ada pesanan.</p>
@@ -299,6 +332,87 @@ export default async function DashboardPage() {
               </div>
             </>
           )}
+          </div>
+
+          <div className="rounded-lg border bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="flex items-center gap-2 font-semibold">
+                <BookOpen className="h-4 w-4 text-[#D97A7A]" />
+                Katalog Buku &amp; Mainan
+              </h4>
+              <Link
+                href="/dashboard/catalog"
+                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+              >
+                Lihat Semua
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {catalogItems.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">Katalog segera hadir.</p>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {catalogItems.map((item) => (
+                  <div
+                    key={`${item.kind}-${item.id}`}
+                    className="flex flex-col rounded-lg border p-3"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <ImageIcon className="h-5 w-5 text-black/30" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-semibold leading-snug">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 flex flex-wrap items-center gap-1">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-1.5 text-[10px] font-semibold ${
+                              item.kind === "BUKU"
+                                ? "border-sky-300 bg-sky-100 text-sky-800"
+                                : "border-amber-300 bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {item.kind === "BUKU" ? "Buku" : "Mainan"}
+                          </span>
+                          {item.formats.map((f) => (
+                            <FormatBadge key={f} value={f} />
+                          ))}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex-1">
+                      {item.info && (
+                        <p className="line-clamp-2 text-xs italic text-black/60">
+                          &ldquo;{item.info}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      href="/dashboard/catalog"
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A] hover:bg-[#D97A7A]/5"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      Lihat Katalog
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 lg:col-span-2">
