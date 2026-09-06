@@ -254,7 +254,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] px-8 py-5 md:px-12">
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] px-12 py-5 md:px-16">
         <div className="min-w-0">
           <h3 className="text-xl font-bold">Halo, {session.user.name ?? "Pembaca"} 👋</h3>
           <p className="mt-1 max-w-md text-sm text-black/70">
