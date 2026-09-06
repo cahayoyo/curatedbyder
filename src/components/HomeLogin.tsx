@@ -9,8 +9,18 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, Camera, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
-  { label: "Instagram", href: "https://www.instagram.com/curatedbyder/", icon: Camera },
-  { label: "Shopee", href: "https://shopee.co.id/projectbyder", icon: ShoppingBag },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/curatedbyder/",
+    icon: Camera,
+    btn: "border-purple-300 bg-purple-50 text-purple-600 hover:bg-purple-100 hover:text-purple-600",
+  },
+  {
+    label: "Shopee",
+    href: "https://shopee.co.id/projectbyder",
+    icon: ShoppingBag,
+    btn: "border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-600",
+  },
 ];
 
 export function HomeLogin() {
@@ -135,7 +145,7 @@ export function HomeLogin() {
             key={p.label}
             asChild
             variant="outline"
-            className="w-full border-[#D9A3A3] bg-[#FDF1F1] text-[#C96A6A] shadow-sm transition-colors hover:bg-[#F8D7D7] hover:text-[#C96A6A] hover:shadow"
+            className={`w-full border bg-white shadow-sm transition-colors hover:shadow ${p.btn}`}
           >
             <a href={p.href} target="_blank" rel="noopener noreferrer">
               <p.icon className="h-4 w-4" />
