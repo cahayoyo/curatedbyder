@@ -334,6 +334,9 @@ async function OrdersList({
                   <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" /><SortButton label="Invoice" column="invoice" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="font-bold">
+                  <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
+                </TableHead>
+              <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" /><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
@@ -372,9 +375,6 @@ async function OrdersList({
               <TableHead className="font-bold">
                   <span className="flex items-center gap-1"><Package className="h-3.5 w-3.5" />No Resi</span>
                 </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
-                </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
                 </TableHead>
@@ -385,6 +385,16 @@ async function OrdersList({
               <Fragment key={s.id}>
                 <TableRow className="border-b border-input last:border-0">
                   <TableCell className="font-mono text-xs font-medium" rowSpan={s.items.length}>{s.invoiceNumber}</TableCell>
+                  <TableCell rowSpan={s.items.length}>
+                    <div className="space-y-1">
+                      <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
+                      {s.dp != null && s.paymentStatus !== "LUNAS" && (
+                        <p className="text-xs text-muted-foreground">
+                          DP {formatIDR(s.dp)} / Sisa Tagihan {formatIDR(effectiveRemaining(s))}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
                   <TableCell className="text-center text-xs">
                     <span className="inline-flex items-center">
@@ -418,16 +428,6 @@ async function OrdersList({
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
                   <TableCell className="border-l border-input font-mono text-xs" rowSpan={s.items.length}>{s.trackingNumber || "—"}</TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
-                    <div className="space-y-1">
-                      <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
-                      {s.dp != null && s.paymentStatus !== "LUNAS" && (
-                        <p className="text-xs text-muted-foreground">
-                          DP {formatIDR(s.dp)} / Sisa Tagihan {formatIDR(effectiveRemaining(s))}
-                        </p>
-                      )}
-                    </div>
-                  </TableCell>
                   <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
                     <div className="flex justify-center gap-2">
                       <OrderViewButton
