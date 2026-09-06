@@ -237,7 +237,10 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="flex items-center gap-3 rounded-lg border bg-white p-3">
+          <div
+            key={s.label}
+            className="flex items-center gap-3 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
+          >
             <span
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${s.iconCls}`}
             >
@@ -254,7 +257,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="space-y-4 lg:col-span-3">
-          <div className="rounded-lg border bg-white p-4">
+          <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2">
               <h4 className="flex items-center gap-2 font-semibold">
                 <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
@@ -275,7 +278,7 @@ export default async function DashboardPage() {
             <>
               <table className="mt-3 hidden w-full text-sm md:table">
                 <thead>
-                  <tr className="border-b text-left text-xs text-black/60">
+                  <tr className="border-b border-[#F0CBCB] text-left text-xs text-black/60">
                     <th className="py-2 font-medium">#</th>
                     <th className="py-2 font-medium">Invoice</th>
                     <th className="py-2 font-medium">Produk</th>
@@ -286,7 +289,7 @@ export default async function DashboardPage() {
                 </thead>
                 <tbody>
                   {recentOrders.map((o, i) => (
-                    <tr key={o.id} className="border-b last:border-0">
+                    <tr key={o.id} className="border-b border-[#F0CBCB] last:border-0">
                       <td className="py-2.5">{i + 1}</td>
                       <td className="font-mono text-xs font-semibold break-all">
                         {o.invoiceNumber}
@@ -311,7 +314,10 @@ export default async function DashboardPage() {
 
               <div className="mt-3 space-y-2 md:hidden">
                 {recentOrders.map((o) => (
-                  <div key={o.id} className="rounded-lg border p-3">
+                  <div
+                    key={o.id}
+                    className="rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-mono text-xs font-bold break-all">{o.invoiceNumber}</p>
@@ -334,7 +340,7 @@ export default async function DashboardPage() {
           )}
           </div>
 
-          <div className="rounded-lg border bg-white p-4">
+          <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2">
               <h4 className="flex items-center gap-2 font-semibold">
                 <BookOpen className="h-4 w-4 text-[#D97A7A]" />
@@ -356,7 +362,7 @@ export default async function DashboardPage() {
                 {catalogItems.map((item) => (
                   <div
                     key={`${item.kind}-${item.id}`}
-                    className="flex flex-col rounded-lg border p-3"
+                    className="flex flex-col rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
                   >
                     <div className="flex items-start gap-2.5">
                       <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
@@ -417,7 +423,7 @@ export default async function DashboardPage() {
 
         <div className="space-y-4 lg:col-span-2">
           {unpaidOrder && (
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="flex items-center gap-2 font-semibold">
                   <Wallet className="h-4 w-4 text-[#D97A7A]" />
@@ -448,7 +454,7 @@ export default async function DashboardPage() {
           )}
 
           {shippedOrder && (
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="flex items-center gap-2 font-semibold">
                   <Truck className="h-4 w-4 text-[#D97A7A]" />
