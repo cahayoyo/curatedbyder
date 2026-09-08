@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useTransition } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,16 +30,18 @@ export function UserMenu({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (!id) return;
-    // PostHog client SDK disabled (hotfix #210/#211) — identify again when it returns.
+    if (!id || identifiedUserId === id) return;
+
+    posthog.identify(id, { name, email, role });
     identifiedUserId = id;
-  }, [id]);
+  }, [email, id, name, role]);
   const isAdmin = role === "SUPER_ADMIN";
   const signOutUrl = isAdmin ? "/admin" : "/";
 
   const handleSignOut = () => {
     startTransition(async () => {
       await customSignOut();
+      posthog.reset();
       identifiedUserId = undefined;
       window.location.href = signOutUrl;
     });
