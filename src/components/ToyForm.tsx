@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { createToy, updateToy, setToyBatchPrices } from "@/server/actions/toys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,6 +161,7 @@ export function ToyForm({
           }
           await setToyBatchPrices({ toyId: initial.id, entries: entriesFor(r) });
           success(`${r.title.trim()} berhasil diubah!`);
+          capture("toy_updated", { batch_price_count: entriesFor(r).length });
         } else {
           for (const r of rows) {
             const res = await createToy(toyPayload(r));
@@ -177,6 +179,7 @@ export function ToyForm({
               ? `${rows[0].title.trim()} berhasil dibuat!`
               : `${rows.length} mainan berhasil dibuat!`,
           );
+          capture("toy_created", { toy_count: rows.length });
         }
         router.push("/admin/toys");
         router.refresh();

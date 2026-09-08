@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { createBook, updateBook, setBookBatchPrices } from "@/server/actions/books";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +210,7 @@ export function BookForm({
           }
           await setBookBatchPrices({ bookId: initial.id, entries: entriesFor(r) });
           success(`${r.title.trim()} berhasil diubah!`);
+          capture("book_updated", { batch_price_count: entriesFor(r).length });
         } else {
           for (const r of rows) {
             const res = await createBook(bookPayload(r));
@@ -226,6 +228,7 @@ export function BookForm({
               ? `${rows[0].title.trim()} berhasil dibuat!`
               : `${rows.length} buku berhasil dibuat!`,
           );
+          capture("book_created", { book_count: rows.length });
         }
         router.push("/admin/books");
         router.refresh();

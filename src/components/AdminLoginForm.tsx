@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ export function AdminLoginForm() {
       return;
     }
     setFieldError({});
+    capture("admin_login_succeeded", { login_mode: "admin" });
     router.push("/admin");
     router.refresh();
   }
