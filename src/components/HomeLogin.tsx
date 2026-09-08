@@ -149,7 +149,12 @@ export function HomeLogin() {
             variant="outline"
             className={`w-full border bg-white shadow-sm transition-colors hover:shadow ${p.btn}`}
           >
-            <a href={p.href} target="_blank" rel="noopener noreferrer">
+            <a
+              href={p.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => capture("social_link_clicked", { platform: p.label.toLowerCase() })}
+            >
               <p.icon className="h-4 w-4" />
               {p.label}
             </a>
