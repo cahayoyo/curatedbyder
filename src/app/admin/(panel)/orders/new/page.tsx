@@ -4,8 +4,8 @@ import type { CSSProperties } from "react";
 import { OrderForm } from "@/components/OrderForm";
 
 const softBorders = {
-  "--border": "0 8% 90.2%",
-  "--input": "0 8% 90.2%",
+  "--border": "211 15% 73%",
+  "--input": "211 15% 73%",
 } as CSSProperties;
 import {
   getBatches,

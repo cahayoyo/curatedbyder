@@ -12,8 +12,8 @@ import {
 } from "@/server/queries/catalog";
 
 const softBorders = {
-  "--border": "0 8% 90.2%",
-  "--input": "0 8% 90.2%",
+  "--border": "211 15% 73%",
+  "--input": "211 15% 73%",
 } as CSSProperties;
 
 export default async function EditOrderPage({ params }: { params: Promise<{ id: string }> }) {
