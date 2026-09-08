@@ -49,3 +49,12 @@ logs-dev.log
 
 # serena mcp
 .serena/
+
+# local tooling
+.claude/
+.opencode/
+.codegraph/
+graphify-out/
+CLAUDE.md
+.gitattributes
+nul
