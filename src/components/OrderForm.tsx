@@ -843,7 +843,7 @@ export function OrderForm({
           )}
 
           <div className="grid gap-2 md:grid-cols-2">
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5">
+            <div className="flex min-h-24 flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5">
               <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
                 Pembayaran I
               </span>
@@ -867,27 +867,29 @@ export function OrderForm({
                 </a>
               )}
               {!editingDp && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Edit pembayaran I"
-                  onClick={() => {
-                    setDpAmountDraft(dp ?? "");
-                    setDpProofDraft(dpProofUrl);
-                    setEditingDp(true);
-                  }}
-                  className="ml-auto h-8 w-8 shrink-0 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex basis-full items-center justify-end gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Edit pembayaran I"
+                    onClick={() => {
+                      setDpAmountDraft(dp ?? "");
+                      setDpProofDraft(dpProofUrl);
+                      setEditingDp(true);
+                    }}
+                    className="h-8 w-8 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               )}
             </div>
 
             {payments.map((p, i) => (
               <div
                 key={p.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5"
+                className="flex min-h-24 flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5"
               >
                 <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
                   Pembayaran {roman(i + 2)}
@@ -918,7 +920,7 @@ export function OrderForm({
                     />
                   </a>
                 )}
-                <div className="ml-auto flex shrink-0 items-center gap-1">
+                <div className="flex basis-full items-center justify-end gap-1">
                   <Button
                     type="button"
                     variant="ghost"
