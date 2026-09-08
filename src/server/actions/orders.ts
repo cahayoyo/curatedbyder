@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
 import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
+import { formatIDR } from "@/lib/format";
 import {
   STATUS_TYPE,
   ETA_TYPE,
@@ -41,6 +42,26 @@ const orderSchema = z.object({
     .refine((items) => items.every((i) => i.bookId || i.toyId), {
       message: "Setiap item wajib memiliki buku atau mainan",
     }),
+});
+
+const orderPaymentSchema = z.object({
+  amount: z.number().int().min(1),
+  proofUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(500)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null)),
+  note: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null)),
+  paidAt: z.coerce.date().nullish(),
 });
 
 async function applyStock(
@@ -442,7 +463,11 @@ export async function updateOrder(
 
     const shippingCost = data.shippingCost ?? 0;
     const orderTotal = total + shippingCost;
-    const remaining = Math.max(0, orderTotal - (data.dp ?? 0));
+    const paid = await tx.orderPayment.aggregate({
+      where: { orderId: id },
+      _sum: { amount: true },
+    });
+    const remaining = Math.max(0, orderTotal - (data.dp ?? 0) - (paid._sum.amount ?? 0));
 
     await tx.order.update({
       where: { id },
@@ -555,4 +580,243 @@ export async function deleteOrder(id: string) {
   revalidatePath("/dashboard");
   revalidatePath("/admin");
   emitLog(`Order ${invoiceNumber ?? id} deleted`, { actor, order_id: id, invoice_number: invoiceNumber });
+}
+
+type OrderPaymentInput = {
+  amount: number;
+  proofUrl?: string | null;
+  note?: string | null;
+  paidAt?: Date | null;
+};
+
+export async function addOrderPayment(
+  orderId: string,
+  input: OrderPaymentInput
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
+
+  const data = orderPaymentSchema.parse(input);
+
+  try {
+    const result = await db.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { id: true, invoiceNumber: true, total: true, dp: true },
+      });
+      if (!order) throw new UserInputError("Pesanan tidak ditemukan");
+
+      const paid = await tx.orderPayment.aggregate({
+        where: { orderId },
+        _sum: { amount: true },
+      });
+      const sisa = Math.max(0, order.total - (order.dp ?? 0) - (paid._sum.amount ?? 0));
+      if (data.amount > sisa) {
+        throw new UserInputError(`Jumlah pembayaran melebihi sisa tagihan (${formatIDR(sisa)})`);
+      }
+
+      await tx.orderPayment.create({
+        data: {
+          orderId,
+          amount: data.amount,
+          proofUrl: data.proofUrl,
+          note: data.note,
+          paidAt: data.paidAt ?? new Date(),
+        },
+      });
+
+      const count = await tx.orderPayment.count({ where: { orderId } });
+      const remaining = Math.max(0, sisa - data.amount);
+      const orderUpdate: Prisma.OrderUpdateInput = { remaining };
+      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      await tx.order.update({ where: { id: orderId }, data: orderUpdate });
+
+      return { invoiceNumber: order.invoiceNumber, remaining, count };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath("/dashboard");
+    emitLog(`Order ${result.invoiceNumber} payment ${result.count} added`, {
+      actor,
+      order_id: orderId,
+      invoice_number: result.invoiceNumber,
+      amount: data.amount,
+      remaining: result.remaining,
+      has_proof: Boolean(data.proofUrl),
+    });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog(`Order payment add failed`, { actor, order_id: orderId, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+}
+
+export async function updateOrderPayment(
+  paymentId: string,
+  input: OrderPaymentInput
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
+
+  const data = orderPaymentSchema.parse(input);
+
+  try {
+    const result = await db.$transaction(async (tx) => {
+      const payment = await tx.orderPayment.findUnique({ where: { id: paymentId } });
+      if (!payment) throw new UserInputError("Pembayaran tidak ditemukan");
+      const order = await tx.order.findUnique({
+        where: { id: payment.orderId },
+        select: { id: true, invoiceNumber: true, total: true, dp: true },
+      });
+      if (!order) throw new UserInputError("Pesanan tidak ditemukan");
+
+      const paid = await tx.orderPayment.aggregate({
+        where: { orderId: order.id, NOT: { id: paymentId } },
+        _sum: { amount: true },
+      });
+      const sisa = Math.max(0, order.total - (order.dp ?? 0) - (paid._sum.amount ?? 0));
+      if (data.amount > sisa) {
+        throw new UserInputError(`Jumlah pembayaran melebihi sisa tagihan (${formatIDR(sisa)})`);
+      }
+
+      await tx.orderPayment.update({
+        where: { id: paymentId },
+        data: {
+          amount: data.amount,
+          proofUrl: data.proofUrl,
+          note: data.note,
+          paidAt: data.paidAt ?? payment.paidAt,
+        },
+      });
+
+      const remaining = Math.max(0, sisa - data.amount);
+      await tx.order.update({ where: { id: order.id }, data: { remaining } });
+
+      return { invoiceNumber: order.invoiceNumber, remaining };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath("/dashboard");
+    emitLog(`Order ${result.invoiceNumber} payment updated`, {
+      actor,
+      order_id: paymentId,
+      invoice_number: result.invoiceNumber,
+      amount: data.amount,
+      remaining: result.remaining,
+      has_proof: Boolean(data.proofUrl),
+    });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog(`Order payment update failed`, { actor, payment_id: paymentId, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+}
+
+const orderDpSchema = z.object({
+  amount: z.number().int().min(0),
+  proofUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(500)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null)),
+});
+
+export async function updateOrderDp(
+  orderId: string,
+  input: { amount: number; proofUrl?: string | null }
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
+
+  const data = orderDpSchema.parse(input);
+
+  try {
+    const result = await db.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { id: true, invoiceNumber: true, total: true },
+      });
+      if (!order) throw new UserInputError("Pesanan tidak ditemukan");
+
+      const paid = await tx.orderPayment.aggregate({
+        where: { orderId },
+        _sum: { amount: true },
+      });
+      const remaining = Math.max(0, order.total - data.amount - (paid._sum.amount ?? 0));
+      await tx.order.update({
+        where: { id: orderId },
+        data: { dp: data.amount, dpProofUrl: data.proofUrl, remaining },
+      });
+
+      return { invoiceNumber: order.invoiceNumber, remaining };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath("/dashboard");
+    emitLog(`Order ${result.invoiceNumber} payment 1 (DP) updated`, {
+      actor,
+      order_id: orderId,
+      invoice_number: result.invoiceNumber,
+      amount: data.amount,
+      remaining: result.remaining,
+      has_proof: Boolean(data.proofUrl),
+    });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog(`Order DP update failed`, { actor, order_id: orderId, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+}
+
+export async function deleteOrderPayment(paymentId: string): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
+
+  try {
+    const result = await db.$transaction(async (tx) => {
+      const payment = await tx.orderPayment.findUnique({ where: { id: paymentId } });
+      if (!payment) throw new UserInputError("Pembayaran tidak ditemukan");
+      const order = await tx.order.findUnique({
+        where: { id: payment.orderId },
+        select: { id: true, invoiceNumber: true, total: true, dp: true },
+      });
+      if (!order) throw new Error("Order tidak ditemukan");
+
+      await tx.orderPayment.delete({ where: { id: paymentId } });
+
+      const paid = await tx.orderPayment.aggregate({
+        where: { orderId: order.id },
+        _sum: { amount: true },
+      });
+      const remaining = Math.max(0, order.total - (order.dp ?? 0) - (paid._sum.amount ?? 0));
+      await tx.order.update({ where: { id: order.id }, data: { remaining } });
+
+      return { invoiceNumber: order.invoiceNumber, amount: payment.amount, remaining };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath("/dashboard");
+    emitLog(`Order ${result.invoiceNumber} payment deleted`, {
+      actor,
+      invoice_number: result.invoiceNumber,
+      payment_id: paymentId,
+      amount: result.amount,
+      remaining: result.remaining,
+    });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog(`Order payment ${paymentId} delete failed`, { actor, payment_id: paymentId, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 }
