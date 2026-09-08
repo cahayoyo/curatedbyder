@@ -545,7 +545,7 @@ export function OrderForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start">
         <div className="min-w-0 space-y-4 rounded-lg border bg-white p-4">
           <div className="space-y-3 rounded-lg border border-transparent p-4">
             <SectionHeader n={1} title="Informasi Pembeli" />
@@ -843,7 +843,7 @@ export function OrderForm({
           )}
 
           <div className="grid gap-2 md:grid-cols-2">
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#D97A7A]/40 bg-[#FED6D6]/30 p-2.5 sm:flex-nowrap">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5">
               <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
                 Pembayaran I
               </span>
@@ -887,7 +887,7 @@ export function OrderForm({
             {payments.map((p, i) => (
               <div
                 key={p.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5 sm:flex-nowrap"
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5"
               >
                 <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
                   Pembayaran {roman(i + 2)}
@@ -1091,7 +1091,7 @@ export function OrderForm({
       </div>
         </div>
 
-        <div className="lg:sticky lg:top-4">
+        <div className="xl:sticky xl:top-4">
           <OrderInvoicePreview
             invoiceNumber={initial?.invoiceNumber ?? null}
             date={new Date()}
