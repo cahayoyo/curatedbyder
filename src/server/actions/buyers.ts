@@ -46,13 +46,13 @@ export async function createBuyer(
       },
     });
   } catch (e) {
-    emitLog("Buyer save failed", { actor, name: data.name, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Buyer "${data.name}" save failed`, { actor, name: data.name, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
-  emitLog("Buyer created", { actor, buyer_id: buyer.id, name: buyer.name });
+  emitLog(`Buyer "${buyer.name}" created`, { actor, buyer_id: buyer.id, name: buyer.name });
   return { ok: true, data: buyer };
 }
 
@@ -80,13 +80,13 @@ export async function updateBuyer(
       data: { name: data.name, username, phone: data.phone, contact: data.contact },
     });
   } catch (e) {
-    emitLog("Buyer update failed", { actor, buyer_id: id, name: data.name, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Buyer "${data.name}" update failed`, { actor, buyer_id: id, name: data.name, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
-  emitLog("Buyer updated", { actor, buyer_id: buyer.id, name: buyer.name });
+  emitLog(`Buyer "${buyer.name}" updated`, { actor, buyer_id: buyer.id, name: buyer.name });
   return { ok: true, data: buyer };
 }
 
@@ -94,9 +94,9 @@ export async function deleteBuyer(id: string): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
+  const buyer = await db.user.findUnique({ where: { id }, select: { name: true } });
   const sold = await db.order.count({ where: { buyerId: id } });
   if (sold > 0) {
-    const buyer = await db.user.findUnique({ where: { id } });
     return {
       ok: false,
       error: `${buyer?.name ?? "Pembeli"} sudah pernah transaksi dan tidak bisa dihapus`,
@@ -106,11 +106,11 @@ export async function deleteBuyer(id: string): Promise<ActionResult> {
   try {
     await db.user.delete({ where: { id } });
   } catch (e) {
-    emitLog("Buyer delete failed", { actor, buyer_id: id, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Buyer "${buyer?.name ?? id}" delete failed`, { actor, buyer_id: id, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
-  emitLog("Buyer deleted", { actor, buyer_id: id });
+  emitLog(`Buyer "${buyer?.name ?? id}" deleted`, { actor, buyer_id: id });
   return { ok: true };
 }
