@@ -63,6 +63,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
           invoiceNumber: order.invoiceNumber,
           buyerId: order.buyerId,
           dp: order.dp,
+          dpProofUrl: order.dpProofUrl,
           shippingCost: order.shippingCost,
           trackingNumber: order.trackingNumber,
           paymentStatus: order.paymentStatus,

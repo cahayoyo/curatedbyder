@@ -9,6 +9,7 @@ import {
   createOrder,
   deleteOrderPayment,
   updateOrder,
+  updateOrderDp,
 } from "@/server/actions/orders";
 import { BookImagePicker } from "@/components/BookImagePicker";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -58,6 +59,7 @@ type OrderInitial = {
   invoiceNumber: string;
   buyerId: string;
   dp: number | null;
+  dpProofUrl: string | null;
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
@@ -185,6 +187,10 @@ export function OrderForm({
   const [payAmount, setPayAmount] = useState("");
   const [payProof, setPayProof] = useState("");
   const [payNote, setPayNote] = useState("");
+  const [dpProofUrl, setDpProofUrl] = useState(initial?.dpProofUrl ?? "");
+  const [editingDp, setEditingDp] = useState(false);
+  const [dpAmountDraft, setDpAmountDraft] = useState("");
+  const [dpProofDraft, setDpProofDraft] = useState("");
   const [items, setItems] = useState<LineItem[]>(
     initial?.items?.length
       ? initial.items.map((it) => ({
@@ -315,6 +321,35 @@ export function OrderForm({
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
+
+  function submitDpEdit() {
+    if (!initial?.id) return;
+    const amount = Number(dpAmountDraft);
+    if (!Number.isInteger(amount) || amount < 0) return error("Jumlah pembayaran tidak valid");
+    if (amount > total - paidSum) {
+      return error(`Pembayaran I melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
+    }
+    startTransition(async () => {
+      try {
+        const res = await updateOrderDp(initial.id, {
+          amount,
+          proofUrl: dpProofDraft || null,
+        });
+        if (!res.ok) {
+          error(res.error);
+          return;
+        }
+        success("Pembayaran I berhasil diubah!");
+        capture("order_dp_updated", { amount, has_proof: Boolean(dpProofDraft) });
+        setDp(dpAmountDraft);
+        setDpProofUrl(dpProofDraft);
+        setEditingDp(false);
+        router.refresh();
+      } catch (err) {
+        error(err instanceof Error ? err.message : "Gagal mengubah pembayaran");
+      }
+    });
+  }
 
   function submitPayment() {
     if (!initial?.id) return;
@@ -719,13 +754,104 @@ export function OrderForm({
           )}
 
           <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#D97A7A]/40 bg-[#FED6D6]/30 p-2.5 sm:flex-nowrap">
+              <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
+                Pembayaran I
+              </span>
+              <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">DP</span>
+              {dpProofUrl && (
+                <a
+                  href={dpProofUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0"
+                  aria-label="Lihat bukti pembayaran I"
+                >
+                  <Image
+                    src={dpProofUrl}
+                    alt="Bukti pembayaran I"
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded border border-input object-cover"
+                  />
+                </a>
+              )}
+              {!editingDp && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit pembayaran I"
+                  onClick={() => {
+                    setDpAmountDraft(dp ?? "");
+                    setDpProofDraft(dpProofUrl);
+                    setEditingDp(true);
+                  }}
+                  className="ml-auto h-8 w-8 shrink-0 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+
+            {editingDp && (
+              <div className="space-y-3 rounded-lg border border-[#D97A7A]/50 bg-[#FED6D6]/20 p-3">
+                <div className="space-y-1.5">
+                  <Label>Jumlah</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+                      Rp
+                    </span>
+                    <Input
+                      inputMode="numeric"
+                      autoFocus
+                      className="pl-10 placeholder:text-black/30"
+                      value={dpAmountDraft ? formatRp(dpAmountDraft) : ""}
+                      onChange={(e) => setDpAmountDraft(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Masukkan jumlah..."
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Foto Bukti (opsional)</Label>
+                  <BookImagePicker
+                    image={dpProofDraft}
+                    alt="Bukti pembayaran I"
+                    endpoint="paymentProof"
+                    onChange={setDpProofDraft}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    disabled={pending}
+                    onClick={submitDpEdit}
+                    className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+                  >
+                    <Save className="h-4 w-4" />
+                    {pending ? "Menyimpan..." : "Simpan Pembayaran I"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingDp(false)}
+                    className={cn("flex-1 border border-input", btn)}
+                  >
+                    <X className="h-4 w-4" />
+                    Batal
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {payments.map((p, i) => (
               <div
                 key={p.id}
                 className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5 sm:flex-nowrap"
               >
                 <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
-                  Pembayaran {roman(i + 1)}
+                  Pembayaran {roman(i + 2)}
                 </span>
                 <span className="text-sm font-semibold">{formatIDR(p.amount)}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">
@@ -742,11 +868,11 @@ export function OrderForm({
                     target="_blank"
                     rel="noreferrer"
                     className="shrink-0"
-                    aria-label={`Lihat bukti pembayaran ${i + 1}`}
+                    aria-label={`Lihat bukti pembayaran ${i + 2}`}
                   >
                     <Image
                       src={p.proofUrl}
-                      alt={`Bukti pembayaran ${i + 1}`}
+                      alt={`Bukti pembayaran ${i + 2}`}
                       width={36}
                       height={36}
                       className="h-9 w-9 rounded border border-input object-cover"
