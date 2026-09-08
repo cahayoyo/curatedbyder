@@ -1,10 +1,13 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { Prisma, type Order } from "@prisma/client";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { loggerProvider } from "@/instrumentation";
 import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
 import {
   STATUS_TYPE,
@@ -261,6 +264,24 @@ export async function createOrder(
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const order = await run(attempt);
+      // Server-truth audit record for PostHog Logs (issue #220). The provider
+      // is a no-op without a key (local/staging). Emission was exonerated from
+      // the #212 stall (cacheComponents), so in-action emit is safe again.
+      loggerProvider.getLogger("curatedbyder").emit({
+        body: `Order ${order.invoiceNumber} created`,
+        severityNumber: SeverityNumber.INFO,
+        attributes: {
+          invoiceNumber: order.invoiceNumber,
+          total: order.total,
+          itemCount: data.items.length,
+          paymentStatus: data.paymentStatus,
+        },
+      });
+      // Batch processor sends async; flush after the response so serverless
+      // doesn't freeze before delivery.
+      after(async () => {
+        await loggerProvider.forceFlush();
+      });
       revalidateTag("books", "max");
       revalidateTag("toys", "max");
       revalidatePath("/admin");
