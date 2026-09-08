@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
+import { after } from "next/server";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { z } from "zod";
 import { Prisma, type Order } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
+import { loggerProvider } from "@/instrumentation";
 import {
   STATUS_TYPE,
   ETA_TYPE,
@@ -261,6 +264,21 @@ export async function createOrder(
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const order = await run(attempt);
+      loggerProvider.getLogger("curatedbyder").emit({
+        body: `Order ${order.invoiceNumber} created`,
+        severityNumber: SeverityNumber.INFO,
+        attributes: {
+          invoiceNumber: order.invoiceNumber,
+          total: order.total,
+          itemCount: data.items.length,
+          paymentStatus: data.paymentStatus,
+        },
+      });
+      // Route/server-action execution finishes before the batch processor sends
+      // logs to the collector; flush after the response so nothing is dropped.
+      after(async () => {
+        await loggerProvider.forceFlush();
+      });
       updateTag("books");
       updateTag("toys");
       revalidatePath("/admin");
