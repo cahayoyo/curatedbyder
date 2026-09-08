@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { after } from "next/server";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { z } from "zod";
 import { Prisma, type Order } from "@prisma/client";
@@ -274,11 +273,13 @@ export async function createOrder(
           paymentStatus: data.paymentStatus,
         },
       });
-      // Route/server-action execution finishes before the batch processor sends
-      // logs to the collector; flush after the response so nothing is dropped.
-      after(async () => {
-        await loggerProvider.forceFlush();
-      });
+      // Serverless functions can freeze before the batch processor sends logs
+      // to the collector; flush inline (bounded) so logs are delivered without
+      // ever being able to block order creation.
+      await Promise.race([
+        loggerProvider.forceFlush(),
+        new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+      ]).catch(() => {});
       updateTag("books");
       updateTag("toys");
       revalidatePath("/admin");
