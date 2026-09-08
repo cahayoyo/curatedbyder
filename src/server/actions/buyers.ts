@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { emitLog } from "@/instrumentation";
 import { generateUsername } from "@/lib/username";
 import type { User } from "@prisma/client";
 import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
@@ -17,7 +19,8 @@ const buyerSchema = z.object({
 export async function createBuyer(
   input: z.infer<typeof buyerSchema>
 ): Promise<ActionResultWithData<User>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = buyerSchema.parse(input);
   const [existingByPhone, existingByUsername] = await Promise.all([
@@ -31,18 +34,25 @@ export async function createBuyer(
   if (existingByUsername)
     return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
-  const buyer = await db.user.create({
-    data: {
-      name: data.name,
-      username: generateUsername(data.name, data.phone),
-      phone: data.phone,
-      contact: data.contact,
-      role: "USER",
-    },
-  });
+  let buyer: User;
+  try {
+    buyer = await db.user.create({
+      data: {
+        name: data.name,
+        username: generateUsername(data.name, data.phone),
+        phone: data.phone,
+        contact: data.contact,
+        role: "USER",
+      },
+    });
+  } catch (e) {
+    emitLog("Buyer save failed", { actor, name: data.name, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
+  emitLog("Buyer created", { actor, buyer_id: buyer.id, name: buyer.name });
   return { ok: true, data: buyer };
 }
 
@@ -50,7 +60,8 @@ export async function updateBuyer(
   id: string,
   input: z.infer<typeof buyerSchema>
 ): Promise<ActionResultWithData<User>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = buyerSchema.parse(input);
   const username = generateUsername(data.name, data.phone);
@@ -62,18 +73,26 @@ export async function updateBuyer(
   if (existingByUsername)
     return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
-  const buyer = await db.user.update({
-    where: { id },
-    data: { name: data.name, username, phone: data.phone, contact: data.contact },
-  });
+  let buyer: User;
+  try {
+    buyer = await db.user.update({
+      where: { id },
+      data: { name: data.name, username, phone: data.phone, contact: data.contact },
+    });
+  } catch (e) {
+    emitLog("Buyer update failed", { actor, buyer_id: id, name: data.name, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
+  emitLog("Buyer updated", { actor, buyer_id: buyer.id, name: buyer.name });
   return { ok: true, data: buyer };
 }
 
 export async function deleteBuyer(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const sold = await db.order.count({ where: { buyerId: id } });
   if (sold > 0) {
@@ -84,8 +103,14 @@ export async function deleteBuyer(id: string): Promise<ActionResult> {
     };
   }
 
-  await db.user.delete({ where: { id } });
+  try {
+    await db.user.delete({ where: { id } });
+  } catch (e) {
+    emitLog("Buyer delete failed", { actor, buyer_id: id, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
+  emitLog("Buyer deleted", { actor, buyer_id: id });
   return { ok: true };
 }

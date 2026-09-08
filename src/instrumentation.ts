@@ -1,7 +1,8 @@
 import { BatchLogRecordProcessor, LoggerProvider } from "@opentelemetry/sdk-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
-import { logs } from "@opentelemetry/api-logs";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { resourceFromAttributes } from "@opentelemetry/resources";
+import { after } from "next/server";
 
 const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const postHogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -29,5 +30,33 @@ export const loggerProvider = new LoggerProvider({
 export function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     logs.setGlobalLoggerProvider(loggerProvider);
+  }
+}
+
+export type LogAttributes = Record<string, string | number | boolean | null | undefined>;
+
+// Single emission point for PostHog server logs (issue #223). No key
+// (local/staging) -> provider has no processors -> silent no-op.
+export function emitLog(
+  body: string,
+  attrs: LogAttributes = {},
+  severity: SeverityNumber = SeverityNumber.INFO,
+) {
+  loggerProvider.getLogger("curatedbyder").emit({
+    body,
+    severityNumber: severity,
+    attributes: Object.fromEntries(
+      Object.entries(attrs).filter((e): e is [string, string | number | boolean | null] => e[1] !== undefined),
+    ),
+  });
+  // Batch processor sends async; flush after the response so serverless
+  // doesn't freeze before delivery. Guarded: authorize() has no request
+  // store — the processor's interval flush is the fallback there.
+  try {
+    after(async () => {
+      await loggerProvider.forceFlush();
+    });
+  } catch {
+    // ignore
   }
 }

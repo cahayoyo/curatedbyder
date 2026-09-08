@@ -1,7 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "./db";
+import { emitLog } from "@/instrumentation";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -23,10 +25,16 @@ export const authOptions: NextAuthOptions = {
           const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
-          if (!user) throw new Error("Email salah");
-          if (user.role !== "SUPER_ADMIN") throw new Error("Email salah");
+          if (!user || user.role !== "SUPER_ADMIN") {
+            emitLog("Admin login failed", { actor: credentials.email, login_mode: "admin", reason: "email_not_found" }, SeverityNumber.WARN);
+            throw new Error("Email salah");
+          }
           const ok = await bcrypt.compare(credentials.password, user.passwordHash ?? "");
-          if (!ok) throw new Error("Kata sandi salah");
+          if (!ok) {
+            emitLog("Admin login failed", { actor: credentials.email, login_mode: "admin", reason: "wrong_password" }, SeverityNumber.WARN);
+            throw new Error("Kata sandi salah");
+          }
+          emitLog("Admin login succeeded", { actor: user.email ?? user.id, login_mode: "admin" });
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
@@ -37,13 +45,18 @@ export const authOptions: NextAuthOptions = {
           if (!username || !phoneInput) return null;
 
           const user = await db.user.findFirst({ where: { username, role: "USER" } });
-          if (!user) throw new Error("USERNAME_NOT_FOUND");
+          if (!user) {
+            emitLog("Buyer login failed", { actor: username, login_mode: "buyer", reason: "username_not_found" }, SeverityNumber.WARN);
+            throw new Error("USERNAME_NOT_FOUND");
+          }
 
           const storedPhone = (user.phone || "").replace(/\D/g, "");
           if (!storedPhone || storedPhone !== phoneInput) {
+            emitLog("Buyer login failed", { actor: username, login_mode: "buyer", reason: "phone_mismatch" }, SeverityNumber.WARN);
             throw new Error("PHONE_MISMATCH");
           }
 
+          emitLog("Buyer login succeeded", { actor: username, buyer_id: user.id, login_mode: "buyer" });
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
