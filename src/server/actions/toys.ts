@@ -3,8 +3,10 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Prisma, type Toy } from "@prisma/client";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
+import { emitLog } from "@/instrumentation";
 import { ActionResultWithData } from "@/lib/actionResult";
 import { BOOK_STATUS_TYPE } from "@/lib/orderOptions";
 
@@ -44,7 +46,8 @@ async function ensureUniqueTitle(title: string, excludeId?: string): Promise<str
 export async function createToy(
   input: z.infer<typeof toySchema>
 ): Promise<ActionResultWithData<Toy>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = toySchema.parse(input);
   const dupError = await ensureUniqueTitle(data.title);
@@ -52,13 +55,16 @@ export async function createToy(
 
   try {
     const toy = await db.toy.create({ data: toyData(data) });
-    revalidateTag("$1", "max");
+    revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
+    emitLog("Toy created", { actor, toy_id: toy.id, title: toy.title });
     return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      emitLog("Toy save failed: duplicate title", { actor, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
+    emitLog("Toy save failed", { actor, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -67,7 +73,8 @@ export async function updateToy(
   id: string,
   input: z.infer<typeof toySchema>
 ): Promise<ActionResultWithData<Toy>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = toySchema.parse(input);
   const dupError = await ensureUniqueTitle(data.title, id);
@@ -75,23 +82,33 @@ export async function updateToy(
 
   try {
     const toy = await db.toy.update({ where: { id }, data: toyData(data) });
-    revalidateTag("$1", "max");
+    revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
+    emitLog("Toy updated", { actor, toy_id: toy.id, title: toy.title });
     return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      emitLog("Toy update failed: duplicate title", { actor, toy_id: id, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
+    emitLog("Toy update failed", { actor, toy_id: id, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
 
 export async function deleteToy(id: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
-  await db.toy.delete({ where: { id } });
-  revalidateTag("$1", "max");
+  try {
+    await db.toy.delete({ where: { id } });
+  } catch (e) {
+    emitLog("Toy delete failed", { actor, toy_id: id, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+  revalidateTag("toys", "max");
   revalidatePath("/admin/toys");
+  emitLog("Toy deleted", { actor, toy_id: id });
 }
 
 const toyBatchPriceSchema = z.object({
