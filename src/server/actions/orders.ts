@@ -1,13 +1,12 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { after } from "next/server";
 import { z } from "zod";
 import { Prisma, type Order } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
-import { loggerProvider } from "@/instrumentation";
+import { emitLog } from "@/instrumentation";
 import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
 import {
   STATUS_TYPE,
@@ -88,7 +87,8 @@ async function applyStock(
 }
 
 export async function createBatch(name: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const batchName = name.trim().toUpperCase();
   if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
@@ -99,15 +99,22 @@ export async function createBatch(name: string) {
   const existing = await db.batch.findUnique({ where: { name: batchName } });
   if (existing) return { ok: false, error: "Batch sudah ada" };
 
-  await db.batch.create({ data: { name: batchName } });
-  revalidateTag("$1", "max");
+  try {
+    await db.batch.create({ data: { name: batchName } });
+  } catch (e) {
+    emitLog("Batch save failed", { actor, name: batchName, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+  revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
+  emitLog("Batch created", { actor, name: batchName });
   return { ok: true as const };
 }
 
 export async function updateBatch(id: string, name: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const batchName = name.trim().toUpperCase();
   if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
@@ -120,14 +127,21 @@ export async function updateBatch(id: string, name: string) {
   });
   if (existing) return { ok: false, error: "Batch sudah ada" };
 
-  await db.batch.update({ where: { id }, data: { name: batchName } });
-  revalidateTag("$1", "max");
+  try {
+    await db.batch.update({ where: { id }, data: { name: batchName } });
+  } catch (e) {
+    emitLog("Batch update failed", { actor, batch_id: id, name: batchName, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+  revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
+  emitLog("Batch updated", { actor, batch_id: id, name: batchName });
   return { ok: true as const };
 }
 
 export async function deleteBatch(id: string): Promise<ActionResult> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const batch = await db.batch.findUnique({ where: { id } });
   if (!batch) throw new Error("Batch tidak ditemukan");
@@ -137,16 +151,23 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
     return { ok: false, error: `Batch "${batch.name}" masih dipakai ${itemCount} item pesanan` };
   }
 
-  await db.batch.delete({ where: { id } });
-  revalidateTag("$1", "max");
+  try {
+    await db.batch.delete({ where: { id } });
+  } catch (e) {
+    emitLog("Batch delete failed", { actor, batch_id: id, name: batch.name, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+  revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
+  emitLog("Batch deleted", { actor, batch_id: id, name: batch.name });
   return { ok: true };
 }
 
 export async function createOrder(
   input: z.infer<typeof orderSchema>
 ): Promise<ActionResultWithData<Order>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = orderSchema.parse(input);
 
@@ -264,23 +285,12 @@ export async function createOrder(
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const order = await run(attempt);
-      // Server-truth audit record for PostHog Logs (issue #220). The provider
-      // is a no-op without a key (local/staging). Emission was exonerated from
-      // the #212 stall (cacheComponents), so in-action emit is safe again.
-      loggerProvider.getLogger("curatedbyder").emit({
-        body: `Order ${order.invoiceNumber} created`,
-        severityNumber: SeverityNumber.INFO,
-        attributes: {
-          invoiceNumber: order.invoiceNumber,
-          total: order.total,
-          itemCount: data.items.length,
-          paymentStatus: data.paymentStatus,
-        },
-      });
-      // Batch processor sends async; flush after the response so serverless
-      // doesn't freeze before delivery.
-      after(async () => {
-        await loggerProvider.forceFlush();
+      emitLog(`Order ${order.invoiceNumber} created`, {
+        actor,
+        invoice_number: order.invoiceNumber,
+        total: order.total,
+        item_count: data.items.length,
+        payment_status: data.paymentStatus,
       });
       revalidateTag("books", "max");
       revalidateTag("toys", "max");
@@ -300,6 +310,7 @@ export async function createOrder(
       ) {
         continue;
       }
+      emitLog("Order save failed", { actor, error: String(e) }, SeverityNumber.ERROR);
       throw e;
     }
   }
@@ -311,7 +322,8 @@ export async function updateOrder(
   id: string,
   input: z.infer<typeof orderSchema>
 ): Promise<ActionResult> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const data = orderSchema.parse(input);
 
@@ -451,6 +463,7 @@ export async function updateOrder(
     });
   } catch (e) {
     if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog("Order update failed", { actor, order_id: id, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
@@ -459,56 +472,84 @@ export async function updateOrder(
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
+  emitLog("Order updated", {
+    actor,
+    order_id: id,
+    item_count: data.items.length,
+    payment_status: data.paymentStatus,
+  });
   return { ok: true };
 }
 
 export async function updateOrderItemStatus(itemId: string, status: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const valid = z.enum(STATUS_TYPE).parse(status);
-  await db.orderItem.update({ where: { id: itemId }, data: { status: valid } });
+  try {
+    await db.orderItem.update({ where: { id: itemId }, data: { status: valid } });
+  } catch (e) {
+    emitLog("Order item status update failed", { actor, item_id: itemId, status: valid, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
+  emitLog("Order item status updated", { actor, item_id: itemId, status: valid });
   return valid;
 }
 
 export async function updatePaymentStatus(id: string, paymentStatus: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
   const valid = z.enum(PAYMENT_TYPE).parse(paymentStatus);
-  const order = await db.order.update({ where: { id }, data: { paymentStatus: valid } });
-
-  revalidatePath("/admin/orders");
-  revalidatePath("/admin");
-  return order;
+  try {
+    const order = await db.order.update({ where: { id }, data: { paymentStatus: valid } });
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin");
+    emitLog("Order payment status updated", { actor, order_id: id, invoice_number: order.invoiceNumber, payment_status: valid });
+    return order;
+  } catch (e) {
+    emitLog("Order payment status update failed", { actor, order_id: id, payment_status: valid, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 }
 
 export async function deleteOrder(id: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
 
-  await db.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({
-      where: { id },
-      include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
+  let invoiceNumber: string | undefined;
+  try {
+    await db.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { items: { select: { bookId: true, toyId: true, quantity: true } } },
+      });
+      if (!order) throw new Error("Order not found");
+      invoiceNumber = order.invoiceNumber;
+
+      await applyStock(
+        tx,
+        order.items.map((it) => ({
+          bookId: it.bookId,
+          toyId: it.toyId,
+          amount: it.quantity,
+        }))
+      );
+      await tx.order.delete({ where: { id } });
     });
-    if (!order) throw new Error("Order not found");
+  } catch (e) {
+    emitLog("Order delete failed", { actor, order_id: id, invoice_number: invoiceNumber, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
 
-    await applyStock(
-      tx,
-      order.items.map((it) => ({
-        bookId: it.bookId,
-        toyId: it.toyId,
-        amount: it.quantity,
-      }))
-    );
-    await tx.order.delete({ where: { id } });
-  });
-
-  revalidateTag("$1", "max");
-  revalidateTag("$1", "max");
+  revalidateTag("books", "max");
+  revalidateTag("toys", "max");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
+  emitLog("Order deleted", { actor, order_id: id, invoice_number: invoiceNumber });
 }
