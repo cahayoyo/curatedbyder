@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { Prisma, type Book } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -57,7 +57,7 @@ export async function createBook(
 
   try {
     const book = await db.book.create({ data: bookData(data) });
-    updateTag("books");
+    revalidateTag("$1", "max");
     revalidatePath("/admin/books");
     return { ok: true, data: book };
   } catch (e) {
@@ -81,7 +81,7 @@ export async function updateBook(
 
   try {
     const book = await db.book.update({ where: { id }, data: bookData(data) });
-    updateTag("books");
+    revalidateTag("$1", "max");
     revalidatePath("/admin/books");
     return { ok: true, data: book };
   } catch (e) {
@@ -102,8 +102,8 @@ export async function deleteBook(id: string): Promise<ActionResult> {
   }
 
   await db.book.delete({ where: { id } });
-  updateTag("books");
-  updateTag("bookBatchPrices");
+  revalidateTag("$1", "max");
+  revalidateTag("$1", "max");
   revalidatePath("/admin/books");
   return { ok: true };
 }
@@ -138,7 +138,7 @@ export async function setBookBatchPrices(input: z.infer<typeof bookBatchPriceSch
     }
   });
 
-  updateTag("bookBatchPrices");
+  revalidateTag("$1", "max");
   revalidatePath("/admin/books");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
