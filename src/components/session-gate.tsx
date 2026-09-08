@@ -15,15 +15,25 @@ export async function HeaderMenus({ role }: { role: Role }) {
   const current = session?.user?.role as Role | undefined;
   const r = REDIRECTS[role];
   if (current === r.other) redirect(r.otherTo);
-  if (current !== role) redirect(r.noneTo);
+  if (!session || current !== role) redirect(r.noneTo);
 
   return (
     <>
       <div className="flex justify-self-end md:hidden">
-        <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
+        <UserMenu
+          id={session.user.id}
+          name={session.user.name ?? undefined}
+          email={session.user.email ?? undefined}
+          role={session.user.role}
+        />
       </div>
       <div className="hidden md:flex md:justify-self-end">
-        <UserMenu name={session?.user?.name ?? undefined} role={session?.user?.role} />
+        <UserMenu
+          id={session.user.id}
+          name={session.user.name ?? undefined}
+          email={session.user.email ?? undefined}
+          role={session.user.role}
+        />
       </div>
     </>
   );

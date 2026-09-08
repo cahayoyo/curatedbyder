@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { createBatch, updateBatch, deleteBatch } from "@/server/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
         }
         if (created > 0) {
           success(`${created} batch berhasil dibuat`);
+          capture("batch_created", { batch_count: created });
           setFields([""]);
           router.refresh();
         } else {

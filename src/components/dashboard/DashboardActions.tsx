@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { capture } from "@/lib/posthog";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BuyerOrderDetail, OrderDTO, openAdminWa } from "@/components/BuyerTabs";
@@ -30,7 +31,13 @@ export function PayNowButton({ order }: { order: OrderDTO }) {
   return (
     <Button
       type="button"
-      onClick={() => openAdminWa(order)}
+      onClick={() => {
+        capture("order_payment_contact_started", {
+          payment_status: order.paymentStatus,
+          remaining_amount: order.remaining,
+        });
+        openAdminWa(order);
+      }}
       className="w-full bg-[#D97A7A] text-white hover:bg-[#c9686b]"
     >
       <Wallet className="h-4 w-4" />
