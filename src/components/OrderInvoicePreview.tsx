@@ -50,10 +50,10 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="space-y-2 rounded-lg border border-input bg-[#FCFBFB] p-3 text-sm">
+      <div className="space-y-1.5 rounded-lg border border-input bg-[#FCFBFB] p-2.5 text-xs">
         <div className="flex items-center justify-between gap-2">
           <span className="shrink-0 text-muted-foreground">No. Invoice</span>
-          <span className="truncate font-mono text-xs font-semibold">
+          <span className="truncate font-mono text-[11px] font-semibold">
             {invoiceNumber ?? "INV/2026/…"}
           </span>
         </div>
@@ -67,7 +67,7 @@ export function OrderInvoicePreview({
           <span className="shrink-0 text-muted-foreground">Status</span>
           <span
             className={cn(
-              "shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold",
+              "shrink-0 rounded-full border px-1.5 py-px text-[10px] font-semibold",
               PAYMENT_BADGE[statusValue] ?? "border-gray-300 bg-gray-100 text-gray-700"
             )}
           >
