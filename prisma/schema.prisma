@@ -146,9 +146,22 @@ model Order {
   paymentStatus  PaymentStatus @default(NO_PAYMENT)
   createdAt      DateTime      @default(now())
   items          OrderItem[]
+  payments       OrderPayment[]
 
   @@index([soldAt])
   @@index([buyerId, soldAt])
+}
+
+model OrderPayment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount    Int
+  proofUrl  String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
 }
 
 model OrderItem {
