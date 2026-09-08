@@ -1,24 +1,4 @@
-import posthog from "posthog-js";
-
-const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
-
-if (!posthogKey) {
-  // PostHog is intentionally disabled on local dev and staging previews
-  // (the key is only set in production). Warn instead of throwing so the
-  // app still runs without it.
-  if (process.env.NODE_ENV !== "production") {
-    console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_KEY not set — analytics disabled.");
-  }
-} else if (!posthogHost) {
-  if (process.env.NODE_ENV !== "production") {
-    console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_HOST not set — analytics disabled.");
-  }
-} else {
-  posthog.init(posthogKey, {
-    api_host: posthogHost,
-    defaults: "2026-01-30",
-    capture_exceptions: true,
-    debug: process.env.NODE_ENV === "development",
-  });
-}
+// PostHog client SDK disabled (hotfix #210/#211):
+// in production its event requests failed en masse (retry storm on /i/v0/e/)
+// and order-creation navigation stalled while it was active.
+// Re-introduce only after root-causing the failing /e/ requests.
