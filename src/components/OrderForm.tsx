@@ -501,7 +501,7 @@ export function OrderForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="min-w-0 space-y-4 rounded-lg border bg-white p-4">
-          <div className="space-y-3">
+          <div className="space-y-3 rounded-lg border border-transparent p-4">
             <SectionHeader n={1} title="Informasi Pembeli" />
             <div className="space-y-1.5">
               <Label>Pilih Pembeli</Label>
