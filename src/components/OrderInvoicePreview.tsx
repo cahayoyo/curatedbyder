@@ -39,7 +39,7 @@ export function OrderInvoicePreview({
   const status = PAYMENT_STATUSES.find((p) => p.value === statusValue);
 
   return (
-    <div className="space-y-3 rounded-lg border bg-white p-4">
+    <div className="space-y-4 rounded-lg border bg-white p-5">
       <div className="flex items-center gap-2">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
           <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
@@ -50,7 +50,7 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="space-y-1.5 rounded-lg border border-input bg-[#FCFBFB] p-2.5 text-xs">
+      <div className="space-y-2.5 rounded-lg border border-input bg-[#FCFBFB] p-3.5 text-xs">
         <div className="flex items-center justify-between gap-2">
           <span className="shrink-0 text-muted-foreground">No. Invoice</span>
           <span
@@ -81,7 +81,7 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2.5">
         <p className="text-sm font-semibold">Rincian Item</p>
         <div className="grid grid-cols-[minmax(0,1fr)_30px_74px_84px] gap-x-2 px-0.5 text-[11px] font-medium text-muted-foreground">
           <span>Produk</span>
@@ -89,7 +89,7 @@ export function OrderInvoicePreview({
           <span>Harga</span>
           <span className="text-right">Subtotal</span>
         </div>
-        <div className="max-h-52 space-y-1.5 overflow-y-auto">
+        <div className="max-h-52 space-y-2.5 overflow-y-auto">
           {items.length === 0 ? (
             <p className="py-2 text-xs text-muted-foreground">Belum ada produk.</p>
           ) : (
@@ -113,7 +113,7 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="space-y-1 border-t border-input pt-2 text-sm">
+      <div className="space-y-2.5 border-t border-input pt-3.5 text-sm">
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">Ongkir</span>
           <span>{formatIDR(shippingCost)}</span>
@@ -128,7 +128,7 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 rounded-md bg-[#D97A7A]/10 px-3 py-2 text-sm font-bold text-[#c96666]">
+      <div className="flex items-center justify-between gap-2 rounded-md bg-[#D97A7A]/10 px-3.5 py-2.5 text-sm font-bold text-[#c96666]">
         <span>Total</span>
         <span>{formatIDR(total)}</span>
       </div>
