@@ -57,6 +57,7 @@ export function ConfirmDeleteDialog({
         </DialogHeader>
         <DialogFooter className="flex-row gap-2 sm:space-x-0">
           <Button
+            type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-black/5"
@@ -64,6 +65,7 @@ export function ConfirmDeleteDialog({
             Batal
           </Button>
           <Button
+            type="button"
             onClick={handleConfirm}
             disabled={pending}
             className="flex-1 bg-red-600 text-white shadow-sm transition-colors hover:bg-red-500"
@@ -124,6 +126,7 @@ export function ConfirmDeleteButton({
   return (
     <>
       <Button
+        type="button"
         variant="ghost"
         size={size}
         onClick={() => setOpen(true)}
