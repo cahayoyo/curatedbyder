@@ -13,6 +13,7 @@ import {
 } from "@/server/actions/orders";
 import { BookImagePicker } from "@/components/BookImagePicker";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { OrderInvoicePreview } from "@/components/OrderInvoicePreview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
+import { Plus, Trash2, Save, X, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -88,6 +89,17 @@ function roman(n: number): string {
   let out = "";
   for (const [v, s] of map) while (n >= v) { out += s; n -= v; }
   return out;
+}
+
+function SectionHeader({ n, title }: { n: number; title: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#D97A7A] text-xs font-bold text-white">
+        {n}
+      </span>
+      <h3 className="text-base font-bold">{title}</h3>
+    </div>
+  );
 }
 
 function SearchSelect({
@@ -322,6 +334,28 @@ export function OrderForm({
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
 
+  const previewItems = items
+    .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
+    .map((i, n) => {
+      const title =
+        i.kind === "book"
+          ? books.find((b) => b.id === i.bookId)?.title ?? "—"
+          : toys.find((t) => t.id === i.toyId)?.title ?? "—";
+      const fmts = itemFormatsOf(i);
+      const caption =
+        i.kind === "toy" ? "Mainan" : fmts.length ? `Format: ${fmts.join(", ")}` : "Buku";
+      const qty = Number(i.quantity) || 0;
+      const price = itemPrice(i);
+      return {
+        key: `${i.kind}-${i.bookId || i.toyId}-${n}`,
+        title,
+        caption,
+        quantity: qty,
+        unitPrice: price,
+        subtotal: qty * price,
+      };
+    });
+
   function submitDpEdit() {
     if (!initial?.id) return;
     const amount = Number(dpAmountDraft);
@@ -461,34 +495,39 @@ export function OrderForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5">
-            <UserRound className="h-4 w-4 text-muted-foreground" />
-            Nama
-          </Label>
-          <SearchSelect
-            options={buyers.map((b) => ({ value: b.id, label: b.name }))}
-            value={buyerId}
-            onValueChange={setBuyerId}
-            placeholder="Select buyer"
-          />
-        </div>
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="min-w-0 space-y-4">
+          <div className="space-y-3 rounded-lg border bg-white p-4">
+            <SectionHeader n={1} title="Informasi Pesanan" />
+            <div className="space-y-1.5">
+              <Label>Penerima Pesanan</Label>
+              <SearchSelect
+                options={buyers.map((b) => ({ value: b.id, label: b.name }))}
+                value={buyerId}
+                onValueChange={setBuyerId}
+                placeholder="Pilih penerima"
+              />
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <Label className="flex items-center gap-1.5">
-          <BookOpen className="h-4 w-4 text-muted-foreground" />
-          Produk
-        </Label>
+      <div className="space-y-3 rounded-lg border bg-white p-4">
+        <SectionHeader n={2} title="Produk" />
+        <div className="hidden gap-2 px-3 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto]">
+          <span>Type</span>
+          <span>Nama Produk</span>
+          <span>Format</span>
+          <span>Quantity</span>
+          <span>Harga</span>
+          <span />
+        </div>
         {items.map((item, idx) => (
           <div
             key={idx}
             className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
           >
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Tipe</span>
+              <span className="text-xs text-muted-foreground sm:hidden">Type</span>
               <Select
                 value={item.kind}
                 onValueChange={(v) => setItemKind(idx, v as "book" | "toy")}
@@ -503,7 +542,7 @@ export function OrderForm({
               </Select>
             </div>
             <div className="min-w-0 space-y-1">
-              <span className="text-xs text-muted-foreground">Nama Produk</span>
+              <span className="text-xs text-muted-foreground sm:hidden">Nama Produk</span>
               {item.kind === "book" ? (
                 <SearchSelect
                   options={bookVariants.map((v) => ({ value: v.value, label: v.label, stock: v.stock }))}
@@ -543,7 +582,7 @@ export function OrderForm({
               )}
             </div>
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Format</span>
+              <span className="text-xs text-muted-foreground sm:hidden">Format</span>
               <div className="flex h-9 min-w-0 items-center gap-1 overflow-x-auto rounded-md border border-input bg-black/5 px-2">
                 {itemFormatsOf(item).length > 0 ? (
                   itemFormatsOf(item).map((f) => (
@@ -595,7 +634,7 @@ export function OrderForm({
               </div>
             </div>
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Quantity</span>
+              <span className="text-xs text-muted-foreground sm:hidden">Quantity</span>
               <Input
                 type="number"
                 min="1"
@@ -604,7 +643,7 @@ export function OrderForm({
               />
             </div>
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Harga</span>
+              <span className="text-xs text-muted-foreground sm:hidden">Harga</span>
               <Input
                 readOnly
                 value={(item.kind === "book" ? item.bookId : item.toyId) ? formatIDR(itemPrice(item)) : "—"}
@@ -631,7 +670,7 @@ export function OrderForm({
           variant="outline"
           size="sm"
           onClick={addItem}
-          className="border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+          className="w-full border-dashed border-[#D97A7A] bg-transparent text-[#D97A7A] transition-colors hover:bg-[#FED6D6]/40 hover:text-[#D97A7A] sm:w-fit"
         >
           <Plus className="h-4 w-4" /> Tambah Produk
         </Button>
@@ -984,6 +1023,22 @@ export function OrderForm({
           <X className="h-4 w-4" />
           Batal
         </Button>
+      </div>
+        </div>
+
+        <div className="lg:sticky lg:top-4">
+          <OrderInvoicePreview
+            invoiceNumber={initial?.invoiceNumber ?? null}
+            date={new Date()}
+            statusValue={paymentStatus}
+            items={previewItems}
+            subtotal={productTotal}
+            shippingCost={shippingCostNum}
+            dp={effectiveDp}
+            dpLabel={isEdit ? "DP" : "DP (30%)"}
+            total={total}
+          />
+        </div>
       </div>
     </form>
   );

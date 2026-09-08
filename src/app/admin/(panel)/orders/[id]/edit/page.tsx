@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { OrderForm } from "@/components/OrderForm";
-import { ShoppingCart } from "lucide-react";
 import {
   getBatches,
   getBookBatchPricesForOrderForm,
@@ -36,11 +37,22 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
   if (!order) notFound();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
-      <h2 className="flex items-center gap-2 text-2xl font-bold">
-        <ShoppingCart className="h-6 w-6" />
-        Ubah Pesanan: {order.invoiceNumber}
-      </h2>
+    <div className="mx-auto max-w-6xl space-y-4">
+      <div className="flex items-center gap-3">
+        <Link
+          href="/admin/orders"
+          aria-label="Kembali ke daftar pesanan"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-input bg-white text-black transition-colors hover:bg-[#FED6D6]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <div className="min-w-0">
+          <h2 className="text-xl font-bold leading-tight sm:text-2xl">Ubah Pesanan</h2>
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">
+            Invoice {order.invoiceNumber} — perbarui detail pesanan sesuai kebutuhan.
+          </p>
+        </div>
+      </div>
       <OrderForm
         buyers={buyers.map((b) => ({ id: b.id, name: b.name }))}
         books={books.map((b) => ({
