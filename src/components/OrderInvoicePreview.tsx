@@ -53,8 +53,13 @@ export function OrderInvoicePreview({
       <div className="space-y-1.5 rounded-lg border border-input bg-[#FCFBFB] p-2.5 text-xs">
         <div className="flex items-center justify-between gap-2">
           <span className="shrink-0 text-muted-foreground">No. Invoice</span>
-          <span className="truncate font-mono text-[11px] font-semibold">
-            {invoiceNumber ?? "INV/2026/…"}
+          <span
+            className={cn(
+              "break-all text-right text-[11px] font-semibold",
+              invoiceNumber ? "font-mono" : "italic text-muted-foreground"
+            )}
+          >
+            {invoiceNumber ?? "Otomatis setelah disimpan"}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
