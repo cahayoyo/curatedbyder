@@ -500,8 +500,8 @@ export function OrderForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-        <div className="min-w-0 space-y-4">
-          <div className="space-y-3 rounded-lg border bg-white p-4">
+        <div className="min-w-0 space-y-4 rounded-lg border bg-white p-4">
+          <div className="space-y-3">
             <SectionHeader n={1} title="Informasi Pembeli" />
             <div className="space-y-1.5">
               <Label>Pilih Pembeli</Label>
@@ -515,7 +515,7 @@ export function OrderForm({
             </div>
           </div>
 
-      <div className="space-y-3 rounded-lg border bg-white p-4">
+      <div className="space-y-3 rounded-lg border bg-[#FCFBFB] p-4">
         <SectionHeader n={2} title="Produk" />
         <div className="hidden gap-2 px-3 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[110px_1fr_90px_130px_110px_auto]">
           <span>Type</span>
