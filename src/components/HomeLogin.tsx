@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ export function HomeLogin() {
       return;
     }
     setFieldError({});
+    capture("buyer_login_succeeded", { login_mode: "buyer" });
     router.push("/dashboard");
     router.refresh();
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { capture } from "@/lib/posthog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -287,7 +288,13 @@ export function OrderDetailDialog({
 
         <DialogFooter className="flex-row gap-2">
           <Button
-            onClick={() => downloadPdf(order)}
+            onClick={() => {
+              capture("order_invoice_downloaded", {
+                item_count: order.items.length,
+                payment_status: order.paymentStatus,
+              });
+              downloadPdf(order);
+            }}
             className="flex-1 px-3 text-xs"
           >
             <Download className="h-4 w-4" />

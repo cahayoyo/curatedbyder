@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { createOrder, updateOrder } from "@/server/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -337,6 +338,12 @@ export function OrderForm({
             return;
           }
           success(`${initial?.invoiceNumber} berhasil diubah!`);
+          capture("order_updated", {
+            item_count: itemPayload.length,
+            total,
+            payment_status: paymentStatus,
+            has_shipping_cost: shippingCostNum > 0,
+          });
         } else {
           const res = await createOrder(payload);
           if (!res.ok) {
@@ -344,6 +351,12 @@ export function OrderForm({
             return;
           }
           success(`${res.data.invoiceNumber} berhasil dibuat!`);
+          capture("order_created", {
+            item_count: itemPayload.length,
+            total,
+            payment_status: paymentStatus,
+            has_shipping_cost: shippingCostNum > 0,
+          });
         }
         router.push("/admin/orders");
         router.refresh();

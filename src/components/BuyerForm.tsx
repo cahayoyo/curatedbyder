@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { capture } from "@/lib/posthog";
 import { createBuyer, updateBuyer } from "@/server/actions/buyers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             return;
           }
           success(`${r.name.trim()} berhasil diubah!`);
+          capture("buyer_updated");
         } else {
           for (const r of rows) {
             const res = await createBuyer({
@@ -91,6 +93,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               ? `${rows[0].name.trim()} berhasil dibuat!`
               : `${rows.length} pembeli berhasil dibuat!`,
           );
+          capture("buyer_created", { buyer_count: rows.length });
         }
         router.push("/admin/buyers");
         router.refresh();

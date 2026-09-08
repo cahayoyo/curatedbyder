@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,14 +14,35 @@ import {
 import { UserRound, LogOut, ChevronDown } from "lucide-react";
 import { customSignOut } from "@/server/actions/auth";
 
-export function UserMenu({ name, role }: { name?: string; role?: string }) {
+let identifiedUserId: string | undefined;
+
+export function UserMenu({
+  id,
+  name,
+  email,
+  role,
+}: {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+}) {
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!id || identifiedUserId === id) return;
+
+    posthog.identify(id, { name, email, role });
+    identifiedUserId = id;
+  }, [email, id, name, role]);
   const isAdmin = role === "SUPER_ADMIN";
   const signOutUrl = isAdmin ? "/admin" : "/";
 
   const handleSignOut = () => {
     startTransition(async () => {
       await customSignOut();
+      posthog.reset();
+      identifiedUserId = undefined;
       window.location.href = signOutUrl;
     });
   };
