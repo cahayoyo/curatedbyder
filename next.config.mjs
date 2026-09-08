@@ -5,6 +5,16 @@ const nextConfig = {
   // only after root-causing. reactCompiler also disabled pending investigation.
   cacheComponents: false,
   reactCompiler: false,
+  async rewrites() {
+    return [
+      // Reverse proxy for PostHog (issue #214): browser requests go to our own
+      // domain (/ingest/*) so Brave/uBlock don't block them as third-party.
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
