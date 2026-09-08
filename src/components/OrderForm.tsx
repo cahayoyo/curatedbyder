@@ -1,9 +1,18 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
-import { createOrder, updateOrder } from "@/server/actions/orders";
+import {
+  addOrderPayment,
+  createOrder,
+  deleteOrderPayment,
+  updateOrder,
+  updateOrderDp,
+} from "@/server/actions/orders";
+import { BookImagePicker } from "@/components/BookImagePicker";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, Save, X, UserRound, BookOpen, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -50,9 +59,17 @@ type OrderInitial = {
   invoiceNumber: string;
   buyerId: string;
   dp: number | null;
+  dpProofUrl: string | null;
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
+  payments: {
+    id: string;
+    amount: number;
+    proofUrl: string | null;
+    note: string | null;
+    createdAt: Date;
+  }[];
   items: {
     bookId?: string | null;
     toyId?: string | null;
@@ -65,6 +82,13 @@ type OrderInitial = {
 
 const btn =
   "flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#FED6D6] hover:text-black";
+
+function roman(n: number): string {
+  const map: [number, string][] = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let out = "";
+  for (const [v, s] of map) while (n >= v) { out += s; n -= v; }
+  return out;
+}
 
 function SearchSelect({
   options,
@@ -159,6 +183,14 @@ export function OrderForm({
   const [paymentStatus, setPaymentStatus] = useState<string>(
     initial?.paymentStatus ?? "NO_PAYMENT"
   );
+  const [showAddPayment, setShowAddPayment] = useState(false);
+  const [payAmount, setPayAmount] = useState("");
+  const [payProof, setPayProof] = useState("");
+  const [payNote, setPayNote] = useState("");
+  const [dpProofUrl, setDpProofUrl] = useState(initial?.dpProofUrl ?? "");
+  const [editingDp, setEditingDp] = useState(false);
+  const [dpAmountDraft, setDpAmountDraft] = useState("");
+  const [dpProofDraft, setDpProofDraft] = useState("");
   const [items, setItems] = useState<LineItem[]>(
     initial?.items?.length
       ? initial.items.map((it) => ({
@@ -286,7 +318,69 @@ export function OrderForm({
   const total = productTotal + shippingCostNum;
   const autoDp = Math.round(total * 0.3);
   const effectiveDp = isEdit ? (dp ? Number(dp) : 0) : total > 0 ? autoDp : 0;
-  const remaining = Math.max(0, total - effectiveDp);
+  const payments = initial?.payments ?? [];
+  const paidSum = payments.reduce((n, p) => n + p.amount, 0);
+  const remaining = Math.max(0, total - effectiveDp - paidSum);
+
+  function submitDpEdit() {
+    if (!initial?.id) return;
+    const amount = Number(dpAmountDraft);
+    if (!Number.isInteger(amount) || amount < 0) return error("Jumlah pembayaran tidak valid");
+    if (amount > total - paidSum) {
+      return error(`Pembayaran I melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
+    }
+    startTransition(async () => {
+      try {
+        const res = await updateOrderDp(initial.id, {
+          amount,
+          proofUrl: dpProofDraft || null,
+        });
+        if (!res.ok) {
+          error(res.error);
+          return;
+        }
+        success("Pembayaran I berhasil diubah!");
+        capture("order_dp_updated", { amount, has_proof: Boolean(dpProofDraft) });
+        setDp(dpAmountDraft);
+        setDpProofUrl(dpProofDraft);
+        setEditingDp(false);
+        router.refresh();
+      } catch (err) {
+        error(err instanceof Error ? err.message : "Gagal mengubah pembayaran");
+      }
+    });
+  }
+
+  function submitPayment() {
+    if (!initial?.id) return;
+    const amount = Number(payAmount);
+    if (!amount || amount <= 0) return error("Jumlah pembayaran wajib diisi");
+    if (amount > remaining) {
+      return error(`Jumlah pembayaran melebihi sisa tagihan (${formatIDR(remaining)})`);
+    }
+    startTransition(async () => {
+      try {
+        const res = await addOrderPayment(initial.id, {
+          amount,
+          proofUrl: payProof || null,
+          note: payNote || null,
+        });
+        if (!res.ok) {
+          error(res.error);
+          return;
+        }
+        success("Pembayaran berhasil dicatat!");
+        capture("order_payment_added", { amount, has_proof: Boolean(payProof) });
+        setPayAmount("");
+        setPayProof("");
+        setPayNote("");
+        setShowAddPayment(false);
+        router.refresh();
+      } catch (err) {
+        error(err instanceof Error ? err.message : "Gagal mencatat pembayaran");
+      }
+    });
+  }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -582,6 +676,9 @@ export function OrderForm({
             Sisa Tagihan
           </Label>
           <Input readOnly value={remaining != null ? formatIDR(remaining) : "—"} className="bg-black/5" />
+          {isEdit && total > 0 && remaining === 0 && (
+            <p className="text-xs font-semibold text-green-700">Sudah lunas</p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
@@ -642,6 +739,232 @@ export function OrderForm({
           </Select>
         </div>
       </div>
+
+      {isEdit && (
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+            Pembayaran (Cicilan)
+          </Label>
+
+          {payments.length === 0 && !showAddPayment && (
+            <p className="rounded-lg border border-dashed border-input p-3 text-sm text-muted-foreground">
+              Belum ada pembayaran cicilan.
+            </p>
+          )}
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#D97A7A]/40 bg-[#FED6D6]/30 p-2.5 sm:flex-nowrap">
+              <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
+                Pembayaran I
+              </span>
+              <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">DP</span>
+              {dpProofUrl && (
+                <a
+                  href={dpProofUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0"
+                  aria-label="Lihat bukti pembayaran I"
+                >
+                  <Image
+                    src={dpProofUrl}
+                    alt="Bukti pembayaran I"
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded border border-input object-cover"
+                  />
+                </a>
+              )}
+              {!editingDp && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit pembayaran I"
+                  onClick={() => {
+                    setDpAmountDraft(dp ?? "");
+                    setDpProofDraft(dpProofUrl);
+                    setEditingDp(true);
+                  }}
+                  className="ml-auto h-8 w-8 shrink-0 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+
+            {editingDp && (
+              <div className="space-y-3 rounded-lg border border-[#D97A7A]/50 bg-[#FED6D6]/20 p-3">
+                <div className="space-y-1.5">
+                  <Label>Jumlah</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+                      Rp
+                    </span>
+                    <Input
+                      inputMode="numeric"
+                      autoFocus
+                      className="pl-10 placeholder:text-black/30"
+                      value={dpAmountDraft ? formatRp(dpAmountDraft) : ""}
+                      onChange={(e) => setDpAmountDraft(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Masukkan jumlah..."
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Foto Bukti (opsional)</Label>
+                  <BookImagePicker
+                    image={dpProofDraft}
+                    alt="Bukti pembayaran I"
+                    endpoint="paymentProof"
+                    onChange={setDpProofDraft}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    disabled={pending}
+                    onClick={submitDpEdit}
+                    className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+                  >
+                    <Save className="h-4 w-4" />
+                    {pending ? "Menyimpan..." : "Simpan Pembayaran I"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingDp(false)}
+                    className={cn("flex-1 border border-input", btn)}
+                  >
+                    <X className="h-4 w-4" />
+                    Batal
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {payments.map((p, i) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5 sm:flex-nowrap"
+              >
+                <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
+                  Pembayaran {roman(i + 2)}
+                </span>
+                <span className="text-sm font-semibold">{formatIDR(p.amount)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {new Date(p.createdAt).toLocaleDateString("id-ID")}
+                </span>
+                {p.note && (
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                    {p.note}
+                  </span>
+                )}
+                {p.proofUrl && (
+                  <a
+                    href={p.proofUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0"
+                    aria-label={`Lihat bukti pembayaran ${i + 2}`}
+                  >
+                    <Image
+                      src={p.proofUrl}
+                      alt={`Bukti pembayaran ${i + 2}`}
+                      width={36}
+                      height={36}
+                      className="h-9 w-9 rounded border border-input object-cover"
+                    />
+                  </a>
+                )}
+                <ConfirmDeleteButton
+                  size="icon"
+                  title="Hapus pembayaran ini?"
+                  description={`${formatIDR(p.amount)} akan dihapus dan sisa tagihan dikembalikan.`}
+                  successMessage="Pembayaran berhasil dihapus"
+                  onConfirm={() => deleteOrderPayment(p.id)}
+                />
+              </div>
+            ))}
+          </div>
+
+          {showAddPayment ? (
+            <div className="space-y-3 rounded-lg border border-[#D97A7A]/50 bg-[#FED6D6]/20 p-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Jumlah</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+                      Rp
+                    </span>
+                    <Input
+                      inputMode="numeric"
+                      autoFocus
+                      className="pl-10 placeholder:text-black/30"
+                      value={payAmount ? formatRp(payAmount) : ""}
+                      onChange={(e) => setPayAmount(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Masukkan jumlah..."
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Catatan (opsional)</Label>
+                  <Input
+                    value={payNote}
+                    onChange={(e) => setPayNote(e.target.value)}
+                    placeholder="Contoh: transfer BCA..."
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Foto Bukti (opsional)</Label>
+                <BookImagePicker
+                  image={payProof}
+                  alt="Bukti pembayaran"
+                  endpoint="paymentProof"
+                  onChange={setPayProof}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  disabled={pending}
+                  onClick={submitPayment}
+                  className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+                >
+                  <Save className="h-4 w-4" />
+                  {pending ? "Menyimpan..." : "Simpan Pembayaran"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddPayment(false);
+                    setPayAmount("");
+                    setPayProof("");
+                    setPayNote("");
+                  }}
+                  className={cn("flex-1 border border-input", btn)}
+                >
+                  <X className="h-4 w-4" />
+                  Batal
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setShowAddPayment(true)}
+              className="border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+            >
+              <Plus className="h-4 w-4" /> Tambah Pembayaran
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <Button

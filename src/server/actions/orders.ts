@@ -644,6 +644,67 @@ export async function addOrderPayment(
   }
 }
 
+const orderDpSchema = z.object({
+  amount: z.number().int().min(0),
+  proofUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(500)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null)),
+});
+
+export async function updateOrderDp(
+  orderId: string,
+  input: { amount: number; proofUrl?: string | null }
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const actor = session?.user?.email ?? "unknown";
+
+  const data = orderDpSchema.parse(input);
+
+  try {
+    const result = await db.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { id: true, invoiceNumber: true, total: true },
+      });
+      if (!order) throw new UserInputError("Pesanan tidak ditemukan");
+
+      const paid = await tx.orderPayment.aggregate({
+        where: { orderId },
+        _sum: { amount: true },
+      });
+      const remaining = Math.max(0, order.total - data.amount - (paid._sum.amount ?? 0));
+      await tx.order.update({
+        where: { id: orderId },
+        data: { dp: data.amount, dpProofUrl: data.proofUrl, remaining },
+      });
+
+      return { invoiceNumber: order.invoiceNumber, remaining };
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath("/dashboard");
+    emitLog(`Order ${result.invoiceNumber} payment 1 (DP) updated`, {
+      actor,
+      order_id: orderId,
+      invoice_number: result.invoiceNumber,
+      amount: data.amount,
+      remaining: result.remaining,
+      has_proof: Boolean(data.proofUrl),
+    });
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof UserInputError) return { ok: false, error: e.message };
+    emitLog(`Order DP update failed`, { actor, order_id: orderId, error: String(e) }, SeverityNumber.ERROR);
+    throw e;
+  }
+}
+
 export async function deleteOrderPayment(paymentId: string): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";

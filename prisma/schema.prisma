@@ -140,6 +140,7 @@ model Order {
   total          Int
   soldAt         DateTime      @default(now())
   dp             Int?
+  dpProofUrl     String?
   remaining      Int?
   shippingCost   Int?
   trackingNumber String?

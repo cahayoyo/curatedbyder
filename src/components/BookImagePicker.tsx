@@ -10,16 +10,18 @@ export function BookImagePicker({
   image,
   alt,
   onChange,
+  endpoint = "bookImage",
 }: {
   image: string;
   alt: string;
   onChange: (url: string) => void;
+  endpoint?: "bookImage" | "paymentProof";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const { success, error } = useSuccessModal();
 
-  const { startUpload, isUploading } = useUploadThing("bookImage", {
+  const { startUpload, isUploading } = useUploadThing(endpoint, {
     onUploadProgress: (p) => setProgress(p),
     onClientUploadComplete: (res) => {
       const url = res[0]?.url ?? "";

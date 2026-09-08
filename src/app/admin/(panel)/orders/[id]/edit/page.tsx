@@ -19,6 +19,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
           orderBy: { id: "asc" },
           select: { bookId: true, toyId: true, batchId: true, eta: true, quantity: true, unitPrice: true },
         },
+        payments: { orderBy: { createdAt: "asc" } },
       },
     }),
     db.user.findMany({
@@ -62,9 +63,17 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
           invoiceNumber: order.invoiceNumber,
           buyerId: order.buyerId,
           dp: order.dp,
+          dpProofUrl: order.dpProofUrl,
           shippingCost: order.shippingCost,
           trackingNumber: order.trackingNumber,
           paymentStatus: order.paymentStatus,
+          payments: order.payments.map((p) => ({
+            id: p.id,
+            amount: p.amount,
+            proofUrl: p.proofUrl,
+            note: p.note,
+            createdAt: p.createdAt,
+          })),
           items: order.items.map((it) => ({
             bookId: it.bookId ?? "",
             toyId: it.toyId ?? "",
