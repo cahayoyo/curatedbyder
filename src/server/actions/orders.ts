@@ -102,13 +102,13 @@ export async function createBatch(name: string) {
   try {
     await db.batch.create({ data: { name: batchName } });
   } catch (e) {
-    emitLog("Batch save failed", { actor, name: batchName, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Batch "${batchName}" save failed`, { actor, name: batchName, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
-  emitLog("Batch created", { actor, name: batchName });
+  emitLog(`Batch "${batchName}" created`, { actor, name: batchName });
   return { ok: true as const };
 }
 
@@ -130,12 +130,12 @@ export async function updateBatch(id: string, name: string) {
   try {
     await db.batch.update({ where: { id }, data: { name: batchName } });
   } catch (e) {
-    emitLog("Batch update failed", { actor, batch_id: id, name: batchName, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Batch "${batchName}" update failed`, { actor, batch_id: id, name: batchName, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
-  emitLog("Batch updated", { actor, batch_id: id, name: batchName });
+  emitLog(`Batch "${batchName}" updated`, { actor, batch_id: id, name: batchName });
   return { ok: true as const };
 }
 
@@ -154,12 +154,12 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
   try {
     await db.batch.delete({ where: { id } });
   } catch (e) {
-    emitLog("Batch delete failed", { actor, batch_id: id, name: batch.name, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Batch "${batch.name}" delete failed`, { actor, batch_id: id, name: batch.name, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidateTag("batches", "max");
   revalidatePath("/admin/orders");
-  emitLog("Batch deleted", { actor, batch_id: id, name: batch.name });
+  emitLog(`Batch "${batch.name}" deleted`, { actor, batch_id: id, name: batch.name });
   return { ok: true };
 }
 
@@ -326,6 +326,7 @@ export async function updateOrder(
   const actor = session?.user?.email ?? "unknown";
 
   const data = orderSchema.parse(input);
+  let invoiceNumber: string | undefined;
 
   try {
     await db.$transaction(async (tx) => {
@@ -351,6 +352,7 @@ export async function updateOrder(
       }),
     ]);
     if (!existing) throw new Error("Order not found");
+    invoiceNumber = existing.invoiceNumber;
 
     const oldMap = new Map(
       existing.items.map((it) => [it.bookId ?? it.toyId ?? "", it.quantity])
@@ -463,7 +465,7 @@ export async function updateOrder(
     });
   } catch (e) {
     if (e instanceof UserInputError) return { ok: false, error: e.message };
-    emitLog("Order update failed", { actor, order_id: id, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Order ${invoiceNumber ?? id} update failed`, { actor, order_id: id, invoice_number: invoiceNumber, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
@@ -472,9 +474,10 @@ export async function updateOrder(
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
-  emitLog("Order updated", {
+  emitLog(`Order ${invoiceNumber ?? id} updated`, {
     actor,
     order_id: id,
+    invoice_number: invoiceNumber,
     item_count: data.items.length,
     payment_status: data.paymentStatus,
   });
@@ -489,14 +492,14 @@ export async function updateOrderItemStatus(itemId: string, status: string) {
   try {
     await db.orderItem.update({ where: { id: itemId }, data: { status: valid } });
   } catch (e) {
-    emitLog("Order item status update failed", { actor, item_id: itemId, status: valid, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Order item ${itemId} status update failed`, { actor, item_id: itemId, status: valid, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
-  emitLog("Order item status updated", { actor, item_id: itemId, status: valid });
+  emitLog(`Order item ${itemId} status updated to ${valid}`, { actor, item_id: itemId, status: valid });
   return valid;
 }
 
@@ -509,10 +512,10 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
     const order = await db.order.update({ where: { id }, data: { paymentStatus: valid } });
     revalidatePath("/admin/orders");
     revalidatePath("/admin");
-    emitLog("Order payment status updated", { actor, order_id: id, invoice_number: order.invoiceNumber, payment_status: valid });
+    emitLog(`Order ${order.invoiceNumber} payment status updated to ${valid}`, { actor, order_id: id, invoice_number: order.invoiceNumber, payment_status: valid });
     return order;
   } catch (e) {
-    emitLog("Order payment status update failed", { actor, order_id: id, payment_status: valid, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Order ${id} payment status update failed`, { actor, order_id: id, payment_status: valid, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -542,7 +545,7 @@ export async function deleteOrder(id: string) {
       await tx.order.delete({ where: { id } });
     });
   } catch (e) {
-    emitLog("Order delete failed", { actor, order_id: id, invoice_number: invoiceNumber, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Order ${invoiceNumber ?? id} delete failed`, { actor, order_id: id, invoice_number: invoiceNumber, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 
@@ -551,5 +554,5 @@ export async function deleteOrder(id: string) {
   revalidatePath("/admin/orders");
   revalidatePath("/dashboard");
   revalidatePath("/admin");
-  emitLog("Order deleted", { actor, order_id: id, invoice_number: invoiceNumber });
+  emitLog(`Order ${invoiceNumber ?? id} deleted`, { actor, order_id: id, invoice_number: invoiceNumber });
 }

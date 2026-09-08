@@ -61,14 +61,14 @@ export async function createBook(
     const book = await db.book.create({ data: bookData(data) });
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
-    emitLog("Book created", { actor, book_id: book.id, title: book.title });
+    emitLog(`Book "${book.title}" created`, { actor, book_id: book.id, title: book.title });
     return { ok: true, data: book };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      emitLog("Book save failed: duplicate title", { actor, title: data.title }, SeverityNumber.WARN);
+      emitLog(`Book "${data.title}" save failed: duplicate title`, { actor, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul buku sudah digunakan, gunakan judul lain." };
     }
-    emitLog("Book save failed", { actor, title: data.title, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Book "${data.title}" save failed`, { actor, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -88,14 +88,14 @@ export async function updateBook(
     const book = await db.book.update({ where: { id }, data: bookData(data) });
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
-    emitLog("Book updated", { actor, book_id: book.id, title: book.title });
+    emitLog(`Book "${book.title}" updated`, { actor, book_id: book.id, title: book.title });
     return { ok: true, data: book };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      emitLog("Book update failed: duplicate title", { actor, book_id: id, title: data.title }, SeverityNumber.WARN);
+      emitLog(`Book "${data.title}" update failed: duplicate title`, { actor, book_id: id, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul buku sudah digunakan, gunakan judul lain." };
     }
-    emitLog("Book update failed", { actor, book_id: id, title: data.title, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Book "${data.title}" update failed`, { actor, book_id: id, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -104,6 +104,7 @@ export async function deleteBook(id: string): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
+  const book = await db.book.findUnique({ where: { id }, select: { title: true } });
   const sold = await db.orderItem.count({ where: { bookId: id } });
   if (sold > 0) {
     return { ok: false, error: "Buku ini sudah pernah terjual dan tidak bisa dihapus." };
@@ -112,13 +113,13 @@ export async function deleteBook(id: string): Promise<ActionResult> {
   try {
     await db.book.delete({ where: { id } });
   } catch (e) {
-    emitLog("Book delete failed", { actor, book_id: id, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Book "${book?.title ?? id}" delete failed`, { actor, book_id: id, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidateTag("books", "max");
   revalidateTag("bookBatchPrices", "max");
   revalidatePath("/admin/books");
-  emitLog("Book deleted", { actor, book_id: id });
+  emitLog(`Book "${book?.title ?? id}" deleted`, { actor, book_id: id });
   return { ok: true };
 }
 

@@ -57,14 +57,14 @@ export async function createToy(
     const toy = await db.toy.create({ data: toyData(data) });
     revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
-    emitLog("Toy created", { actor, toy_id: toy.id, title: toy.title });
+    emitLog(`Toy "${toy.title}" created`, { actor, toy_id: toy.id, title: toy.title });
     return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      emitLog("Toy save failed: duplicate title", { actor, title: data.title }, SeverityNumber.WARN);
+      emitLog(`Toy "${data.title}" save failed: duplicate title`, { actor, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
-    emitLog("Toy save failed", { actor, title: data.title, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Toy "${data.title}" save failed`, { actor, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -84,14 +84,14 @@ export async function updateToy(
     const toy = await db.toy.update({ where: { id }, data: toyData(data) });
     revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
-    emitLog("Toy updated", { actor, toy_id: toy.id, title: toy.title });
+    emitLog(`Toy "${toy.title}" updated`, { actor, toy_id: toy.id, title: toy.title });
     return { ok: true, data: toy };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      emitLog("Toy update failed: duplicate title", { actor, toy_id: id, title: data.title }, SeverityNumber.WARN);
+      emitLog(`Toy "${data.title}" update failed: duplicate title`, { actor, toy_id: id, title: data.title }, SeverityNumber.WARN);
       return { ok: false, error: "Judul mainan sudah digunakan, gunakan judul lain." };
     }
-    emitLog("Toy update failed", { actor, toy_id: id, title: data.title, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Toy "${data.title}" update failed`, { actor, toy_id: id, title: data.title, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
 }
@@ -100,15 +100,16 @@ export async function deleteToy(id: string) {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
+  const toy = await db.toy.findUnique({ where: { id }, select: { title: true } });
   try {
     await db.toy.delete({ where: { id } });
   } catch (e) {
-    emitLog("Toy delete failed", { actor, toy_id: id, error: String(e) }, SeverityNumber.ERROR);
+    emitLog(`Toy "${toy?.title ?? id}" delete failed`, { actor, toy_id: id, error: String(e) }, SeverityNumber.ERROR);
     throw e;
   }
   revalidateTag("toys", "max");
   revalidatePath("/admin/toys");
-  emitLog("Toy deleted", { actor, toy_id: id });
+  emitLog(`Toy "${toy?.title ?? id}" deleted`, { actor, toy_id: id });
 }
 
 const toyBatchPriceSchema = z.object({
