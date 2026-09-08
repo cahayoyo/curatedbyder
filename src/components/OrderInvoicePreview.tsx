@@ -115,16 +115,16 @@ export function OrderInvoicePreview({
 
       <div className="space-y-1 border-t border-input pt-2 text-sm">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span>{formatIDR(subtotal)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">Ongkir</span>
           <span>{formatIDR(shippingCost)}</span>
         </div>
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">{dpLabel}</span>
           <span>{formatIDR(dp)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span>{formatIDR(subtotal)}</span>
         </div>
       </div>
 
