@@ -843,31 +843,33 @@ export function OrderForm({
           )}
 
           <div className="grid gap-2 md:grid-cols-2">
-            <div className="flex min-h-24 flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5">
-              <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
-                Pembayaran I
-              </span>
-              <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
-              <span className="shrink-0 text-xs text-muted-foreground">DP</span>
-              {dpProofUrl && (
-                <a
-                  href={dpProofUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="shrink-0"
-                  aria-label="Lihat bukti pembayaran I"
-                >
-                  <Image
-                    src={dpProofUrl}
-                    alt="Bukti pembayaran I"
-                    width={36}
-                    height={36}
-                    className="h-9 w-9 rounded border border-input object-cover"
-                  />
-                </a>
-              )}
+            <div className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-input bg-white/50 p-2.5">
+              <div className="flex min-h-9 flex-wrap items-center gap-2">
+                <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
+                  Pembayaran I
+                </span>
+                <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">DP</span>
+                {dpProofUrl && (
+                  <a
+                    href={dpProofUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0"
+                    aria-label="Lihat bukti pembayaran I"
+                  >
+                    <Image
+                      src={dpProofUrl}
+                      alt="Bukti pembayaran I"
+                      width={36}
+                      height={36}
+                      className="h-9 w-9 rounded border border-input object-cover"
+                    />
+                  </a>
+                )}
+              </div>
               {!editingDp && (
-                <div className="flex basis-full items-center justify-end gap-1">
+                <div className="flex items-center justify-end gap-1">
                   <Button
                     type="button"
                     variant="ghost"
@@ -889,38 +891,40 @@ export function OrderForm({
             {payments.map((p, i) => (
               <div
                 key={p.id}
-                className="flex min-h-24 flex-wrap items-center gap-2 rounded-lg border border-input bg-white/50 p-2.5"
+                className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-input bg-white/50 p-2.5"
               >
-                <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
-                  Pembayaran {roman(i + 2)}
-                </span>
-                <span className="text-sm font-semibold">{formatIDR(p.amount)}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {new Date(p.paidAt).toLocaleDateString("id-ID")}
-                </span>
-                {p.note && (
-                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                    {p.note}
+                <div className="flex min-h-9 flex-wrap items-center gap-2">
+                  <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
+                    Pembayaran {roman(i + 2)}
                   </span>
-                )}
-                {p.proofUrl && (
-                  <a
-                    href={p.proofUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0"
-                    aria-label={`Lihat bukti pembayaran ${i + 2}`}
-                  >
-                    <Image
-                      src={p.proofUrl}
-                      alt={`Bukti pembayaran ${i + 2}`}
-                      width={36}
-                      height={36}
-                      className="h-9 w-9 rounded border border-input object-cover"
-                    />
-                  </a>
-                )}
-                <div className="flex basis-full items-center justify-end gap-1">
+                  <span className="text-sm font-semibold">{formatIDR(p.amount)}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {new Date(p.paidAt).toLocaleDateString("id-ID")}
+                  </span>
+                  {p.note && (
+                    <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                      {p.note}
+                    </span>
+                  )}
+                  {p.proofUrl && (
+                    <a
+                      href={p.proofUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0"
+                      aria-label={`Lihat bukti pembayaran ${i + 2}`}
+                    >
+                      <Image
+                        src={p.proofUrl}
+                        alt={`Bukti pembayaran ${i + 2}`}
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded border border-input object-cover"
+                      />
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center justify-end gap-1">
                   <Button
                     type="button"
                     variant="ghost"
