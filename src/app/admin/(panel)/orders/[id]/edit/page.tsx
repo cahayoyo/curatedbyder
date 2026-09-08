@@ -37,12 +37,12 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
   if (!order) notFound();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="w-full space-y-4">
       <div className="flex items-center gap-3">
         <Link
           href="/admin/orders"
           aria-label="Kembali ke daftar pesanan"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-input bg-white text-black transition-colors hover:bg-[#FED6D6]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>

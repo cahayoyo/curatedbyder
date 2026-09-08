@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
+import { Plus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -108,12 +108,14 @@ function SearchSelect({
   onValueChange,
   placeholder,
   triggerClassName,
+  leftIcon,
 }: {
   options: { value: string; label: string; stock?: number }[];
   value: string;
   onValueChange: (v: string) => void;
   placeholder: string;
   triggerClassName?: string;
+  leftIcon?: React.ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
@@ -127,7 +129,8 @@ function SearchSelect({
         setSearch("");
       }}
     >
-      <SelectTrigger className={triggerClassName}>
+      <SelectTrigger className={cn("gap-1.5", triggerClassName)}>
+        {leftIcon}
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="w-[var(--radix-select-trigger-width)]">
@@ -499,14 +502,15 @@ export function OrderForm({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="min-w-0 space-y-4">
           <div className="space-y-3 rounded-lg border bg-white p-4">
-            <SectionHeader n={1} title="Informasi Pesanan" />
+            <SectionHeader n={1} title="Informasi Pembeli" />
             <div className="space-y-1.5">
-              <Label>Penerima Pesanan</Label>
+              <Label>Pilih Pembeli</Label>
               <SearchSelect
                 options={buyers.map((b) => ({ value: b.id, label: b.name }))}
                 value={buyerId}
                 onValueChange={setBuyerId}
-                placeholder="Pilih penerima"
+                placeholder="Cari Pembeli"
+                leftIcon={<UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />}
               />
             </div>
           </div>
