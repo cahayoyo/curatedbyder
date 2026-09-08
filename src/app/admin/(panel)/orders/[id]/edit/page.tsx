@@ -91,7 +91,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
             amount: p.amount,
             proofUrl: p.proofUrl,
             note: p.note,
-            createdAt: p.createdAt,
+            paidAt: p.paidAt,
           })),
           items: order.items.map((it) => ({
             bookId: it.bookId ?? "",
