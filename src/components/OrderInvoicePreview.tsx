@@ -50,7 +50,7 @@ export function OrderInvoicePreview({
         </div>
       </div>
 
-      <div className="space-y-2 rounded-lg border border-input bg-[#F6F1E7]/60 p-3 text-sm">
+      <div className="space-y-2 rounded-lg border border-input bg-[#FCFBFB] p-3 text-sm">
         <div className="flex items-center justify-between gap-2">
           <span className="shrink-0 text-muted-foreground">No. Invoice</span>
           <span className="truncate font-mono text-xs font-semibold">
