@@ -4,6 +4,7 @@ import "./globals.css";
 import { SuccessModalProvider } from "@/components/SuccessModal";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PostHogPageView, PostHogProvider } from "@posthog/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   description: "Bookstore inventory and order tracking.",
 };
 
+const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,9 +27,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <SuccessModalProvider>
-          {children}
-        </SuccessModalProvider>
+        {posthogKey ? (
+          <PostHogProvider apiKey={posthogKey}>
+            <PostHogPageView />
+            <SuccessModalProvider>{children}</SuccessModalProvider>
+          </PostHogProvider>
+        ) : (
+          <SuccessModalProvider>{children}</SuccessModalProvider>
+        )}
         <Analytics />
         <SpeedInsights />
       </body>
