@@ -692,7 +692,9 @@ export async function updateOrderPayment(
       });
 
       const remaining = Math.max(0, sisa - data.amount);
-      await tx.order.update({ where: { id: order.id }, data: { remaining } });
+      const orderUpdate: Prisma.OrderUpdateInput = { remaining };
+      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      await tx.order.update({ where: { id: order.id }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, remaining };
     });
@@ -750,10 +752,13 @@ export async function updateOrderDp(
         _sum: { amount: true },
       });
       const remaining = Math.max(0, order.total - data.amount - (paid._sum.amount ?? 0));
-      await tx.order.update({
-        where: { id: orderId },
-        data: { dp: data.amount, dpProofUrl: data.proofUrl, remaining },
-      });
+      const orderUpdate: Prisma.OrderUpdateInput = {
+        dp: data.amount,
+        dpProofUrl: data.proofUrl,
+        remaining,
+      };
+      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      await tx.order.update({ where: { id: orderId }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, remaining };
     });
@@ -787,7 +792,7 @@ export async function deleteOrderPayment(paymentId: string): Promise<ActionResul
       if (!payment) throw new UserInputError("Pembayaran tidak ditemukan");
       const order = await tx.order.findUnique({
         where: { id: payment.orderId },
-        select: { id: true, invoiceNumber: true, total: true, dp: true },
+        select: { id: true, invoiceNumber: true, total: true, dp: true, paymentStatus: true },
       });
       if (!order) throw new Error("Order tidak ditemukan");
 
@@ -798,7 +803,11 @@ export async function deleteOrderPayment(paymentId: string): Promise<ActionResul
         _sum: { amount: true },
       });
       const remaining = Math.max(0, order.total - (order.dp ?? 0) - (paid._sum.amount ?? 0));
-      await tx.order.update({ where: { id: order.id }, data: { remaining } });
+      const orderUpdate: Prisma.OrderUpdateInput = { remaining };
+      if (remaining > 0 && order.paymentStatus === "LUNAS") {
+        orderUpdate.paymentStatus = "NO_PAYMENT";
+      }
+      await tx.order.update({ where: { id: order.id }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, amount: payment.amount, remaining };
     });

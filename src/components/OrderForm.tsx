@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
@@ -347,6 +347,14 @@ export function OrderForm({
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
 
+  useEffect(() => {
+    if (remaining === 0) {
+      if (paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
+    } else if (paymentStatus === "LUNAS") {
+      setPaymentStatus("NO_PAYMENT");
+    }
+  }, [remaining, paymentStatus]);
+
   const previewItems = items
     .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
     .map((i, n) => {
@@ -371,7 +379,7 @@ export function OrderForm({
 
   function submitDpEdit() {
     if (!initial?.id) return;
-    const amount = Number(dpAmountDraft);
+    const amount = Number(dpAmountDraft || dp || 0);
     if (!Number.isInteger(amount) || amount < 0) return error("Jumlah pembayaran tidak valid");
     if (amount > total - paidSum) {
       return error(`Pembayaran I melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
@@ -772,12 +780,7 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            DP{" "}
-            {!isEdit && (
-              <span className="text-xs font-normal text-muted-foreground">
-                (Perhitungan DP 30% dari Harga Total)
-              </span>
-            )}
+            DP (30% Dari Total Tagihan)
           </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
@@ -785,12 +788,11 @@ export function OrderForm({
             </span>
             <Input
               inputMode="numeric"
-              readOnly={!isEdit}
-              disabled={!isEdit}
-              className={`pl-10 placeholder:text-black/30 ${!isEdit ? "bg-black/5" : ""}`}
+              readOnly
+              disabled
+              className="pl-10 placeholder:text-black/30 bg-black/5"
               value={isEdit ? (dp ? formatRp(dp) : "") : effectiveDp ? formatRp(String(effectiveDp)) : ""}
-              onChange={(e) => setDp(e.target.value.replace(/\D/g, ""))}
-              placeholder={isEdit ? "Masukkan jika menggunakan DP..." : "Auto 30%"}
+              placeholder="Auto 30%"
             />
           </div>
         </div>
@@ -957,10 +959,10 @@ export function OrderForm({
                   </span>
                   <Input
                     inputMode="numeric"
-                    autoFocus
-                    className="pl-10 placeholder:text-black/30"
+                    readOnly
+                    disabled
+                    className="pl-10 bg-black/5"
                     value={dpAmountDraft ? formatRp(dpAmountDraft) : ""}
-                    onChange={(e) => setDpAmountDraft(e.target.value.replace(/\D/g, ""))}
                     placeholder="Masukkan jumlah..."
                   />
                 </div>
@@ -1106,7 +1108,7 @@ export function OrderForm({
             subtotal={productTotal}
             shippingCost={shippingCostNum}
             dp={effectiveDp}
-            dpLabel={isEdit ? "DP" : "DP (30%)"}
+            dpLabel="DP (30% Dari Total Tagihan)"
             total={total}
           />
         </div>
