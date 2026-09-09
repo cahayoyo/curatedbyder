@@ -1,5 +1,3 @@
-import { withPostHogConfig } from "@posthog/nextjs-config";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // cacheComponents disabled (hotfix #212): server action responses stall
@@ -35,14 +33,4 @@ const nextConfig = {
   },
 };
 
-// Source map upload for PostHog Error Tracking. Enabled only when both env
-// vars exist (they are set on Vercel, empty locally) because resolveConfig
-// throws when sourcemaps are enabled without credentials.
-export default withPostHogConfig(nextConfig, {
-  personalApiKey: process.env.POSTHOG_API_KEY, // Personal API key (error tracking write)
-  projectId: process.env.POSTHOG_PROJECT_ID,
-  host: process.env.NEXT_PUBLIC_POSTHOG_HOST, // defaults to https://us.i.posthog.com
-  sourcemaps: {
-    enabled: Boolean(process.env.POSTHOG_API_KEY && process.env.POSTHOG_PROJECT_ID),
-  },
-});
+export default nextConfig;
