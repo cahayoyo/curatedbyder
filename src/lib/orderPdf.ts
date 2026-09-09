@@ -29,6 +29,8 @@ type OrderPdfDTO = {
 const RED: [number, number, number] = [220, 38, 38];
 const BRAND: [number, number, number] = [217, 122, 122];
 const DARK: [number, number, number] = [55, 55, 55];
+const BORDER: [number, number, number] = [232, 221, 224];
+const HEAD_BG: [number, number, number] = [239, 169, 181];
 
 const ROMANS = ["II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
@@ -104,14 +106,14 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFont("helvetica", "bold");
   doc.text("Detail Pesanan", pageW - margin, 22, { align: "right" });
 
-  doc.setDrawColor(0, 0, 0);
+  doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.5);
   doc.line(margin, 33.5, pageW - margin, 33.5);
 
   const CARD_TOP = 38.5;
   const CARD_H = 23;
   doc.setFillColor(253, 242, 242);
-  doc.setDrawColor(247, 213, 213);
+  doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.3);
   doc.roundedRect(margin, CARD_TOP, pageW - 2 * margin, CARD_H, 3, 3, "FD");
 
@@ -158,7 +160,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   drawRow(2, rightColX, rightValX, "shield", "No Resi", order.trackingNumber || "--");
 
   autoTable(doc, {
-    startY: CARD_TOP + CARD_H + 4,
+    startY: CARD_TOP + CARD_H + 8,
     head: [["#", "Nama Produk", "Format", "Batch", "ETA", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
@@ -184,14 +186,14 @@ export function buildOrderPdf(order: OrderPdfDTO) {
         { content: formatIDR(order.remaining ?? 0), styles: { halign: "right", textColor: RED } },
       ],
     ],
-    styles: { fontSize: 9, cellPadding: 2, lineColor: [0, 0, 0], lineWidth: 0.1 },
-    headStyles: { fillColor: [217, 122, 122], lineColor: [0, 0, 0], lineWidth: 0.1 },
+    styles: { fontSize: 9, cellPadding: 2, lineColor: BORDER, lineWidth: 0.1 },
+    headStyles: { fillColor: HEAD_BG, lineColor: BORDER, lineWidth: 0.1 },
     footStyles: {
       fillColor: [255, 241, 238],
       fontStyle: "bold",
       halign: "right",
       textColor: [0, 0, 0],
-      lineColor: [0, 0, 0],
+      lineColor: BORDER,
       lineWidth: 0.1,
     },
     columnStyles: {
@@ -207,7 +209,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   });
 
   let bankY =
-    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
   if (bankY + 17.5 > pageH - 14) {
     doc.addPage();
     doc.setFillColor(255, 253, 253);
@@ -218,7 +220,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   const CARD2_TOP = bankY - 5.5;
   const CARD_H2 = 22.5;
   doc.setFillColor(253, 242, 242);
-  doc.setDrawColor(247, 213, 213);
+  doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.3);
   doc.roundedRect(margin, CARD2_TOP, pageW - 2 * margin, CARD_H2, 3, 3, "FD");
 
