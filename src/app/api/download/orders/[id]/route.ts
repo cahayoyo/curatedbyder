@@ -16,6 +16,7 @@ export async function GET(
     where: { id },
     include: {
       buyer: { select: { name: true, phone: true } },
+      payments: { select: { amount: true }, orderBy: { createdAt: "asc" } },
       items: {
         orderBy: { id: "asc" },
         include: {

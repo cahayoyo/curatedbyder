@@ -23,10 +23,18 @@ type OrderPdfDTO = {
   shippingCost: number | null;
   trackingNumber: string | null;
   paymentStatus: string;
+  payments?: { amount: number }[];
 };
 
 const LABEL_X = 14;
 const VALUE_GAP = 3;
+const RED: [number, number, number] = [220, 38, 38];
+
+const ROMANS = ["II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+function pembayaranLabel(i: number): string {
+  return `Pembayaran ${ROMANS[i] ?? String(i + 2)}`;
+}
 
 function infoText(doc: jsPDF, label: string, value: string, y: number, labelW: number, x = LABEL_X) {
   doc.setFont("helvetica", "normal");
@@ -101,10 +109,18 @@ export function buildOrderPdf(order: OrderPdfDTO) {
       formatIDR(it.subtotal),
     ]),
     foot: [
-      [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
-      [{ content: "Sisa Tagihan", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.remaining ?? 0)],
-      [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
+      [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
+      [{ content: "", colSpan: 8 }],
+      [{ content: "Pembayaran I", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
+      ...(order.payments ?? []).map((p, i) => [
+        { content: pembayaranLabel(i), colSpan: 7, styles: { halign: "right" as const } },
+        formatIDR(p.amount),
+      ]),
+      [
+        { content: "Sisa Tagihan", colSpan: 7, styles: { halign: "right", textColor: RED } },
+        { content: formatIDR(order.remaining ?? 0), styles: { halign: "right", textColor: RED } },
+      ],
     ],
     styles: { fontSize: 9, cellPadding: 2, lineColor: [0, 0, 0], lineWidth: 0.1 },
     headStyles: { fillColor: [217, 122, 122], lineColor: [0, 0, 0], lineWidth: 0.1 },
