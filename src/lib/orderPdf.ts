@@ -139,16 +139,58 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   let bankY =
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
-  if (bankY + 2 * 5.2 > pageH - 14) {
+  if (bankY + 17.5 > pageH - 14) {
     doc.addPage();
-    bankY = 20;
+    bankY = 26;
   }
+
+  const CARD_TOP = bankY - 5.5;
+  const CARD_H = 22.5;
+  doc.setFillColor(253, 242, 242);
+  doc.setDrawColor(247, 213, 213);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, CARD_TOP, pageW - 2 * margin, CARD_H, 3, 3, "FD");
+
+  const cx = margin + 8.5;
+  const cy = CARD_TOP + CARD_H / 2;
+  doc.setFillColor(217, 122, 122);
+  doc.circle(cx, cy, 6, "F");
+  doc.setFillColor(255, 255, 255);
+  doc.triangle(cx - 5, cy - 1.4, cx, cy - 4.4, cx + 5, cy - 1.4, "F");
+  doc.rect(cx - 3.4, cy - 0.6, 1.1, 3.4, "F");
+  doc.rect(cx - 0.55, cy - 0.6, 1.1, 3.4, "F");
+  doc.rect(cx + 2.3, cy - 0.6, 1.1, 3.4, "F");
+  doc.rect(cx - 5, cy + 3.2, 10, 1.2, "F");
+
+  const MAROON: [number, number, number] = [154, 61, 61];
+  const DARK: [number, number, number] = [55, 55, 55];
+  const GRAY: [number, number, number] = [130, 130, 130];
+  const textX = margin + 17;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("Transfer hanya melalui rekening :", margin, bankY);
-  doc.text("BANK BCA 8990789330 Adera Nurul", margin, bankY + 5.2);
-  doc.text("BANK JAGO 103600160006 Adera Nurul", margin, bankY + 2 * 5.2);
+  doc.setTextColor(...MAROON);
+  doc.text("Transfer hanya melalui rekening :", textX, bankY);
+
+  doc.setFontSize(9.5);
+  doc.text("BANK BCA", textX, bankY + 7);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...DARK);
+  doc.text("8990789330", textX + 27, bankY + 7);
+  doc.setTextColor(...GRAY);
+  doc.setFontSize(8.5);
+  doc.text("Adera Nurul", textX + 57, bankY + 7);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...MAROON);
+  doc.text("BANK JAGO", textX, bankY + 13.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...DARK);
+  doc.text("103600160006", textX + 27, bankY + 13.5);
+  doc.setTextColor(...GRAY);
+  doc.setFontSize(8.5);
+  doc.text("Adera Nurul", textX + 57, bankY + 13.5);
 
   doc.setFillColor(235, 235, 235);
   doc.rect(0, pageH - 12, pageW, 12, "F");
