@@ -152,7 +152,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.roundedRect(margin, CARD_TOP, pageW - 2 * margin, CARD_H, 3, 3, "FD");
 
   const cx = margin + 8.5;
-  const cy = CARD_TOP + CARD_H / 2;
+  const cy = CARD_TOP + CARD_H / 2 - 2;
   doc.setFillColor(217, 122, 122);
   doc.circle(cx, cy, 4.5, "F");
   doc.setFillColor(255, 255, 255);
