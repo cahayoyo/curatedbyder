@@ -26,9 +26,9 @@ type OrderPdfDTO = {
   payments?: { amount: number }[];
 };
 
-const LABEL_X = 14;
-const VALUE_GAP = 3;
 const RED: [number, number, number] = [220, 38, 38];
+const BRAND: [number, number, number] = [217, 122, 122];
+const DARK: [number, number, number] = [55, 55, 55];
 
 const ROMANS = ["II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
@@ -36,23 +36,64 @@ function pembayaranLabel(i: number): string {
   return `Pembayaran ${ROMANS[i] ?? String(i + 2)}`;
 }
 
-function infoText(doc: jsPDF, label: string, value: string, y: number, labelW: number, x = LABEL_X) {
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(label, x, y);
-  doc.text(`: ${value}`, x + labelW + VALUE_GAP, y);
+type InfoIcon = "invoice" | "user" | "wallet" | "calendar" | "phone" | "shield";
+
+function drawInfoIcon(doc: jsPDF, kind: InfoIcon, x: number, y: number) {
+  doc.setFillColor(...BRAND);
+  doc.roundedRect(x, y, 7, 7, 1.6, 1.6, "F");
+  doc.setFillColor(255, 255, 255);
+  switch (kind) {
+    case "invoice":
+      doc.roundedRect(x + 2, y + 1.4, 3, 4.2, 0.4, 0.4, "F");
+      doc.setDrawColor(...BRAND);
+      doc.setLineWidth(0.3);
+      doc.line(x + 2.6, y + 2.9, x + 4.4, y + 2.9);
+      doc.line(x + 2.6, y + 3.8, x + 4.4, y + 3.8);
+      break;
+    case "user":
+      doc.circle(x + 3.5, y + 2.7, 1.15, "F");
+      doc.roundedRect(x + 1.7, y + 4.1, 3.6, 2.4, 1.2, 1.2, "F");
+      break;
+    case "wallet":
+      doc.roundedRect(x + 1.5, y + 2, 4, 3.2, 0.7, 0.7, "F");
+      doc.setFillColor(...BRAND);
+      doc.circle(x + 4.6, y + 3.6, 0.35, "F");
+      break;
+    case "calendar":
+      doc.roundedRect(x + 1.4, y + 2.2, 4.2, 3.4, 0.5, 0.5, "F");
+      doc.setFillColor(...BRAND);
+      doc.rect(x + 1.4, y + 2.2, 4.2, 0.8, "F");
+      doc.setFillColor(255, 255, 255);
+      doc.rect(x + 2.2, y + 1.3, 0.5, 1.2, "F");
+      doc.rect(x + 4, y + 1.3, 0.5, 1.2, "F");
+      break;
+    case "phone":
+      doc.roundedRect(x + 2.2, y + 1.2, 2.6, 4.6, 0.7, 0.7, "F");
+      doc.setFillColor(...BRAND);
+      doc.circle(x + 3.5, y + 5.1, 0.28, "F");
+      break;
+    case "shield":
+      doc.roundedRect(x + 1.8, y + 1.4, 3.4, 2.6, 0.4, 0.4, "F");
+      doc.triangle(x + 1.8, y + 3.7, x + 5.2, y + 3.7, x + 3.5, y + 5.6, "F");
+      break;
+  }
 }
+
+const STATUS_PILL: Record<string, { bg: [number, number, number]; fg: [number, number, number] }> = {
+  LUNAS: { bg: [220, 252, 231], fg: [22, 101, 52] },
+  DONE_DP: { bg: [254, 243, 199], fg: [146, 64, 14] },
+  NO_PAYMENT: { bg: [254, 226, 226], fg: [153, 27, 27] },
+};
 
 export function buildOrderPdf(order: OrderPdfDTO) {
   const doc = new jsPDF();
   const margin = 14;
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const labelW = doc.getTextWidth("Status Bayar");
-
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
+
+  doc.setFillColor(255, 253, 253);
+  doc.rect(0, 0, pageW, pageH, "F");
 
   const logo = order.logoBase64;
   if (logo) {
@@ -67,29 +108,57 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setLineWidth(0.5);
   doc.line(margin, 33.5, pageW - margin, 33.5);
 
-  doc.setFontSize(10);
-  const infoRowsLeft: [string, string][] = [
-    ["Invoice", order.invoiceNumber],
-    ["Pembeli", order.buyer.name],
-    ["Status Bayar", PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus],
-  ];
-  const infoRowsRight: [string, string][] = [
-    ["Tanggal", dateLabel(order.soldAt)],
-    ["No HP", order.buyer.phone || "—"],
-    ["No Resi", order.trackingNumber || "--"],
-  ];
-  const rightX = 105;
-  const INFO_Y = 40;
-  const BANK_GAP = 4;
-  infoRowsLeft.forEach(([label, value], i) => {
-    infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
-  });
-  infoRowsRight.forEach(([label, value], i) => {
-    infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
-  });
+  const CARD_TOP = 38.5;
+  const CARD_H = 23;
+  doc.setFillColor(253, 242, 242);
+  doc.setDrawColor(247, 213, 213);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, CARD_TOP, pageW - 2 * margin, CARD_H, 3, 3, "FD");
+
+  const xDiv = margin + (pageW - 2 * margin) * 0.52;
+  doc.line(xDiv, CARD_TOP + 3, xDiv, CARD_TOP + CARD_H - 3);
+
+  const leftColX = margin + 3;
+  const rightColX = xDiv + 6;
+  const leftValX = leftColX + 34;
+  const rightValX = rightColX + 27;
+  const rowY = (i: number) => CARD_TOP + 6 + i * 6.8;
+
+  const drawRow = (i: number, colX: number, valX: number, kind: InfoIcon, label: string, value: string) => {
+    const by = rowY(i);
+    drawInfoIcon(doc, kind, colX, by - 5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...DARK);
+    doc.text(label, colX + 10, by);
+    doc.text(`: ${value}`, valX, by);
+  };
+
+  drawRow(0, leftColX, leftValX, "invoice", "Invoice", order.invoiceNumber);
+  drawRow(1, leftColX, leftValX, "user", "Pembeli", order.buyer.name);
+
+  const statusY = rowY(2);
+  drawInfoIcon(doc, "wallet", leftColX, statusY - 5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...DARK);
+  doc.text("Status Bayar", leftColX + 10, statusY);
+  const stLabel = PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus;
+  const pill = STATUS_PILL[order.paymentStatus] ?? { bg: [234, 234, 234] as [number, number, number], fg: [60, 60, 60] as [number, number, number] };
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  const stW = doc.getTextWidth(stLabel);
+  doc.setFillColor(...pill.bg);
+  doc.roundedRect(leftValX, statusY - 3.4, stW + 4, 5.2, 2.4, 2.4, "F");
+  doc.setTextColor(...pill.fg);
+  doc.text(stLabel, leftValX + 2, statusY);
+
+  drawRow(0, rightColX, rightValX, "calendar", "Tanggal", dateLabel(order.soldAt));
+  drawRow(1, rightColX, rightValX, "phone", "No HP", order.buyer.phone || "—");
+  drawRow(2, rightColX, rightValX, "shield", "No Resi", order.trackingNumber || "--");
 
   autoTable(doc, {
-    startY: INFO_Y + infoRowsLeft.length * 5.2 + BANK_GAP,
+    startY: CARD_TOP + CARD_H + 4,
     head: [["#", "Nama Produk", "Format", "Batch", "ETA", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
@@ -141,18 +210,20 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
   if (bankY + 17.5 > pageH - 14) {
     doc.addPage();
+    doc.setFillColor(255, 253, 253);
+    doc.rect(0, 0, pageW, pageH, "F");
     bankY = 26;
   }
 
-  const CARD_TOP = bankY - 5.5;
-  const CARD_H = 22.5;
+  const CARD2_TOP = bankY - 5.5;
+  const CARD_H2 = 22.5;
   doc.setFillColor(253, 242, 242);
   doc.setDrawColor(247, 213, 213);
   doc.setLineWidth(0.3);
-  doc.roundedRect(margin, CARD_TOP, pageW - 2 * margin, CARD_H, 3, 3, "FD");
+  doc.roundedRect(margin, CARD2_TOP, pageW - 2 * margin, CARD_H2, 3, 3, "FD");
 
   const cx = margin + 8.5;
-  const cy = CARD_TOP + CARD_H / 2 - 2;
+  const cy = CARD2_TOP + CARD_H2 / 2 - 2;
   doc.setFillColor(217, 122, 122);
   doc.circle(cx, cy, 4.5, "F");
   doc.setFillColor(255, 255, 255);
@@ -163,7 +234,6 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.rect(cx - 3.75, cy + 2.4, 7.5, 0.9, "F");
 
   const MAROON: [number, number, number] = [154, 61, 61];
-  const DARK: [number, number, number] = [55, 55, 55];
   const textX = margin + 17;
 
   doc.setFont("helvetica", "bold");
