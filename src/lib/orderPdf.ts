@@ -154,17 +154,16 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   const cx = margin + 8.5;
   const cy = CARD_TOP + CARD_H / 2;
   doc.setFillColor(217, 122, 122);
-  doc.circle(cx, cy, 6, "F");
+  doc.circle(cx, cy, 4.5, "F");
   doc.setFillColor(255, 255, 255);
-  doc.triangle(cx - 5, cy - 1.4, cx, cy - 4.4, cx + 5, cy - 1.4, "F");
-  doc.rect(cx - 3.4, cy - 0.6, 1.1, 3.4, "F");
-  doc.rect(cx - 0.55, cy - 0.6, 1.1, 3.4, "F");
-  doc.rect(cx + 2.3, cy - 0.6, 1.1, 3.4, "F");
-  doc.rect(cx - 5, cy + 3.2, 10, 1.2, "F");
+  doc.triangle(cx - 3.75, cy - 1.05, cx, cy - 3.3, cx + 3.75, cy - 1.05, "F");
+  doc.rect(cx - 2.55, cy - 0.45, 0.85, 2.55, "F");
+  doc.rect(cx - 0.42, cy - 0.45, 0.85, 2.55, "F");
+  doc.rect(cx + 1.72, cy - 0.45, 0.85, 2.55, "F");
+  doc.rect(cx - 3.75, cy + 2.4, 7.5, 0.9, "F");
 
   const MAROON: [number, number, number] = [154, 61, 61];
   const DARK: [number, number, number] = [55, 55, 55];
-  const GRAY: [number, number, number] = [130, 130, 130];
   const textX = margin + 17;
 
   doc.setFont("helvetica", "bold");
@@ -177,7 +176,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...DARK);
   doc.text("8990789330", textX + 27, bankY + 7);
-  doc.setTextColor(...GRAY);
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(8.5);
   doc.text("Adera Nurul", textX + 57, bankY + 7);
 
@@ -188,7 +187,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...DARK);
   doc.text("103600160006", textX + 27, bankY + 13.5);
-  doc.setTextColor(...GRAY);
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(8.5);
   doc.text("Adera Nurul", textX + 57, bankY + 13.5);
 
