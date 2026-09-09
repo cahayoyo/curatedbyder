@@ -49,6 +49,7 @@ type OrderSearchParams = {
 
 const orderInclude = {
   buyer: { select: { id: true, name: true, username: true, phone: true, contact: true } },
+  payments: { select: { amount: true }, orderBy: { createdAt: "asc" } },
   items: {
     orderBy: { id: "asc" },
     include: {
@@ -314,6 +315,7 @@ async function OrdersList({
               paymentStatus: s.paymentStatus,
               buyer: s.buyer,
               items: s.items.map((it) => toItemDTO(it)),
+              payments: s.payments.map((p) => ({ amount: p.amount })),
             }}
             onDelete={deleteOrder.bind(null, s.id)}
           />
@@ -443,6 +445,7 @@ async function OrdersList({
                           paymentStatus: s.paymentStatus,
                           buyer: s.buyer,
                           items: s.items.map((it) => toItemDTO(it)),
+              payments: s.payments.map((p) => ({ amount: p.amount })),
                         }}
                       />
                       <NavActionButton

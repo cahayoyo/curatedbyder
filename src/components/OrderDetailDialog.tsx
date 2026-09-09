@@ -71,6 +71,7 @@ export type OrderDTO = {
   paymentStatus: string;
   buyer: { id: string; name: string; username: string | null; phone: string | null; contact: string | null };
   items: OrderItemDTO[];
+  payments: { amount: number }[];
 };
 
 function getPeriod(date: Date): string {
