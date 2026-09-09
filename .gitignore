@@ -58,3 +58,6 @@ graphify-out/
 CLAUDE.md
 .gitattributes
 nul
+
+# local wizard report artifacts
+posthog-*-report.md
