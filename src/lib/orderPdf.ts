@@ -111,7 +111,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.line(margin, 33.5, pageW - margin, 33.5);
 
   const CARD_TOP = 38.5;
-  const CARD_H = 23;
+  const CARD_H = 28;
   doc.setFillColor(253, 242, 242);
   doc.setDrawColor(...BORDER);
   doc.setLineWidth(0.3);
@@ -122,9 +122,9 @@ export function buildOrderPdf(order: OrderPdfDTO) {
 
   const leftColX = margin + 3;
   const rightColX = xDiv + 6;
-  const leftValX = leftColX + 34;
-  const rightValX = rightColX + 27;
-  const rowY = (i: number) => CARD_TOP + 6 + i * 6.8;
+  const leftValX = leftColX + 36;
+  const rightValX = rightColX + 29;
+  const rowY = (i: number) => CARD_TOP + 7 + i * 9;
 
   const drawRow = (i: number, colX: number, valX: number, kind: InfoIcon, label: string, value: string) => {
     const by = rowY(i);
@@ -132,8 +132,8 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(...DARK);
-    doc.text(label, colX + 10, by);
-    doc.text(`: ${value}`, valX, by);
+    doc.text(label, colX + 11, by);
+    doc.text(`:  ${value}`, valX, by);
   };
 
   drawRow(0, leftColX, leftValX, "invoice", "Invoice", order.invoiceNumber);
@@ -144,7 +144,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(...DARK);
-  doc.text("Status Bayar", leftColX + 10, statusY);
+  doc.text("Status Bayar", leftColX + 11, statusY);
   const stLabel = PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus;
   const pill = STATUS_PILL[order.paymentStatus] ?? { bg: [234, 234, 234] as [number, number, number], fg: [60, 60, 60] as [number, number, number] };
   doc.setFont("helvetica", "bold");
