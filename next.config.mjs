@@ -1,3 +1,5 @@
+import { withPostHogConfig } from "@posthog/nextjs-config";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // cacheComponents disabled (hotfix #212): server action responses stall
@@ -33,4 +35,27 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+const postHogApiKey = process.env.POSTHOG_API_KEY;
+const postHogProjectId = process.env.POSTHOG_PROJECT_ID;
+const postHogSourceMapsEnabled = Boolean(postHogApiKey && postHogProjectId);
+
+if (!postHogSourceMapsEnabled && process.env.NODE_ENV !== "production") {
+  const missingVariable = postHogApiKey
+    ? "POSTHOG_PROJECT_ID"
+    : "POSTHOG_API_KEY";
+  console.error(
+    new Error(
+      `${missingVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingVariable} is configured`,
+    ),
+  );
+}
+
+export default withPostHogConfig(nextConfig, {
+  personalApiKey: postHogApiKey,
+  projectId: postHogProjectId,
+  host: process.env.POSTHOG_HOST,
+  sourcemaps: {
+    enabled: postHogSourceMapsEnabled,
+    deleteAfterUpload: true,
+  },
+});
