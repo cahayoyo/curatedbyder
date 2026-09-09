@@ -348,7 +348,11 @@ export function OrderForm({
   const remaining = Math.max(0, total - effectiveDp - paidSum);
 
   useEffect(() => {
-    if (remaining === 0 && paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
+    if (remaining === 0) {
+      if (paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
+    } else if (paymentStatus === "LUNAS") {
+      setPaymentStatus("NO_PAYMENT");
+    }
   }, [remaining, paymentStatus]);
 
   const previewItems = items
