@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
@@ -346,6 +346,10 @@ export function OrderForm({
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
+
+  useEffect(() => {
+    if (remaining === 0 && paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
+  }, [remaining, paymentStatus]);
 
   const previewItems = items
     .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
