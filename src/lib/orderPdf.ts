@@ -81,7 +81,6 @@ export function buildOrderPdf(order: OrderPdfDTO) {
   const rightX = 105;
   const INFO_Y = 40;
   const BANK_GAP = 4;
-  const BANK_Y = INFO_Y + infoRowsLeft.length * 5.2 + BANK_GAP;
   infoRowsLeft.forEach(([label, value], i) => {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW);
   });
@@ -89,14 +88,8 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     infoText(doc, label, value, INFO_Y + i * 5.2, labelW, rightX);
   });
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text("Transfer hanya melalui rekening :", margin, BANK_Y);
-  doc.text("BANK BCA 8990789330 Adera Nurul", margin, BANK_Y + 5.2);
-  doc.text("BANK JAGO 103600160006 Adera Nurul", margin, BANK_Y + 2 * 5.2);
-
   autoTable(doc, {
-    startY: BANK_Y + 3 * 5.2,
+    startY: INFO_Y + infoRowsLeft.length * 5.2 + BANK_GAP,
     head: [["#", "Nama Produk", "Format", "Batch", "ETA", "Qty", "Harga", "Subtotal"]],
     body: order.items.map((it, i) => [
       String(i + 1),
@@ -110,8 +103,8 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     ]),
     foot: [
       [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
-      [{ content: "Ongkir", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "", colSpan: 8 }],
+      [{ content: "Ongkos Kirim", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "Pembayaran I", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
       ...(order.payments ?? []).map((p, i) => [
         { content: pembayaranLabel(i), colSpan: 7, styles: { halign: "right" as const } },
@@ -143,6 +136,19 @@ export function buildOrderPdf(order: OrderPdfDTO) {
     },
     theme: "grid",
   });
+
+  let bankY =
+    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+  if (bankY + 2 * 5.2 > pageH - 14) {
+    doc.addPage();
+    bankY = 20;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("Transfer hanya melalui rekening :", margin, bankY);
+  doc.text("BANK BCA 8990789330 Adera Nurul", margin, bankY + 5.2);
+  doc.text("BANK JAGO 103600160006 Adera Nurul", margin, bankY + 2 * 5.2);
 
   doc.setFillColor(235, 235, 235);
   doc.rect(0, pageH - 12, pageW, 12, "F");
