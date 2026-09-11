@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserRound, LogOut, ChevronDown } from "lucide-react";
+import { UserRound, LogOut, ChevronDown, Settings } from "lucide-react";
+import Link from "next/link";
 import { customSignOut } from "@/server/actions/auth";
 
 let identifiedUserId: string | undefined;
@@ -68,13 +69,24 @@ export function UserMenu({
           <ChevronDown className="hidden h-5 w-5 text-black/70 sm:block" strokeWidth={2.5} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
-        <DropdownMenuLabel className="text-black/80">{name || "Account"}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent align="end" className="border-[#F0CBCB] bg-white">
+        <DropdownMenuLabel className="text-[#B85C5C]">{name || "Account"}</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-[#F6D5D5]" />
+        {isAdmin && (
+          <DropdownMenuItem
+            asChild
+            className="cursor-pointer font-semibold text-[#B85C5C] transition-colors hover:bg-[#FBE6E6] hover:text-[#B85C5C] focus:bg-[#FBE6E6] focus:text-[#B85C5C]"
+          >
+            <Link href="/admin/settings">
+              <Settings className="h-4 w-4" />
+              Setting
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onSelect={handleSignOut}
           disabled={isPending}
-          className="cursor-pointer bg-[#FED6D6] font-semibold text-black transition-colors hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+          className="cursor-pointer font-semibold text-[#B85C5C] transition-colors hover:bg-[#FBE6E6] hover:text-[#B85C5C] focus:bg-[#FBE6E6] focus:text-[#B85C5C]"
         >
           <LogOut className="h-4 w-4" />
           {isPending ? "Signing out..." : "Sign out"}
