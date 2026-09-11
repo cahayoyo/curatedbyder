@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "db:migrate": "node scripts/check-db-target.mjs && prisma migrate dev",
     "db:seed": "node scripts/check-db-target.mjs && prisma db seed",
+    "db:demo-images": "node scripts/check-db-target.mjs && tsx scripts/seed-demo-images.ts",
     "db:deploy": "prisma migrate deploy",
     "vercel-build": "prisma migrate deploy && next build",
     "postinstall": "prisma generate"
