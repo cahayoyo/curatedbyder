@@ -206,7 +206,7 @@ export function CatalogCarousel({
                 ref={trackRef}
                 onScroll={metrics}
                 className={`relative mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-                  isDesktop ? "" : "px-[21%] py-2"
+                  isDesktop ? "pt-3" : "px-[21%] py-2"
                 }`}
               >
                 {visible.map((item, i) =>
