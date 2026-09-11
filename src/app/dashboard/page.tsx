@@ -222,7 +222,6 @@ export default async function DashboardPage() {
       cardCls: "border-[#F0CBCB] bg-gradient-to-br from-white via-[#FBE9E9] to-[#F6D5D5]",
       iconCls: "bg-[#F6C9C9] text-[#B85C5C]",
       watermarkCls: "text-[#D97A7A]/15",
-      chevronCls: "text-[#D97A7A]/60",
     },
     {
       label: "Menunggu Sisa Tagihan",
@@ -232,7 +231,6 @@ export default async function DashboardPage() {
       cardCls: "border-amber-200 bg-gradient-to-br from-white via-amber-50 to-amber-100",
       iconCls: "bg-amber-200 text-amber-600",
       watermarkCls: "text-amber-500/15",
-      chevronCls: "text-amber-500/60",
     },
     {
       label: "Dalam Pengiriman",
@@ -242,7 +240,6 @@ export default async function DashboardPage() {
       cardCls: "border-sky-200 bg-gradient-to-br from-white via-sky-50 to-sky-100",
       iconCls: "bg-sky-200 text-sky-600",
       watermarkCls: "text-sky-500/15",
-      chevronCls: "text-sky-500/60",
     },
     {
       label: "Selesai",
@@ -252,7 +249,6 @@ export default async function DashboardPage() {
       cardCls: "border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-emerald-100",
       iconCls: "bg-emerald-200 text-emerald-600",
       watermarkCls: "text-emerald-500/15",
-      chevronCls: "text-emerald-500/60",
     },
   ];
 
@@ -324,7 +320,6 @@ export default async function DashboardPage() {
                 <p className="text-2xl font-bold leading-tight">{s.value}</p>
                 <p className="truncate text-xs text-black/50">{s.caption}</p>
               </div>
-              <ChevronRight className={`h-4 w-4 shrink-0 ${s.chevronCls}`} />
             </div>
           </div>
         ))}
