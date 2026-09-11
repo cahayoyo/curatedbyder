@@ -444,7 +444,7 @@ export default async function AdminBooksPage({
     .filter((p): p is string => Boolean(p));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-2 md:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-bold">
