@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, ShoppingCart } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone, ShoppingCart } from "lucide-react";
 import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
@@ -113,6 +113,46 @@ export function CatalogCarousel({
     card?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
+  const drag = useRef<{ startX: number; startLeft: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return;
+    const el = trackRef.current;
+    if (!el) return;
+    suppressClick.current = false;
+    drag.current = { startX: e.clientX, startLeft: el.scrollLeft, moved: false };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const d = drag.current;
+    const el = trackRef.current;
+    if (!d || !el) return;
+    const dx = e.clientX - d.startX;
+    if (!d.moved && Math.abs(dx) > 4) {
+      d.moved = true;
+      el.style.scrollSnapType = "none";
+    }
+    if (d.moved) el.scrollLeft = d.startLeft - dx;
+  }
+
+  function onPointerEnd() {
+    if (drag.current?.moved) {
+      const el = trackRef.current;
+      if (el) el.style.scrollSnapType = "";
+      suppressClick.current = true;
+    }
+    drag.current = null;
+  }
+
+  function onClickCapture(e: React.MouseEvent<HTMLDivElement>) {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
   function order(item: CatalogItem) {
     const kind = item.kind === "BUKU" ? "Buku" : "Mainan";
     const link = waLink(
@@ -205,7 +245,12 @@ export function CatalogCarousel({
               <div
                 ref={trackRef}
                 onScroll={metrics}
-                className={`relative mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerEnd}
+                onPointerLeave={onPointerEnd}
+                onClickCapture={onClickCapture}
+                className={`relative mt-3 flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto pb-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
                   isDesktop ? "pt-3" : "px-[21%] py-2"
                 }`}
               >
@@ -230,6 +275,7 @@ export function CatalogCarousel({
                               alt={item.title}
                               fill
                               sizes="76px"
+                              draggable={false}
                               className="object-cover"
                             />
                           ) : (
@@ -262,11 +308,9 @@ export function CatalogCarousel({
                       </div>
                     </button>
                   ) : (
-                    <button
+                    <div
                       key={`${item.kind}-${item.id}`}
-                      type="button"
-                      onClick={() => order(item)}
-                      className={`flex w-[58%] max-w-[200px] shrink-0 snap-center flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-2.5 text-left transition-all duration-300 ${
+                      className={`flex w-[58%] max-w-[200px] shrink-0 snap-center flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-2.5 transition-all duration-300 ${
                         i === activeIdx ? "scale-100 shadow-md" : "scale-[0.94] opacity-80"
                       }`}
                     >
@@ -277,6 +321,7 @@ export function CatalogCarousel({
                             alt={item.title}
                             fill
                             sizes="200px"
+                            draggable={false}
                             className="object-cover"
                           />
                         ) : (
@@ -289,11 +334,14 @@ export function CatalogCarousel({
                         >
                           {item.kind === "BUKU" ? "Buku" : "Mainan"}
                         </span>
-                        <span className="absolute right-1.5 top-1.5 flex gap-0.5">
-                          {item.formats.map((f) => (
-                            <FormatBadge key={f} value={f} />
-                          ))}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => order(item)}
+                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
+                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#F0CBCB] bg-white/95 text-[#C96A6A] shadow-sm transition-colors hover:bg-[#FBE6E6]"
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                       <p className="mt-2 line-clamp-2 text-center text-[15px] font-bold leading-snug">
                         {item.title}
@@ -301,7 +349,7 @@ export function CatalogCarousel({
                       <div className="mt-2 flex justify-center">
                         <span className={priceCls}>{formatIDR(item.price)}</span>
                       </div>
-                    </button>
+                    </div>
                   )
                 )}
               </div>
