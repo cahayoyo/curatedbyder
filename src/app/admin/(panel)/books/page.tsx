@@ -26,6 +26,7 @@ import { BookFilter } from "@/components/BookFilter";
 import { SortButton } from "@/components/SortButton";
 import { BookSortSelect } from "@/components/BookSortSelect";
 import { PublisherSelect } from "@/components/PublisherSelect";
+import { MobileBookFilters } from "@/components/MobileBookFilters";
 import { formatIDR } from "@/lib/format";
 import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
@@ -34,10 +35,12 @@ import { FormatBadge } from "@/components/FormatBadge";
 import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
+import { FORMAT_TYPE } from "@/lib/orderOptions";
 
 type BookSearchParams = {
   q?: string;
   publisher?: string;
+  format?: string;
   page?: string;
   per?: string;
   status?: string;
@@ -72,6 +75,11 @@ function parseFilters(searchParams: BookSearchParams) {
 
   const publisher = (searchParams?.publisher ?? "").trim();
 
+  const formatRaw = searchParams?.format?.trim();
+  const format = (FORMAT_TYPE as readonly string[]).includes(formatRaw ?? "")
+    ? (formatRaw as (typeof FORMAT_TYPE)[number])
+    : ("" as const);
+
   const minRaw = Number(searchParams?.min);
   const maxRaw = Number(searchParams?.max);
   const min = Number.isFinite(minRaw) && minRaw >= 0 ? Math.floor(minRaw) : null;
@@ -83,6 +91,7 @@ function parseFilters(searchParams: BookSearchParams) {
     OR?: { title?: { contains: string; mode: "insensitive" }; publisher?: { contains: string; mode: "insensitive" } }[];
     status?: { in: ("READY_STOCK" | "PRE_ORDER")[] };
     publisher?: string;
+    formats?: { has: (typeof FORMAT_TYPE)[number] };
     price?: { gte?: number; lte?: number };
   } = {};
 
@@ -98,13 +107,16 @@ function parseFilters(searchParams: BookSearchParams) {
   if (publisher) {
     where.publisher = publisher;
   }
+  if (format) {
+    where.formats = { has: format };
+  }
   if (min != null || max != null) {
     where.price = {};
     if (min != null) where.price.gte = min;
     if (max != null) where.price.lte = max;
   }
 
-  return { q, qRaw, publisher, sortValid, dir, orderBy, min, max, statuses, where, page };
+  return { q, qRaw, publisher, format, sortValid, dir, orderBy, min, max, statuses, where, page };
 }
 
 async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) {
@@ -122,6 +134,7 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
   const cards = [
     {
       label: "Total Buku",
+      short: "Total Buku",
       value: totalFiltered,
       icon: BookOpen,
       card: "border-[#F3CFCF] from-[#FDF0F0] to-[#F9DEDE]",
@@ -130,6 +143,7 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
     },
     {
       label: "Total Buku Ready Stok",
+      short: "Stok Ready",
       value: readyCount,
       icon: PackageCheck,
       card: "border-[#CDE6D2] from-[#EEF7EF] to-[#DFF0E2]",
@@ -138,6 +152,7 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
     },
     {
       label: "Total Buku Pre Order",
+      short: "Pre Order",
       value: preOrderCount,
       icon: Clock,
       card: "border-[#F0DDB4] from-[#FDF6E7] to-[#F9EBCB]",
@@ -147,33 +162,36 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
       {cards.map((c) => (
         <div
           key={c.label}
           className={cn(
-            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 shadow-sm",
+            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-2.5 shadow-sm sm:p-4",
             c.card
           )}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span
               className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
                 c.circle
               )}
             >
-              <c.icon className="h-5 w-5" />
+              <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm text-black/60">{c.label}</p>
-              <p className="text-3xl font-bold leading-tight">{c.value}</p>
+              <p className="text-[11px] leading-tight text-black/60 sm:text-sm">
+                <span className="sm:hidden">{c.short}</span>
+                <span className="hidden sm:inline">{c.label}</span>
+              </p>
+              <p className="text-xl font-bold leading-tight sm:text-3xl">{c.value}</p>
             </div>
           </div>
           <c.icon
             aria-hidden
             className={cn(
-              "pointer-events-none absolute right-6 top-1/2 h-14 w-14 -translate-y-1/2 opacity-50",
+              "pointer-events-none absolute -right-1 top-1/2 h-10 w-10 -translate-y-1/2 opacity-40 sm:right-6 sm:h-14 sm:w-14 sm:opacity-50",
               c.watermark
             )}
           />
@@ -184,7 +202,8 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
 }
 
 async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
-  const { qRaw, publisher, sortValid, dir, orderBy, min, max, where, page } = parseFilters(searchParams);
+  const { qRaw, publisher, format, sortValid, dir, orderBy, min, max, where, page } =
+    parseFilters(searchParams);
   const per = parsePerPage(searchParams?.per);
 
   const [totalFiltered, books] = await Promise.all([
@@ -203,6 +222,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
   const sortQuery = {
     q: qRaw,
     publisher: publisher,
+    format: format,
     status: searchParams?.status ?? "",
     min: min != null ? String(min) : "",
     max: max != null ? String(max) : "",
@@ -211,7 +231,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
 
   return (
     <>
-      {/* Mobile: card layout */}
+      {/* Mobile: list layout */}
       <div className="space-y-3 md:hidden">
         {books.map((b) => (
           <BookCard
@@ -413,6 +433,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
           query={{
             q: qRaw,
             publisher,
+            format,
             status: searchParams?.status ?? "",
             min: min != null ? String(min) : "",
             max: max != null ? String(max) : "",
@@ -445,48 +466,50 @@ export default async function AdminBooksPage({
 
   return (
     <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="flex items-center gap-2 text-2xl font-bold">
-              <BookOpen className="h-6 w-6 text-[#D97A7A]" />
-              Daftar Buku
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Kelola koleksi buku di CuratedByDer. Tambah, ubah, atau hapus buku dengan mudah.
-            </p>
-          </div>
-          <NavActionButton
-            href="/admin/books/new"
-            icon={<Plus className="h-4 w-4" />}
-            className="h-11 shrink-0 gap-2 rounded-md bg-[#D97A7A] px-5 text-[15px] font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white"
-          >
-            Tambah Buku
-          </NavActionButton>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-2xl font-bold">
+            <BookOpen className="h-6 w-6 text-[#D97A7A]" />
+            Daftar Buku
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Kelola koleksi buku di CuratedByDer. Tambah, ubah, atau hapus buku dengan mudah.
+          </p>
         </div>
+        <NavActionButton
+          href="/admin/books/new"
+          icon={<Plus className="h-4 w-4" />}
+          className="h-9 shrink-0 gap-1.5 rounded-md bg-[#D97A7A] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white sm:h-11 sm:gap-2 sm:px-5 sm:text-[15px]"
+        >
+          Tambah Buku
+        </NavActionButton>
+      </div>
 
-        <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
-          <BooksStats searchParams={sp} />
-        </Suspense>
+      <Suspense fallback={<ListLoader compact label="Memuat ringkasan..." />}>
+        <BooksStats searchParams={sp} />
+      </Suspense>
 
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-          <div className="min-w-0 flex-1">
-            <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <BookFilter
-              basePath="/admin/books"
-              className="w-full sm:w-auto"
-              triggerClassName="bg-white text-black hover:bg-[#FED6D6] hover:text-black"
-            />
-            <PublisherSelect basePath="/admin/books" options={publisherOptions} />
-            <BookSortSelect basePath="/admin/books" />
-            <PageSizeSelect basePath="/admin/books" />
-          </div>
+      <MobileBookFilters basePath="/admin/books" publisherOptions={publisherOptions} />
+
+      <div className="hidden items-center gap-2 lg:flex">
+        <div className="min-w-0 flex-1">
+          <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <BookFilter
+            basePath="/admin/books"
+            className="w-full sm:w-auto"
+            triggerClassName="bg-white text-black hover:bg-[#FED6D6] hover:text-black"
+          />
+          <PublisherSelect basePath="/admin/books" options={publisherOptions} />
+          <BookSortSelect basePath="/admin/books" />
+          <PageSizeSelect basePath="/admin/books" />
+        </div>
+      </div>
 
-        <Suspense fallback={<ListLoader />}>
-          <BooksList searchParams={sp} />
-        </Suspense>
+      <Suspense fallback={<ListLoader />}>
+        <BooksList searchParams={sp} />
+      </Suspense>
     </div>
   );
 }

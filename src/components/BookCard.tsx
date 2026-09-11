@@ -3,9 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { ActionResult } from "@/lib/actionResult";
-import { useSuccessModal } from "@/components/SuccessModal";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteButton";
-import { Building2, Info, MoreVertical, Pencil, Tag, Trash2, ImageIcon, BookOpen, Banknote, Boxes } from "lucide-react";
-import { formatIDR } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { useSuccessModal } from "@/components/SuccessModal";
 import { FormatBadge } from "@/components/FormatBadge";
+import { formatIDR } from "@/lib/format";
+import type { ActionResult } from "@/lib/actionResult";
+import { ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 type BookDTO = {
   id: string;
@@ -31,59 +29,12 @@ type BookDTO = {
   status: "READY_STOCK" | "PRE_ORDER";
 };
 
-function HintIcon({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        aria-label={title}
-        className="flex items-center justify-center rounded text-muted-foreground transition-colors hover:text-black"
-      >
-        {icon}
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-50 mt-1 w-36 rounded-md border border-black/10 bg-white p-1.5 text-[11px] leading-snug shadow-md">
-            <p className="font-semibold">{title}</p>
-            <p className="text-black/70">{detail || "—"}</p>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function stockBadgeClass(stock: number) {
-  if (stock <= 0) return "border-red-300 bg-red-500 text-white";
-  if (stock <= 10) return "border-amber-300 bg-yellow-300 text-yellow-900";
-  return "border-emerald-300 bg-emerald-500 text-white";
-}
-
-function statusBadgeClass(status: BookDTO["status"]) {
-  return status === "PRE_ORDER"
-    ? "border-amber-300 bg-yellow-300 text-yellow-900"
-    : "border-emerald-300 bg-emerald-100 text-emerald-800";
-}
-
-function CardThumb({ book }: { book: BookDTO }) {
-  if (!book.image) {
-    return (
-      <div className="flex h-28 w-full items-center justify-center rounded-lg border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-[#D97A7A]/70">
-        <ImageIcon className="h-8 w-8" />
-      </div>
-    );
-  }
-  return (
-    <div className="relative h-28 w-full overflow-hidden rounded-lg border border-input bg-black/5">
-      <Image src={book.image} alt={book.title} fill sizes="160px" className="object-cover object-center" />
-    </div>
-  );
+function stockChipClass(stock: number) {
+  if (stock <= 0)
+    return "border-red-200 bg-red-100 text-red-700";
+  if (stock <= 10)
+    return "border-amber-200 bg-yellow-100 text-amber-800";
+  return "border-emerald-200 bg-emerald-100 text-emerald-700";
 }
 
 export function BookCard({
@@ -111,106 +62,86 @@ export function BookCard({
   }
 
   return (
-    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
-      {/* Header: title + status badge + 3-dot menu */}
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1.5 font-semibold leading-snug">
-          <BookOpen className="h-4 w-4 shrink-0 text-[#D97A7A]" />
-          <span className="line-clamp-2">{book.title}</span>
-        </span>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Badge variant="outline" className={cn("text-xs", statusBadgeClass(book.status))}>
-            {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-          </Badge>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Aksi buku"
-              className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-black/20 hover:text-black"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
-            <DropdownMenuItem
-              onSelect={() => router.push(`/admin/books/${book.id}/edit`)}
-              className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
-            >
-              <Pencil className="h-4 w-4" />
-              Ubah
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => setDeleteOpen(true)}
-              className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
-            >
-              <Trash2 className="h-4 w-4" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Divider under title */}
-      <div className="mb-2 h-px w-full bg-black/15" />
-
-      {/* Body: image left, publisher + info right */}
-      <div className="flex gap-3">
-        <div className="w-24 shrink-0">
-          <CardThumb book={book} />
-        </div>
-        <div className="min-w-0 flex-1 space-y-2.5 pt-1 text-sm">
-          <div className="flex items-center gap-1.5">
-            <HintIcon icon={<Building2 className="h-3.5 w-3.5 shrink-0" />} title="Publisher" detail={book.publisher || "—"} />
-            <span className="line-clamp-1 text-muted-foreground">{book.publisher || "—"}</span>
+    <div className="flex gap-3 rounded-xl border bg-white p-3 shadow-sm">
+      <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
+        {book.image ? (
+          <Image
+            src={book.image}
+            alt={book.title}
+            fill
+            sizes="64px"
+            className="object-cover object-center"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <ImageIcon className="h-5 w-5 text-black/30" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <HintIcon icon={<Info className="h-3.5 w-3.5 shrink-0" />} title="Informasi" detail={book.info || "—"} />
-            <span className="line-clamp-2 text-black/80">{book.info ? book.info : "—"}</span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Divider under image body */}
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      {/* Format */}
-      <div className="mt-2 flex items-center gap-1.5 text-sm">
-        <Tag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <div className="flex flex-wrap gap-1">
-          {book.formats.length > 0 ? (
-            book.formats.map((f) => <FormatBadge key={f} value={f} />)
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-1">
+          <p className="line-clamp-2 text-[15px] font-semibold leading-snug">{book.title}</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Aksi buku"
+                className="h-7 w-7 shrink-0 text-muted-foreground hover:text-black"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+              <DropdownMenuItem
+                onSelect={() => router.push(`/admin/books/${book.id}/edit`)}
+                className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+              >
+                <Pencil className="h-4 w-4" />
+                Ubah
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => setDeleteOpen(true)}
+                className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+              >
+                <Trash2 className="h-4 w-4" />
+                Hapus
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
 
-      {/* Divider under format */}
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      {/* Price + stock */}
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Banknote className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="font-semibold">{formatIDR(book.price)}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Boxes className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span
-            className={cn(
-              "inline-flex h-6 w-9 items-center justify-center whitespace-nowrap rounded-full border text-xs",
-              stockBadgeClass(book.stock)
-            )}
-          >
-            {book.stock}
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          {book.formats.map((f) => (
+            <FormatBadge key={f} value={f} />
+          ))}
+          <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 text-[11px] font-medium text-purple-700">
+            Utama
           </span>
         </div>
+
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[15px] font-semibold">{formatIDR(book.price)}</span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${stockChipClass(book.stock)}`}
+            >
+              Stok {book.stock}
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
+                book.status === "PRE_ORDER"
+                  ? "border-amber-200 bg-yellow-100 text-amber-800"
+                  : "border-emerald-200 bg-emerald-100 text-emerald-700"
+              }`}
+            >
+              {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Delete confirm dialog */}
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}

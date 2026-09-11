@@ -21,7 +21,13 @@ const OPTIONS = [
   { value: "stock-desc", label: "Stok Tertinggi", sort: "stock", dir: "desc" },
 ] as const;
 
-export function BookSortSelect({ basePath }: { basePath: string }) {
+export function BookSortSelect({
+  basePath,
+  triggerClassName,
+}: {
+  basePath: string;
+  triggerClassName?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -57,7 +63,8 @@ export function BookSortSelect({ basePath }: { basePath: string }) {
         disabled={isPending}
         className={cn(
           "h-9 w-full bg-white text-xs text-black sm:w-40",
-          isPending && "opacity-70"
+          isPending && "opacity-70",
+          triggerClassName
         )}
       >
         <div className="flex min-w-0 items-center gap-1.5">
