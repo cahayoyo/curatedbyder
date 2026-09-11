@@ -16,17 +16,23 @@ import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import type { ActionResult } from "@/lib/actionResult";
 import { ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type BookVariant = {
+  key: string;
+  label: string;
+  price: number;
+  formats: string[];
+};
 
 type BookDTO = {
   id: string;
   title: string;
   image: string | null;
   publisher: string | null;
-  info: string | null;
-  formats: string[];
-  price: number;
   stock: number;
   status: "READY_STOCK" | "PRE_ORDER";
+  variants: BookVariant[];
 };
 
 function stockChipClass(stock: number) {
@@ -62,82 +68,117 @@ export function BookCard({
   }
 
   return (
-    <div className="flex gap-3 rounded-xl border bg-white p-3 shadow-sm">
-      <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
-        {book.image ? (
-          <Image
-            src={book.image}
-            alt={book.title}
-            fill
-            sizes="64px"
-            className="object-cover object-center"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <ImageIcon className="h-5 w-5 text-black/30" />
+    <div className="rounded-xl border bg-[#FDF1F1] p-3 shadow-sm">
+      <div className="flex gap-3">
+        <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
+          {book.image ? (
+            <Image
+              src={book.image}
+              alt={book.title}
+              fill
+              sizes="64px"
+              className="object-cover object-center"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <ImageIcon className="h-5 w-5 text-black/30" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-1">
+            <p className="line-clamp-2 text-[15px] font-semibold leading-snug">
+              {book.title}
+            </p>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium",
+                  book.status === "PRE_ORDER"
+                    ? "border-amber-200 bg-yellow-100 text-amber-800"
+                    : "border-emerald-200 bg-emerald-100 text-emerald-700"
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    book.status === "PRE_ORDER" ? "bg-amber-500" : "bg-emerald-500"
+                  )}
+                />
+                {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Aksi buku"
+                    className="h-7 w-7 shrink-0 text-muted-foreground hover:text-black"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+                  <DropdownMenuItem
+                    onSelect={() => router.push(`/admin/books/${book.id}/edit`)}
+                    className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Ubah
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => setDeleteOpen(true)}
+                    className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-1">
-          <p className="line-clamp-2 text-base font-semibold leading-snug">{book.title}</p>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Aksi buku"
-                className="h-7 w-7 shrink-0 text-muted-foreground hover:text-black"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
-              <DropdownMenuItem
-                onSelect={() => router.push(`/admin/books/${book.id}/edit`)}
-                className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
-              >
-                <Pencil className="h-4 w-4" />
-                Ubah
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setDeleteOpen(true)}
-                className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
-              >
-                <Trash2 className="h-4 w-4" />
-                Hapus
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Publisher: {book.publisher || "—"}
+          </p>
 
-        <div className="mt-1 flex flex-wrap items-center gap-1">
-          {book.formats.map((f) => (
-            <FormatBadge key={f} value={f} />
-          ))}
-          <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 text-xs font-medium text-purple-700">
-            Utama
-          </span>
-        </div>
-
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-base font-semibold">{formatIDR(book.price)}</span>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-medium ${stockChipClass(book.stock)}`}
-            >
-              Stok {book.stock}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-medium ${
-                book.status === "PRE_ORDER"
-                  ? "border-amber-200 bg-yellow-100 text-amber-800"
-                  : "border-emerald-200 bg-emerald-100 text-emerald-700"
-              }`}
-            >
-              {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-            </span>
+          <div className="mt-2 space-y-1.5">
+            {book.variants.map((v, vi) => (
+              <div
+                key={v.key}
+                className="flex flex-wrap items-center justify-between gap-2"
+              >
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  {v.formats.length > 0 ? (
+                    v.formats.map((f) => <FormatBadge key={f} value={f} />)
+                  ) : (
+                    <span
+                      className={
+                        v.label === "Utama"
+                          ? "inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-xs font-medium text-purple-700"
+                          : "inline-flex items-center rounded-full border border-[#F0CBCB] bg-[#FDF1F1] px-2 py-0.5 text-xs font-medium text-[#C96A6A]"
+                      }
+                    >
+                      {v.label}
+                    </span>
+                  )}
+                  <span className="whitespace-nowrap text-[15px] font-semibold">
+                    {formatIDR(v.price)}
+                  </span>
+                </div>
+                {vi === book.variants.length - 1 && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium",
+                      stockChipClass(book.stock)
+                    )}
+                  >
+                    Stok {book.stock}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { db } from "@/lib/db";
 import {
   Table,
@@ -213,6 +213,9 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
       orderBy,
       skip: (page - 1) * per,
       take: per,
+      include: {
+        batchPrices: { include: { batch: { select: { name: true } } } },
+      },
     }),
   ]);
 
@@ -241,11 +244,22 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
               title: b.title,
               image: b.image,
               publisher: b.publisher,
-              info: b.info,
-              formats: b.formats as string[],
-              price: b.price,
               stock: b.stock,
               status: b.status,
+              variants: [
+                {
+                  key: `${b.id}-main`,
+                  label: "Utama",
+                  price: b.price,
+                  formats: b.formats as string[],
+                },
+                ...b.batchPrices.map((bp) => ({
+                  key: bp.id,
+                  label: bp.batch.name,
+                  price: bp.price,
+                  formats: bp.formats as string[],
+                })),
+              ],
             }}
             onDelete={deleteBook.bind(null, b.id)}
           />
@@ -314,96 +328,147 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {books.map((b, i) => (
-              <TableRow key={b.id} className="hover:bg-[#F9DEDE]">
-                <TableCell className="text-center text-[15px] text-black/60">
-                  {(page - 1) * per + i + 1}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
-                      {b.image ? (
-                        <Image
-                          src={b.image}
-                          alt={b.title}
-                          fill
-                          sizes="48px"
-                          className="object-cover object-center"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <ImageIcon className="h-5 w-5 text-black/30" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="line-clamp-1 font-semibold">{b.title}</p>
-                      <p className="mt-0.5 line-clamp-2 text-[13px] italic text-muted-foreground">
-                        {b.info || "—"}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {b.publisher || "—"}
-                </TableCell>
-                <TableCell>
-                  {b.formats.length > 0 ? (
-                    <span className="flex flex-wrap gap-1">
-                      {(b.formats as string[]).map((f) => (
-                        <FormatBadge key={f} value={f} />
-                      ))}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {formatIDR(b.price)}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      stockBadgeClass(b.stock),
-                      "h-6 min-w-9 justify-center px-2 text-[13px]"
-                    )}
-                  >
-                    {b.stock}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={
-                      b.status === "PRE_ORDER"
-                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                        : "border-emerald-300 bg-emerald-100 text-emerald-800"
-                    }
-                  >
-                    {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <NavActionButton
-                      href={`/admin/books/${b.id}/edit`}
-                      icon={<Pencil className="h-3.5 w-3.5" />}
-                      className="h-8 w-8 rounded-md border border-[#D97A7A]/40 bg-white p-0 text-[#D97A7A] shadow-sm hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
+            {books.map((b, i) => {
+              const variants: {
+                key: string;
+                label: string;
+                price: number;
+                formats: string[];
+              }[] = [
+                {
+                  key: `${b.id}-main`,
+                  label: "Utama",
+                  price: b.price,
+                  formats: b.formats as string[],
+                },
+                ...b.batchPrices.map((bp) => ({
+                  key: bp.id,
+                  label: bp.batch.name,
+                  price: bp.price,
+                  formats: bp.formats as string[],
+                })),
+              ];
+              return (
+                <Fragment key={b.id}>
+                  {variants.map((v, vi) => (
+                    <TableRow
+                      key={v.key}
+                      className="hover:bg-[#F9DEDE]"
                     >
-                      <span className="sr-only">Ubah</span>
-                    </NavActionButton>
-                    <ConfirmDeleteButton
-                      size="icon"
-                      title="Konfirmasi Hapus"
-                      description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
-                      successMessage={`${b.title} berhasil dihapus!`}
-                      onConfirm={deleteBook.bind(null, b.id)}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                      {vi === 0 && (
+                        <>
+                          <TableCell
+                            className="text-center text-[15px] text-black/60"
+                            rowSpan={variants.length}
+                          >
+                            {(page - 1) * per + i + 1}
+                          </TableCell>
+                          <TableCell rowSpan={variants.length}>
+                            <div className="flex items-center gap-3">
+                              <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
+                                {b.image ? (
+                                  <Image
+                                    src={b.image}
+                                    alt={b.title}
+                                    fill
+                                    sizes="48px"
+                                    className="object-cover object-center"
+                                  />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center">
+                                    <ImageIcon className="h-5 w-5 text-black/30" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="line-clamp-1 font-semibold">{b.title}</p>
+                                <p className="mt-0.5 line-clamp-2 text-[13px] italic text-muted-foreground">
+                                  {b.info || "—"}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground" rowSpan={variants.length}>
+                            {b.publisher || "—"}
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell>
+                        {v.formats.length > 0 ? (
+                          <span className="flex flex-wrap gap-1">
+                            {v.formats.map((f) => (
+                              <FormatBadge key={f} value={f} />
+                            ))}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {variants.length > 1 && (
+                          <span className="mb-0.5 inline-flex items-center rounded-full border border-[#F0CBCB] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#C96A6A]">
+                            {v.label}
+                          </span>
+                        )}
+                        <span className="block font-medium">{formatIDR(v.price)}</span>
+                      </TableCell>
+                      {vi === 0 && (
+                        <>
+                          <TableCell rowSpan={variants.length}>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                stockBadgeClass(b.stock),
+                                "h-6 min-w-9 justify-center px-2 text-[13px]"
+                              )}
+                            >
+                              {b.stock}
+                            </Badge>
+                          </TableCell>
+                          <TableCell rowSpan={variants.length}>
+                            <Badge
+                              variant="outline"
+                              className={
+                                b.status === "PRE_ORDER"
+                                  ? "gap-1.5 border-amber-300 bg-yellow-300 text-yellow-900"
+                                  : "gap-1.5 border-emerald-300 bg-emerald-100 text-emerald-800"
+                              }
+                            >
+                              <span
+                                className={
+                                  b.status === "PRE_ORDER"
+                                    ? "h-1.5 w-1.5 rounded-full bg-amber-500"
+                                    : "h-1.5 w-1.5 rounded-full bg-emerald-500"
+                                }
+                              />
+                              {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center" rowSpan={variants.length}>
+                            <div className="flex justify-center gap-2">
+                              <NavActionButton
+                                href={`/admin/books/${b.id}/edit`}
+                                icon={<Pencil className="h-3.5 w-3.5" />}
+                                className="h-8 w-8 rounded-md border border-[#D97A7A]/40 bg-white p-0 text-[#D97A7A] shadow-sm hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
+                              >
+                                <span className="sr-only">Ubah</span>
+                              </NavActionButton>
+                              <ConfirmDeleteButton
+                                size="icon"
+                                title="Konfirmasi Hapus"
+                                description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
+                                successMessage={`${b.title} berhasil dihapus!`}
+                                onConfirm={deleteBook.bind(null, b.id)}
+                              />
+                            </div>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))}
+                </Fragment>
+              );
+            })}
             {books.length === 0 && (
               <TableRow>
                 <TableCell
