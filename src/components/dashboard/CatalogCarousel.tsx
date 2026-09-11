@@ -55,7 +55,9 @@ export function CatalogCarousel({
   const metrics = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
-    const cards = Array.from(el.children) as HTMLElement[];
+    const cards = (Array.from(el.children) as HTMLElement[]).filter(
+      (c) => c.getAttribute("aria-hidden") !== "true"
+    );
     let best = 0;
     let bestDist = Infinity;
     cards.forEach((c, i) => {
@@ -88,9 +90,9 @@ export function CatalogCarousel({
   }
 
   function nudge(dir: -1 | 1) {
-    const el = trackRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
+    if (visible.length === 0) return;
+    const next = Math.min(visible.length - 1, Math.max(0, activeIdx + dir));
+    goToDot(next);
   }
 
   function goToDot(i: number) {
@@ -126,12 +128,34 @@ export function CatalogCarousel({
   }
 
   function onPointerEnd() {
-    if (drag.current?.moved) {
-      const el = trackRef.current;
-      if (el) el.style.scrollSnapType = "";
-      suppressClick.current = true;
-    }
+    const d = drag.current;
     drag.current = null;
+    if (!d?.moved) return;
+    suppressClick.current = true;
+    const el = trackRef.current;
+    if (!el) return;
+    const cards = (Array.from(el.children) as HTMLElement[]).filter(
+      (c) => c.getAttribute("aria-hidden") !== "true"
+    );
+    let nearest = cards[0];
+    let bestDist = Infinity;
+    cards.forEach((c) => {
+      const dist = isDesktop
+        ? Math.abs(c.offsetLeft - el.scrollLeft)
+        : Math.abs(c.offsetLeft + c.offsetWidth / 2 - (el.scrollLeft + el.clientWidth / 2));
+      if (dist < bestDist) {
+        bestDist = dist;
+        nearest = c;
+      }
+    });
+    nearest?.scrollIntoView({
+      behavior: "smooth",
+      inline: isDesktop ? "start" : "center",
+      block: "nearest",
+    });
+    window.setTimeout(() => {
+      if (!drag.current && trackRef.current) trackRef.current.style.scrollSnapType = "";
+    }, 450);
   }
 
   function onClickCapture(e: React.MouseEvent<HTMLDivElement>) {
@@ -239,7 +263,7 @@ export function CatalogCarousel({
                 onPointerUp={onPointerEnd}
                 onPointerLeave={onPointerEnd}
                 onClickCapture={onClickCapture}
-                className={`relative mt-3 flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto pb-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+                className={`relative mt-3 flex cursor-grab scroll-smooth snap-x snap-mandatory gap-3 overflow-x-auto pb-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
                   isDesktop ? "pt-3" : "px-[21%] py-2"
                 }`}
               >
@@ -340,6 +364,9 @@ export function CatalogCarousel({
                       </div>
                     </div>
                   )
+                )}
+                {isDesktop && (
+                  <div aria-hidden="true" className="w-[calc(100%_-_240px)] shrink-0" />
                 )}
               </div>
 
