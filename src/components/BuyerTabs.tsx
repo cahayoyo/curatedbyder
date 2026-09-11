@@ -33,7 +33,8 @@ import {
 import { formatIDR, dateLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
-import { earliestEta, StageTimeline } from "@/components/TrackingTimeline";
+import { StageTimeline } from "@/components/TrackingTimeline";
+import { earliestEta } from "@/lib/tracking";
 import {
   ArrowRight,
   Boxes,

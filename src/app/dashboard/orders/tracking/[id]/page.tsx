@@ -6,7 +6,8 @@ import { db } from "@/lib/db";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { BuyerShell } from "@/components/BuyerShell";
 import { CopyResi, TrackCard } from "@/components/BuyerTabs";
-import { earliestEta, StageStatusBanner } from "@/components/TrackingTimeline";
+import { StageStatusBanner } from "@/components/TrackingTimeline";
+import { earliestEta } from "@/lib/tracking";
 import { etaLabel } from "@/lib/orderOptions";
 
 export default async function TrackingDetailPage({
