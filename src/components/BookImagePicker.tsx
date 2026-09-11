@@ -115,7 +115,7 @@ export function BookImagePicker({
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">JPG, PNG, WEBP (maks. 4MB)</p>
+        <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (maks. 4MB)</p>
 
         <input
           ref={inputRef}

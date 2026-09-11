@@ -373,17 +373,17 @@ export function BookForm({
               />
 
               <div className="space-y-1.5">
-                <Label>Informasi Buku</Label>
+                <Label>Informasi Buku (opsional)</Label>
                 <Textarea
                   value={r.info}
                   onChange={(e) => upRow(i, "info", e.target.value)}
                   placeholder="Masukkan sinopsis, ringkasan, atau informasi tambahan..."
                   rows={3}
-                  maxLength={5000}
+                  maxLength={500}
                   className="placeholder:text-[#b5b5b5]"
                 />
                 <p className="text-right text-[11px] text-muted-foreground">
-                  {r.info.length}/5000
+                  {r.info.length}/500
                 </p>
               </div>
 
@@ -436,9 +436,12 @@ export function BookForm({
                   <Label>
                     Status Stok <RequiredMark />
                   </Label>
-                  <div className="flex flex-wrap gap-2 pt-0.5">
+                  <div className="flex flex-wrap gap-5 pt-1.5">
                     {BOOK_STATUSES.map((opt) => (
-                      <label key={opt.value} className={pillCls(r.status === opt.value)}>
+                      <label
+                        key={opt.value}
+                        className="flex cursor-pointer items-center gap-2 text-sm"
+                      >
                         <input
                           type="radio"
                           name={`status-${i}`}
@@ -455,11 +458,7 @@ export function BookForm({
 
                 {batches.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Harga per Batch</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Opsional — dipakai di pesanan sesuai batch; jika kosong pakai harga di atas.
-                      Disimpan otomatis saat buku disimpan.
-                    </p>
+                    <Label>Harga per Batch (opsional)</Label>
                     {r.batchPrices.map((br, bi) => (
                       <div key={bi} className="space-y-2 rounded-lg border bg-[#FDF8F4] p-2.5">
                         <div className="flex items-end gap-2">
@@ -530,6 +529,10 @@ export function BookForm({
                     >
                       <Plus className="h-4 w-4" /> Tambah Harga Batch
                     </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Disimpan otomatis saat buku disimpan. Klik &lsquo;Tambah Harga Batch&rsquo;
+                      untuk menambahkan harga batch baru.
+                    </p>
                   </div>
                 )}
               </div>
@@ -578,8 +581,14 @@ export function BookForm({
                 <li>Isi informasi buku dengan lengkap.</li>
                 <li>Pastikan harga dan stok sudah sesuai.</li>
                 <li>
-                  Format: HC (Hard Cover), PB (Paperback), BB (Big Book), SET (Set), SB (Soft
-                  Book).
+                  Pilih format buku yang tepat:
+                  <ul className="mt-1 list-[circle] space-y-1 pl-4">
+                    <li>HC : Hard Cover</li>
+                    <li>PB : Paperback</li>
+                    <li>BB : Big Book</li>
+                    <li>SET : Set</li>
+                    <li>SB : Soft Book</li>
+                  </ul>
                 </li>
               </ul>
             </section>
@@ -587,39 +596,34 @@ export function BookForm({
         </div>
       ))}
 
-      {!initial?.id && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addRow}
-          className="w-full border border-dashed border-[#D97A7A]/50 bg-white text-[#C96A6A] transition-colors hover:bg-[#FED6D6]/40 hover:text-[#C96A6A]"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Buku Lainnya
-        </Button>
-      )}
-
-      <div className="sticky bottom-0 z-10 flex items-center gap-3 rounded-xl border bg-white/95 p-3 shadow-sm backdrop-blur">
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-xl border bg-white/95 p-3 shadow-sm backdrop-blur">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          className="border border-input bg-transparent text-black transition-colors hover:bg-white"
+          className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-white"
         >
           <X className="h-4 w-4" />
           Batal
         </Button>
+        {!initial?.id && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addRow}
+            className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#FED6D6]/50"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah
+          </Button>
+        )}
         <Button
           type="submit"
           disabled={pending}
-          className="ml-auto bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+          className="flex-1 bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
         >
-          {initial?.id ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-          {pending ? "Menyimpan..." : initial?.id ? "Ubah Buku" : "Tambah"}
+          <Check className="h-4 w-4" />
+          {pending ? "Menyimpan..." : initial?.id ? "Ubah Buku" : "Buat Buku"}
         </Button>
       </div>
     </form>
