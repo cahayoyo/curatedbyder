@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Check, Truck } from "lucide-react";
 import { STATUS_LABEL, STATUS_TYPE } from "@/lib/orderOptions";
 import {
@@ -72,6 +73,55 @@ export function StageTimeline({ items }: { items: TimelineItem[] }) {
   );
 }
 
+export function StageTimelineVertical({ items }: { items: TimelineItem[] }) {
+  const done = currentStageIndex(items);
+  const isDelivered = done === STATUS_TYPE.length - 1;
+  const segment = (j: number) =>
+    isDelivered || j < done ? "bg-emerald-400" : j === done ? "bg-[#D97A7A]/60" : "bg-black/10";
+
+  return (
+    <div>
+      {STATUS_TYPE.map((sv, i) => {
+        const reached = i <= done;
+        const isCurrent = i === done && !isDelivered;
+        const stamp = aggregateStamp(items, i);
+        const parts = stamp ? stageDateParts(stamp) : null;
+        return (
+          <div key={sv} className="relative flex gap-3 pb-4 last:pb-0">
+            {i > 0 && (
+              <>
+                <span aria-hidden className={`absolute left-[13px] -top-4 h-2 w-0.5 ${segment(i - 1)}`} />
+                <span aria-hidden className={`absolute left-[13px] -top-2 h-2 w-0.5 ${segment(i)}`} />
+              </>
+            )}
+            <span
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                isCurrent
+                  ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                  : reached
+                    ? "bg-emerald-500 text-white"
+                    : "border border-black/10 bg-white text-black/30"
+              }`}
+            >
+              {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+            </span>
+            <div className="min-w-0 pb-0.5">
+              <p className={`text-xs font-semibold ${reached ? "text-black/80" : "text-black/40"}`}>
+                {STATUS_LABEL[sv] ?? sv}
+              </p>
+              {parts && (
+                <p className="text-[11px] text-black/50">
+                  {parts.date}, {parts.time}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const STAGE_INFO: Record<string, { title: string; description: string }> = {
   ORDER_PLACED: {
     title: "Pesanan sudah dibuat",
@@ -99,7 +149,13 @@ const STAGE_INFO: Record<string, { title: string; description: string }> = {
   },
 };
 
-export function StageStatusBanner({ items }: { items: TimelineItem[] }) {
+export function StageStatusBanner({
+  items,
+  action,
+}: {
+  items: TimelineItem[];
+  action?: ReactNode;
+}) {
   const idx = currentStageIndex(items);
   const info = STAGE_INFO[STATUS_TYPE[idx]];
   const stamp = aggregateStamp(items, idx);
@@ -116,7 +172,10 @@ export function StageStatusBanner({ items }: { items: TimelineItem[] }) {
           <p className="mt-0.5 text-xs text-black/60">{info.description}</p>
         </div>
       </div>
-      {stamp && <p className="shrink-0 text-xs text-black/50 sm:text-right">{stampLabel(stamp)}</p>}
+      <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+        {!action && stamp && <p className="text-xs text-black/50 sm:text-right">{stampLabel(stamp)}</p>}
+        {action}
+      </div>
     </div>
   );
 }

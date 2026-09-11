@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   STATUS_LABEL,
+  STATUS_TYPE,
   PAYMENT_LABEL,
   PAYMENT_BADGE,
   STATUS_BADGE,
@@ -33,14 +34,16 @@ import {
 import { formatIDR, dateLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
-import { StageTimeline } from "@/components/TrackingTimeline";
-import { earliestEta } from "@/lib/tracking";
+import { StageTimeline, StageTimelineVertical, StageStatusBanner } from "@/components/TrackingTimeline";
+import { aggregateStamp, currentStageIndex, earliestEta, stageDateParts } from "@/lib/tracking";
 import {
   ArrowRight,
   Boxes,
   Calculator,
   CalendarClock,
   Check,
+  ChevronDown,
+  ChevronUp,
   Copy,
   Download,
   Eye,
@@ -534,8 +537,13 @@ export function TrackCard({
   variant?: "list" | "detail";
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const cover = order.items.find((it) => it.image)?.image ?? null;
   const eta = earliestEta(order.items);
+  const done = currentStageIndex(order.items);
+  const isDelivered = done === STATUS_TYPE.length - 1;
+  const currentStamp = aggregateStamp(order.items, done);
+  const currentParts = currentStamp ? stageDateParts(currentStamp) : null;
 
   return (
     <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm sm:p-4">
@@ -558,12 +566,19 @@ export function TrackCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <span className="flex items-center gap-2">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
-                <Truck className="h-3.5 w-3.5 text-[#D97A7A]" />
+            <div className="flex items-start justify-between gap-2">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
+                  <Truck className="h-3.5 w-3.5 text-[#D97A7A]" />
+                </span>
+                <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
               </span>
-              <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
-            </span>
+              {variant === "list" && (
+                <span className="shrink-0 md:hidden">
+                  <BadgeGroup payment={order.paymentStatus} />
+                </span>
+              )}
+            </div>
 
             <div className="mt-2 space-y-1.5">
               {order.items.map((it, i) => (
@@ -592,7 +607,7 @@ export function TrackCard({
         </div>
 
         {variant === "list" && (
-          <div className="flex flex-col gap-1.5 text-xs text-black/70 md:flex-1">
+          <div className="hidden flex-col gap-1.5 text-xs text-black/70 md:flex md:flex-1">
             <p className="flex items-center gap-1.5">
               <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">No. Resi:</span>
@@ -606,7 +621,13 @@ export function TrackCard({
           </div>
         )}
 
-        <div className="flex shrink-0 flex-col items-start gap-4 md:items-end">
+        <div
+          className={
+            variant === "list"
+              ? "hidden shrink-0 flex-col items-start gap-4 md:flex md:items-end"
+              : "flex shrink-0 flex-col items-start gap-4"
+          }
+        >
           <BadgeGroup payment={order.paymentStatus} />
 
           {variant === "detail" ? (
@@ -632,9 +653,77 @@ export function TrackCard({
         </div>
       </div>
 
-      <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3">
-        <StageTimeline items={order.items} />
-      </div>
+      {variant === "list" ? (
+        <>
+          <div className="mt-3 hidden border-t border-[#F0CBCB]/60 pt-3 md:block">
+            <StageTimeline items={order.items} />
+          </div>
+
+          <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3 md:hidden">
+            {expanded ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setExpanded(false)}
+                  className="mb-2 flex w-full items-center justify-between text-xs font-semibold text-[#B04A4A]"
+                >
+                  Sembunyikan
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+                <StageTimelineVertical items={order.items} />
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex w-full items-center gap-2.5 text-left"
+              >
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    isDelivered
+                      ? "bg-emerald-500 text-white"
+                      : "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                  }`}
+                >
+                  {isDelivered ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-semibold text-black/80">
+                    {STATUS_LABEL[STATUS_TYPE[done]] ?? STATUS_TYPE[done]}
+                  </span>
+                  {currentParts && (
+                    <span className="block text-[11px] text-black/50">
+                      {currentParts.date}, {currentParts.time}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+
+          <div className="mt-3 md:hidden">
+            <StageStatusBanner
+              items={order.items}
+              action={
+                <Button
+                  asChild
+                  className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+                >
+                  <Link href={`/dashboard/orders/tracking/${order.id}`}>
+                    Lihat Detail Pengiriman
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              }
+            />
+          </div>
+        </>
+      ) : (
+        <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3">
+          <StageTimeline items={order.items} />
+        </div>
+      )}
 
       <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
