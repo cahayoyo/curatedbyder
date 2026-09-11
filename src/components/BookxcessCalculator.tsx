@@ -85,7 +85,7 @@ export function BookxcessCalculator() {
               <Calculator className="h-5 w-5" />
             </span>
             <p className="text-xs text-gray-500">
-              Masukkan harga dan berat buku, estimasi muncul otomatis.
+              Masukkan harga dan berat buku untuk mengetahui estimasi harga.
             </p>
           </div>
         </div>
