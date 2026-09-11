@@ -307,7 +307,7 @@ export default async function DashboardPage() {
           >
             <s.icon
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-1 right-4 h-12 w-12 md:h-16 md:w-16 ${s.watermarkCls}`}
+              className={`pointer-events-none absolute bottom-4 right-4 h-12 w-12 md:bottom-1 md:h-16 md:w-16 ${s.watermarkCls}`}
             />
             <div className="relative">
               <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
