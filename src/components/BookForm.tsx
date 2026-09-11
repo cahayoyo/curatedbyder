@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
 import { createBook, updateBook, setBookBatchPrices } from "@/server/actions/books";
@@ -16,7 +17,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSuccessModal } from "@/components/SuccessModal";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  Boxes,
+  BookOpen,
+  Check,
+  Eye,
+  FileText,
+  ImageIcon,
+  Lightbulb,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FORMATS, BOOK_STATUSES } from "@/lib/orderOptions";
 import { formatRp } from "@/lib/format";
@@ -61,6 +73,32 @@ const emptyRow = (): BookRow => ({
   formats: [],
   batchPrices: [],
 });
+
+function RequiredMark() {
+  return <span className="text-[#D97A7A]">*</span>;
+}
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="mb-4 flex items-start gap-2.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div>
+        <h3 className="font-semibold leading-tight">{title}</h3>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
 
 export function BookForm({
   initial,
@@ -175,9 +213,6 @@ export function BookForm({
     setRows((rs) => rs.filter((_, i) => i !== index));
   }
 
-  const footerBtn =
-    "border border-input bg-transparent text-black transition transition-colors hover:bg-white hover:text-black";
-
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
@@ -238,264 +273,353 @@ export function BookForm({
     });
   }
 
+  const cardCls = "rounded-xl border bg-white p-4 shadow-sm";
+  const pillCls = (active: boolean) =>
+    cn(
+      "flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm transition-colors",
+      active ? "border-[#D97A7A] bg-[#FED6D6]/60 text-black" : "bg-white hover:bg-[#FDF1F1]"
+    );
+
   return (
-    <form onSubmit={onSubmit} className="space-y-2 rounded-lg border p-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       {rows.map((r, i) => (
-        <div key={r.id ?? i} className="space-y-3 border border-input rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">
-              {rows.length === 1 ? "Buku" : `Buku ${i + 1}`}
-            </span>
-            {i > 0 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeRow(i)}
-                className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Remove
-              </Button>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Judul</Label>
-            <Input
-              value={r.title}
-              onChange={(e) => upRow(i, "title", e.target.value)}
-              required
-              placeholder="Masukkan judul buku..."
-              className="placeholder:text-[#b5b5b5]"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Gambar</Label>
-            <BookImagePicker
-              image={r.image}
-              alt={r.title || "Book cover"}
-              onChange={(url) => upRow(i, "image", url)}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label>Publisher</Label>
-              <Input
-                value={r.publisher}
-                onChange={(e) => upRow(i, "publisher", e.target.value)}
-                placeholder="Masukkan publisher..."
-                className="placeholder:text-[#b5b5b5]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Format</Label>
-              <div className="flex flex-wrap gap-3 pt-2">
-                {FORMATS.map((f) => (
-                  <label
-                    key={f.value}
-                    className="flex cursor-pointer items-center gap-1.5 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={r.formats.includes(f.value)}
-                      onChange={() => toggleFormat(i, f.value)}
-                      className="h-4 w-4 accent-[#D97A7A]"
-                    />
-                    {f.label}
-                  </label>
-                ))}
+        <div key={r.id ?? i} className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* Main column */}
+          <div className="space-y-4">
+            {rows.length > 1 && (
+              <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-2 shadow-sm">
+                <span className="text-sm font-semibold">Buku {i + 1}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeRow(i)}
+                  className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Remove
+                </Button>
               </div>
-            </div>
-          </div>
+            )}
 
-          <div className="space-y-1.5">
-            <Label>Informasi</Label>
-            <Textarea
-              value={r.info}
-              onChange={(e) => upRow(i, "info", e.target.value)}
-              placeholder="Masukkan informasi buku (opsional)..."
-              rows={3}
-              className="placeholder:text-[#b5b5b5]"
-            />
-          </div>
+            {/* Informasi Utama */}
+            <section className={cardCls}>
+              <SectionHeader
+                icon={BookOpen}
+                title="Informasi Utama"
+                subtitle="Lengkapi informasi dasar buku yang akan ditambahkan."
+              />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label>Harga</Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
-                  Rp
-                </span>
+              <div className="space-y-1.5">
+                <Label>
+                  Judul Buku <RequiredMark />
+                </Label>
                 <Input
-                  inputMode="numeric"
-                  className="pl-10"
-                  value={r.price ? formatRp(r.price) : ""}
-                  onChange={(e) => upRow(i, "price", e.target.value.replace(/\D/g, ""))}
-                  placeholder="0"
+                  value={r.title}
+                  onChange={(e) => upRow(i, "title", e.target.value)}
                   required
+                  placeholder="Masukkan judul buku..."
+                  className="placeholder:text-[#b5b5b5]"
                 />
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Stok</Label>
-              <Input
-                inputMode="numeric"
-                value={r.stock}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "");
-                  upRow(i, "stock", digits.replace(/^0+(?=\d)/, ""));
-                }}
-                required
-              />
-            </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label>Status Stok</Label>
-            <div className="flex flex-wrap gap-4 pt-1">
-              {BOOK_STATUSES.map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex cursor-pointer items-center gap-1.5 text-sm"
-                >
-                  <input
-                    type="radio"
-                    name={`status-${i}`}
-                    value={opt.value}
-                    checked={r.status === opt.value}
-                    onChange={() => upRow(i, "status", opt.value)}
-                    className="h-4 w-4 accent-[#D97A7A]"
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Gambar Sampul</Label>
+                  <BookImagePicker
+                    variant="dropzone"
+                    image={r.image}
+                    alt={r.title || "Book cover"}
+                    onChange={(url) => upRow(i, "image", url)}
                   />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-          </div>
+                </div>
 
-          {batches.length > 0 && (
-            <div className="space-y-2">
-              <Label>
-                Harga per Batch{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  (opsional — dipakai di pesanan sesuai batch, jika kosong pakai Harga di atas)
-                </span>
-              </Label>
-              <Button
-                type="button"
-                onClick={() => addBatchPriceRow(i)}
-                className="flex h-10 items-center gap-1.5 rounded-lg border border-[#D97A7A] bg-[#FED6D6] px-4 text-sm font-semibold text-[#D97A7A] transition-colors hover:bg-[#D97A7A] hover:text-white"
-              >
-                <Plus className="h-4 w-4" /> Tambah Harga Batch
-              </Button>
-              {r.batchPrices.map((br, bi) => (
-                <div key={bi} className="space-y-2">
-                <div className="flex items-end gap-2">
-                  <div className="space-y-1 flex-[1.4] min-w-0">
-                    <Select
-                      value={br.batchId}
-                      onValueChange={(v) =>
-                        upBatchPrice(i, bi, { batchId: v })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih batch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {batches.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            {b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label>Publisher</Label>
+                    <Input
+                      value={r.publisher}
+                      onChange={(e) => upRow(i, "publisher", e.target.value)}
+                      placeholder="Masukkan publisher..."
+                      className="placeholder:text-[#b5b5b5]"
+                    />
                   </div>
-                  <div className="relative flex-[1] min-w-[160px]">
+                  <div className="space-y-1.5">
+                    <Label>Format</Label>
+                    <div className="flex flex-wrap gap-2 pt-0.5">
+                      {FORMATS.map((f) => (
+                        <label key={f.value} className={pillCls(r.formats.includes(f.value))}>
+                          <input
+                            type="checkbox"
+                            checked={r.formats.includes(f.value)}
+                            onChange={() => toggleFormat(i, f.value)}
+                            className="h-4 w-4 accent-[#D97A7A]"
+                          />
+                          {f.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Detail Buku */}
+            <section className={cardCls}>
+              <SectionHeader
+                icon={FileText}
+                title="Detail Buku"
+                subtitle="Lengkapi informasi tambahan untuk memudahkan pencarian."
+              />
+
+              <div className="space-y-1.5">
+                <Label>Informasi Buku</Label>
+                <Textarea
+                  value={r.info}
+                  onChange={(e) => upRow(i, "info", e.target.value)}
+                  placeholder="Masukkan sinopsis, ringkasan, atau informasi tambahan..."
+                  rows={3}
+                  maxLength={5000}
+                  className="placeholder:text-[#b5b5b5]"
+                />
+                <p className="text-right text-[11px] text-muted-foreground">
+                  {r.info.length}/5000
+                </p>
+              </div>
+
+              <div className="mt-2 grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>
+                    Harga <RequiredMark />
+                  </Label>
+                  <div className="relative">
                     <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
                       Rp
                     </span>
                     <Input
                       inputMode="numeric"
                       className="pl-10"
-                      value={br.price ? formatRp(br.price) : ""}
-                      onChange={(e) =>
-                        upBatchPrice(i, bi, { price: e.target.value.replace(/\D/g, "") })
-                      }
-                      placeholder="Harga"
+                      value={r.price ? formatRp(r.price) : ""}
+                      onChange={(e) => upRow(i, "price", e.target.value.replace(/\D/g, ""))}
+                      placeholder="0"
+                      required
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeBatchPriceRow(i, bi)}
-                    className="border border-input text-destructive transition-colors hover:bg-red-500 hover:text-white"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 pl-1">
-                  <span className="text-xs text-muted-foreground">Format:</span>
-                  {FORMATS.map((f) => (
-                    <label
-                      key={f.value}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={br.formats.includes(f.value)}
-                        onChange={() => toggleBatchFormat(i, bi, f.value)}
-                        className="h-4 w-4 accent-[#D97A7A]"
-                      />
-                      {f.label}
-                    </label>
-                  ))}
+                <div className="space-y-1.5">
+                  <Label>
+                    Stok <RequiredMark />
+                  </Label>
+                  <Input
+                    inputMode="numeric"
+                    value={r.stock}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      upRow(i, "stock", digits.replace(/^0+(?=\d)/, ""));
+                    }}
+                    required
+                  />
                 </div>
               </div>
-              ))}
-              {r.batchPrices.length > 0 && (
-                <Button
-                  type="button"
-                  size="icon"
-                  onClick={() => addBatchPriceRow(i)}
-                  aria-label="Tambah harga batch"
-                  className="h-10 w-10 rounded-lg border border-[#D97A7A] bg-[#FED6D6] text-[#D97A7A] transition-colors hover:bg-[#D97A7A] hover:text-white"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+            </section>
+
+            {/* Status & Batch */}
+            <section className={cardCls}>
+              <SectionHeader
+                icon={Boxes}
+                title="Status & Batch"
+                subtitle="Atur status stok dan harga per batch (jika diperlukan)."
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>
+                    Status Stok <RequiredMark />
+                  </Label>
+                  <div className="flex flex-wrap gap-2 pt-0.5">
+                    {BOOK_STATUSES.map((opt) => (
+                      <label key={opt.value} className={pillCls(r.status === opt.value)}>
+                        <input
+                          type="radio"
+                          name={`status-${i}`}
+                          value={opt.value}
+                          checked={r.status === opt.value}
+                          onChange={() => upRow(i, "status", opt.value)}
+                          className="h-4 w-4 accent-[#D97A7A]"
+                        />
+                        {opt.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {batches.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Harga per Batch</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Opsional — dipakai di pesanan sesuai batch; jika kosong pakai harga di atas.
+                      Disimpan otomatis saat buku disimpan.
+                    </p>
+                    {r.batchPrices.map((br, bi) => (
+                      <div key={bi} className="space-y-2 rounded-lg border bg-[#FDF8F4] p-2.5">
+                        <div className="flex items-end gap-2">
+                          <div className="min-w-0 flex-[1.4] space-y-1">
+                            <Select
+                              value={br.batchId}
+                              onValueChange={(v) => upBatchPrice(i, bi, { batchId: v })}
+                            >
+                              <SelectTrigger className="w-full bg-white">
+                                <SelectValue placeholder="Pilih batch" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {batches.map((b) => (
+                                  <SelectItem key={b.id} value={b.id}>
+                                    {b.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="relative min-w-[140px] flex-[1]">
+                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
+                              Rp
+                            </span>
+                            <Input
+                              inputMode="numeric"
+                              className="bg-white pl-10"
+                              value={br.price ? formatRp(br.price) : ""}
+                              onChange={(e) =>
+                                upBatchPrice(i, bi, { price: e.target.value.replace(/\D/g, "") })
+                              }
+                              placeholder="Harga"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeBatchPriceRow(i, bi)}
+                            className="shrink-0 border border-input bg-white text-destructive transition-colors hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 pl-1">
+                          <span className="text-xs text-muted-foreground">Format:</span>
+                          {FORMATS.map((f) => (
+                            <label
+                              key={f.value}
+                              className="flex cursor-pointer items-center gap-1.5 text-sm"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={br.formats.includes(f.value)}
+                                onChange={() => toggleBatchFormat(i, bi, f.value)}
+                                className="h-4 w-4 accent-[#D97A7A]"
+                              />
+                              {f.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      onClick={() => addBatchPriceRow(i)}
+                      className="flex h-10 items-center gap-1.5 rounded-lg border border-[#D97A7A] bg-[#FED6D6] px-4 text-sm font-semibold text-[#D97A7A] transition-colors hover:bg-[#D97A7A] hover:text-white"
+                    >
+                      <Plus className="h-4 w-4" /> Tambah Harga Batch
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Side column */}
+          <aside className="space-y-4">
+            <section className={cardCls}>
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
+                  <Eye className="h-3.5 w-3.5" />
+                </span>
+                Preview Sampul
+              </h3>
+              {r.image ? (
+                <div className="relative mx-auto h-64 w-full max-w-[220px] overflow-hidden rounded-lg border bg-black/5">
+                  <Image
+                    src={r.image}
+                    alt={r.title || "Preview sampul"}
+                    fill
+                    sizes="220px"
+                    className="object-cover object-center"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#E3B4B4] bg-[#FDF1F1] px-4 text-center">
+                  <ImageIcon className="h-8 w-8 text-[#D97A7A]/70" />
+                  <p className="text-sm font-medium text-[#C96A6A]">Belum ada gambar</p>
+                  <p className="text-xs text-muted-foreground">
+                    Upload gambar untuk melihat preview
+                  </p>
+                </div>
               )}
-            </div>
-          )}
+            </section>
+
+            <section className={cardCls}>
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
+                  <Lightbulb className="h-3.5 w-3.5" />
+                </span>
+                Tips
+              </h3>
+              <ul className="list-disc space-y-1.5 pl-5 text-xs text-muted-foreground">
+                <li>Gunakan gambar dengan resolusi tinggi dan jelas.</li>
+                <li>Isi informasi buku dengan lengkap.</li>
+                <li>Pastikan harga dan stok sudah sesuai.</li>
+                <li>
+                  Format: HC (Hard Cover), PB (Paperback), BB (Big Book), SET (Set), SB (Soft
+                  Book).
+                </li>
+              </ul>
+            </section>
+          </aside>
         </div>
       ))}
-      <div className="flex flex-wrap gap-2">
-        {!initial?.id && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addRow}
-            className="flex-1 border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
-          >
-            <Plus className="h-4 w-4" />
-            Tambah
-          </Button>
-        )}
+
+      {!initial?.id && (
         <Button
-          type="submit"
-          disabled={pending}
-          className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+          type="button"
+          variant="outline"
+          onClick={addRow}
+          className="w-full border border-dashed border-[#D97A7A]/50 bg-white text-[#C96A6A] transition-colors hover:bg-[#FED6D6]/40 hover:text-[#C96A6A]"
         >
-          {pending ? "Talepan..." : initial?.id ? "Ubah Buku" : "Buat Buku"}
+          <Plus className="h-4 w-4" />
+          Tambah Buku Lainnya
         </Button>
+      )}
+
+      <div className="sticky bottom-0 z-10 flex items-center gap-3 rounded-xl border bg-white/95 p-3 shadow-sm backdrop-blur">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          className={cn("flex-1 border border-input", footerBtn)}
+          className="border border-input bg-transparent text-black transition-colors hover:bg-white"
         >
+          <X className="h-4 w-4" />
           Batal
+        </Button>
+        <Button
+          type="submit"
+          disabled={pending}
+          className="ml-auto bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+        >
+          {initial?.id ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
+          {pending ? "Menyimpan..." : initial?.id ? "Ubah Buku" : "Tambah"}
         </Button>
       </div>
     </form>
