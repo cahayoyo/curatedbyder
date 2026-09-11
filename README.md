@@ -55,8 +55,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Branching & Deployment
 
 - `main` = production branch — merging to `main` deploys production on Vercel.
-- `staging` = integration branch — feature PRs target `staging`, and every push creates a staging preview deploy (dev DB, never production data).
-- Workflow: `feat/<short>` or `fix/<short>` branch → PR to `staging` → test on the staging preview → release PR `staging` → `main` (merge commit) → one production deploy for the whole batch of features.
+- `staging` = GitHub-only integration branch — feature PRs target `staging`; it batches features for the next release but does not deploy to Vercel. All pre-release testing is done locally.
+- Workflow: `feat/<short>` or `fix/<short>` branch → PR to `staging` → test locally → release PR `staging` → `main` (merge commit) → one production deploy for the whole batch of features.
 - Hotfixes for fatal production bugs may PR straight to `main`; back-merge `main` → `staging` afterwards.
 - Migrations run automatically on every Vercel build via `prisma migrate deploy`.
-- Vercel env scopes: Production points at the prod DB; Preview points at the dev DB (staging) with its own `NEXTAUTH_URL` and `NEXTAUTH_SECRET`.
+- Vercel builds only from `main` (`vercel.json` → `git.deploymentEnabled`); local development uses `.env`, and the Preview env scope is no longer used for staging.
