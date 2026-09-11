@@ -49,17 +49,12 @@ export function CatalogCarousel({
   );
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [page, setPage] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
 
   const visible = isDesktop ? items : items.filter((i) => i.kind === tab);
 
   function metrics() {
     const el = trackRef.current;
     if (!el) return;
-    const count = Math.max(1, Math.ceil(el.scrollWidth / el.clientWidth));
-    setPageCount(count);
-    setPage(Math.min(count - 1, Math.round(el.scrollLeft / el.clientWidth)));
     const mid = el.scrollLeft + el.clientWidth / 2;
     const cards = Array.from(el.children) as HTMLElement[];
     let best = 0;
@@ -87,7 +82,6 @@ export function CatalogCarousel({
   function selectTab(k: CatalogItem["kind"]) {
     setTab(k);
     setActiveIdx(0);
-    setPage(0);
     trackRef.current?.scrollTo({ left: 0 });
     requestAnimationFrame(metrics);
   }
@@ -98,19 +92,13 @@ export function CatalogCarousel({
     el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
   }
 
-  function goToPage(i: number) {
-    const el = trackRef.current;
-    if (!el) return;
-    el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
-  }
-
   function goToDot(i: number) {
-    if (isDesktop) {
-      goToPage(i);
-      return;
-    }
     const card = trackRef.current?.children[i] as HTMLElement | undefined;
-    card?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    card?.scrollIntoView({
+      behavior: "smooth",
+      inline: isDesktop ? "start" : "center",
+      block: "nearest",
+    });
   }
 
   const drag = useRef<{ startX: number; startLeft: number; moved: boolean } | null>(null);
@@ -338,7 +326,7 @@ export function CatalogCarousel({
                           type="button"
                           onClick={() => order(item)}
                           aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
-                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#F0CBCB] bg-white/95 text-[#C96A6A] shadow-sm transition-colors hover:bg-[#FBE6E6]"
+                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
                         >
                           <Phone className="h-3.5 w-3.5" />
                         </button>
@@ -354,24 +342,21 @@ export function CatalogCarousel({
                 )}
               </div>
 
-              {(isDesktop ? pageCount : visible.length) > 1 && (
+              {visible.length > 1 && (
                 <div className="mt-3 flex justify-center gap-2">
-                  {Array.from(
-                    { length: isDesktop ? pageCount : visible.length },
-                    (_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        aria-label={`Katalog ${i + 1}`}
-                        onClick={() => goToDot(i)}
-                        className={`h-2 rounded-full transition-all ${
-                          i === (isDesktop ? page : activeIdx)
-                            ? "w-4 bg-[#C96A6A]"
-                            : "w-2 bg-[#C96A6A]/40 hover:bg-[#C96A6A]/60"
-                        }`}
-                      />
-                    )
-                  )}
+                  {Array.from({ length: visible.length }, (_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      aria-label={`Katalog ${i + 1}`}
+                      onClick={() => goToDot(i)}
+                      className={`h-2 rounded-full transition-all ${
+                        i === activeIdx
+                          ? "w-4 bg-[#C96A6A]"
+                          : "w-2 bg-[#C96A6A]/40 hover:bg-[#C96A6A]/60"
+                      }`}
+                    />
+                  ))}
                 </div>
               )}
             </>
