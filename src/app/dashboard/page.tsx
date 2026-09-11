@@ -216,7 +216,6 @@ export default async function DashboardPage() {
       label: "Pesanan Aktif",
       value: activeCount,
       caption: "Sedang diproses",
-      href: "/dashboard/orders",
       icon: ShoppingCart,
       cardCls: "border-[#F0CBCB] bg-gradient-to-br from-white via-[#FBE9E9] to-[#F6D5D5]",
       iconCls: "bg-[#F6C9C9] text-[#B85C5C]",
@@ -226,7 +225,6 @@ export default async function DashboardPage() {
       label: "Menunggu Sisa Tagihan",
       value: unpaidCount,
       caption: "Segera selesaikan",
-      href: "/dashboard/orders?tab=payment",
       icon: Wallet,
       cardCls: "border-amber-200 bg-gradient-to-br from-white via-amber-50 to-amber-100",
       iconCls: "bg-amber-200 text-amber-600",
@@ -236,7 +234,6 @@ export default async function DashboardPage() {
       label: "Dalam Pengiriman",
       value: shippingCount,
       caption: "Menuju alamatmu",
-      href: "/dashboard/orders?tab=shipment",
       icon: Truck,
       cardCls: "border-sky-200 bg-gradient-to-br from-white via-sky-50 to-sky-100",
       iconCls: "bg-sky-200 text-sky-600",
@@ -246,7 +243,6 @@ export default async function DashboardPage() {
       label: "Selesai",
       value: doneCount,
       caption: "Pesanan telah diterima",
-      href: "/dashboard/orders?status=ORDER_DELIVERED",
       icon: CheckCircle2,
       cardCls: "border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-emerald-100",
       iconCls: "bg-emerald-200 text-emerald-600",
@@ -297,31 +293,29 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map((s) => (
-          <Link
+          <div
             key={s.label}
-            href={s.href}
-            className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-shadow hover:shadow-md ${s.cardCls}`}
+            className={`relative overflow-hidden rounded-xl border p-3 shadow-sm ${s.cardCls}`}
           >
             <s.icon
               aria-hidden="true"
-              className={`pointer-events-none absolute -bottom-2 -right-2 h-16 w-16 ${s.watermarkCls}`}
+              className={`pointer-events-none absolute bottom-4 right-4 h-12 w-12 md:bottom-1 md:h-16 md:w-16 ${s.watermarkCls}`}
             />
-            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/40">
-              <ChevronRight className="h-3 w-3" />
-            </span>
-            <div className="relative flex items-center gap-3">
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
-              >
-                <s.icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
-                <p className="text-2xl font-bold leading-tight">{s.value}</p>
-                <p className="truncate text-xs text-black/50">{s.caption}</p>
+            <div className="relative">
+              <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
+                >
+                  <s.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold leading-tight">{s.value}</p>
+                  <p className="truncate text-xs text-black/50">{s.caption}</p>
+                </div>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 
