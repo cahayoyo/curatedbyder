@@ -79,7 +79,7 @@ export function UserMenu({
           >
             <Link href="/admin/settings">
               <Settings className="h-4 w-4" />
-              Setting
+              Pengaturan
             </Link>
           </DropdownMenuItem>
         )}
