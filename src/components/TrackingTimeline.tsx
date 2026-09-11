@@ -12,13 +12,14 @@ import {
 
 export function StageTimeline({ items }: { items: TimelineItem[] }) {
   const done = currentStageIndex(items);
+  const isDelivered = done === STATUS_TYPE.length - 1;
 
   return (
     <div className="overflow-x-auto pb-1">
       <div className="grid min-w-[760px] grid-cols-6 items-start">
         {STATUS_TYPE.map((sv, i) => {
           const reached = i <= done;
-          const isCurrent = i === done;
+          const isCurrent = i === done && !isDelivered;
           const stamp = aggregateStamp(items, i);
           const parts = stamp ? stageDateParts(stamp) : null;
           return (
