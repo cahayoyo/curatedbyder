@@ -2,17 +2,10 @@ import { Suspense } from "react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { Heart, Package, Truck } from "lucide-react";
 import { authOptions } from "@/lib/auth";
-import { PhotoCarousel } from "@/components/PhotoCarousel";
+import { BookxcessCalculator } from "@/components/BookxcessCalculator";
 import { HomeLogin } from "@/components/HomeLogin";
 import logo from "@/assets/img/logoderbaru.jpeg";
-
-const FEATURES = [
-  { icon: Package, title: "Original Products", sub: "Curated with love" },
-  { icon: Truck, title: "Safe Delivery", sub: "From our shelf to yours" },
-  { icon: Heart, title: "A Happier You", sub: "One book at a time" },
-];
 
 export default function LoginPage() {
   return (
@@ -65,20 +58,8 @@ export default function LoginPage() {
           <HomeLogin />
         </div>
 
-        <div className="relative z-10 mt-2 w-full max-w-sm sm:mt-3 sm:max-w-md">
-          <PhotoCarousel />
-        </div>
-
-        <div className="relative z-10 mt-8 grid w-full max-w-sm grid-cols-3 gap-2 sm:max-w-2xl sm:gap-4">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="flex items-center justify-center gap-2 text-left sm:gap-3">
-              <f.icon className="h-5 w-5 shrink-0 text-gray-700 sm:h-6 sm:w-6" />
-              <div>
-                <p className="text-xs font-semibold text-gray-900 sm:text-sm">{f.title}</p>
-                <p className="text-[10px] text-gray-600 sm:text-xs">{f.sub}</p>
-              </div>
-            </div>
-          ))}
+        <div className="relative z-10 mt-4 w-full max-w-sm sm:mt-5 sm:max-w-md">
+          <BookxcessCalculator />
         </div>
       </main>
     </>
