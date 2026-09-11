@@ -22,17 +22,25 @@ export function StageTimeline({ items }: { items: TimelineItem[] }) {
           const isCurrent = i === done && !isDelivered;
           const stamp = aggregateStamp(items, i);
           const parts = stamp ? stageDateParts(stamp) : null;
-          const line = isDelivered
-            ? "bg-emerald-400"
-            : i === done - 1 || i === done
-              ? "bg-[#D97A7A]/60"
-              : i < done
-                ? "bg-emerald-400"
-                : "bg-black/10";
+          const halfColor = (j: number) =>
+            isDelivered || j < done
+              ? "bg-emerald-400"
+              : j === done
+                ? "bg-[#D97A7A]/60"
+                : "bg-transparent";
           return (
             <div key={sv} className="relative flex flex-col items-center gap-1 px-0.5 text-center">
               {i < STATUS_TYPE.length - 1 && (
-                <span aria-hidden className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-full ${line}`} />
+                <>
+                  <span
+                    aria-hidden
+                    className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-1/2 ${halfColor(i)}`}
+                  />
+                  <span
+                    aria-hidden
+                    className={`absolute left-full top-[13px] z-0 h-0.5 w-1/2 ${halfColor(i + 1)}`}
+                  />
+                </>
               )}
               <span
                 className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full ${
