@@ -14,7 +14,6 @@ import {
   MapPin,
   Pencil,
   Phone,
-  Plus,
   Settings2,
   User,
   UserCheck,
@@ -371,7 +370,7 @@ export default async function AdminBuyersPage({
         <NavActionButton
           href="/admin/buyers/new"
           icon={<UserPlus className="h-4 w-4" />}
-          className="hidden h-9 shrink-0 gap-1.5 rounded-md bg-[#D97A7A] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white md:inline-flex sm:h-11 sm:gap-2 sm:px-5 sm:text-[15px]"
+          className="h-9 shrink-0 gap-1.5 rounded-md bg-[#D97A7A] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white sm:h-11 sm:gap-2 sm:px-5 sm:text-[15px]"
         >
           Tambah Pembeli
         </NavActionButton>
@@ -412,14 +411,6 @@ export default async function AdminBuyersPage({
       <Suspense fallback={<ListLoader />}>
         <BuyersList searchParams={sp} />
       </Suspense>
-
-      <NavActionButton
-        href="/admin/buyers/new"
-        icon={<Plus className="h-6 w-6" />}
-        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-[#D97A7A] p-0 text-white shadow-lg hover:bg-[#c9686b] hover:text-white md:hidden"
-      >
-        <span className="sr-only">Tambah Pembeli</span>
-      </NavActionButton>
     </div>
   );
 }
