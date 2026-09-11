@@ -540,6 +540,22 @@ export function TrackCard({
   const isDelivered = done === STATUS_TYPE.length - 1;
   const currentStamp = aggregateStamp(order.items, done);
   const currentParts = currentStamp ? stageDateParts(currentStamp) : null;
+  const statusBanner = (
+    <StageStatusBanner
+      items={order.items}
+      action={
+        <Button
+          asChild
+          className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+        >
+          <Link href={`/dashboard/orders/tracking/${order.id}`}>
+            Lihat Detail Pengiriman
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      }
+    />
+  );
 
   return (
     <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm sm:p-4">
@@ -669,7 +685,7 @@ export function TrackCard({
 
           <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3 md:hidden">
             {expanded ? (
-              <StageTimelineVertical items={order.items} />
+              <StageTimelineVertical items={order.items} currentExtra={statusBanner} />
             ) : (
               <div className="flex w-full items-center gap-2.5">
                 <span
@@ -695,22 +711,7 @@ export function TrackCard({
             )}
           </div>
 
-          <div className="mt-3 md:hidden">
-            <StageStatusBanner
-              items={order.items}
-              action={
-                <Button
-                  asChild
-                  className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
-                >
-                  <Link href={`/dashboard/orders/tracking/${order.id}`}>
-                    Lihat Detail Pengiriman
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              }
-            />
-          </div>
+          {(!expanded || isDelivered) && <div className="mt-3 md:hidden">{statusBanner}</div>}
         </>
       ) : (
         <div className="mt-3 hidden border-t border-[#F0CBCB]/60 pt-3 md:block">
