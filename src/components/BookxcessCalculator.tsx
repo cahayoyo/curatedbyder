@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator } from "lucide-react";
+import { Calculator, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatIDR } from "@/lib/format";
@@ -49,11 +49,19 @@ export function BookxcessCalculator() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-10 top-24 h-28 w-28 rounded-full border border-[#F0CBCB]/60"
+        className="pointer-events-none absolute inset-x-5 bottom-1 h-3 bg-[radial-gradient(#E8B4B4_1.5px,transparent_1.5px)] [background-size:10px_10px] opacity-70"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-5 bottom-1 h-3 bg-[radial-gradient(#E8B4B4_1.5px,transparent_1.5px)] [background-size:10px_10px] opacity-70"
+        className="pointer-events-none absolute -bottom-12 right-1/3 h-24 w-24 rotate-12 rounded-3xl bg-[#FBE6E6]/70 blur-xl"
+      />
+      <Sparkles
+        aria-hidden
+        className="pointer-events-none absolute right-5 top-4 h-4 w-4 text-[#E8B4B4]/90"
+      />
+      <Sparkles
+        aria-hidden
+        className="pointer-events-none absolute bottom-4 left-5 h-3 w-3 text-[#E8B4B4]/80"
       />
 
       <div className="relative">
@@ -85,7 +93,7 @@ export function BookxcessCalculator() {
                 placeholder="Contoh: 8"
                 className="rounded-lg border-rose-200 bg-white pr-12 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400">
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
                 MYR
               </span>
             </div>
@@ -104,14 +112,14 @@ export function BookxcessCalculator() {
                 placeholder="Contoh: 4"
                 className="rounded-lg border-rose-200 bg-white pr-12 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400">
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
                 KG
               </span>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3">
+        <div className="mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#B85C5C]/80">
             Estimasi Total Bayar
           </p>
