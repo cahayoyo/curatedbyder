@@ -76,14 +76,14 @@ export function BookxcessCalculator() {
       />
 
       <div className="relative">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
-            <Calculator className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-base font-bold leading-tight text-gray-900 sm:text-lg">
-              Estimasi Perhitungan Buku Web Bookxcess
-            </h2>
+        <div className="mb-4">
+          <h2 className="text-base font-bold leading-tight text-gray-900 sm:text-lg">
+            Estimasi Perhitungan Buku Web Bookxcess
+          </h2>
+          <div className="mt-2 flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
+              <Calculator className="h-5 w-5" />
+            </span>
             <p className="text-xs text-gray-500">
               Masukkan harga dan berat buku, estimasi muncul otomatis.
             </p>
