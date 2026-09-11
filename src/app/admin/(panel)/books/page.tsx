@@ -400,13 +400,13 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                           </TableCell>
                           <TableCell rowSpan={variants.length}>
                             <div className="flex items-center gap-3">
-                              <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
+                              <div className="relative h-24 w-[72px] shrink-0 overflow-hidden rounded border bg-black/5">
                                 {b.image ? (
                                   <Image
                                     src={b.image}
                                     alt={b.title}
                                     fill
-                                    sizes="48px"
+                                    sizes="96px"
                                     className="object-cover object-center"
                                   />
                                 ) : (
