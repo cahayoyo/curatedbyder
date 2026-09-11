@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
@@ -26,6 +27,7 @@ import {
   PAYMENT_BADGE,
   STATUS_BADGE,
   FORMAT_BADGE,
+  ETA_TYPE,
   etaLabel,
   STATUSES,
 } from "@/lib/orderOptions";
@@ -33,12 +35,16 @@ import { formatIDR, dateLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
 import {
+  ArrowRight,
   Boxes,
   Calculator,
   CalendarClock,
+  Check,
+  Copy,
   Download,
   Eye,
   FileText,
+  ImageIcon,
   ListOrdered,
   Loader2,
   MapPin,
@@ -65,6 +71,8 @@ type OrderItemDTO = {
   batchName: string | null;
   eta: string;
   kind?: "BUKU" | "MAINAN" | "LAINNYA";
+  image: string | null;
+  stages: (string | null)[];
   book: { title: string; formats: string[] };
 };
 
@@ -485,53 +493,205 @@ function PaymentCard({ order }: { order: OrderDTO }) {
   );
 }
 
-export function TrackCard({ order }: { order: OrderDTO }) {
-  const current = STATUSES.find((s) => order.items.some((it) => it.status === s.value))?.value ?? "ORDER_PLACED";
-  const done = TRACK_STATUSES.findIndex((x) => x === current);
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function stageParts(iso: string) {
+  const d = new Date(iso);
+  return {
+    date: d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+    time: d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
+function CopyResi({ value }: { value: string | null }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard unavailable (insecure context) — ignore
+    }
+  }
+
+  if (!value) return <span className="font-mono text-xs font-semibold">—</span>;
 
   return (
-    <div className="rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2 font-semibold leading-snug">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
-            <Truck className="h-5 w-5 text-[#D97A7A]" />
-          </span>
-          <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
-        </span>
-        <BadgeGroup payment={order.paymentStatus} />
-      </div>
+    <span className="flex items-center gap-1">
+      <span className="font-mono text-xs font-semibold break-all">{value}</span>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label="Copy nomor resi"
+        className="text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
+      >
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      </button>
+    </span>
+  );
+}
 
-      <div className="mb-2 h-px w-full bg-black/15" />
+function StageTimeline({ items }: { items: OrderItemDTO[] }) {
+  const current = STATUSES.find((s) => items.some((it) => it.status === s.value))?.value ?? "ORDER_PLACED";
+  const done = TRACK_STATUSES.indexOf(current);
 
-      <div className="mt-3 flex flex-wrap items-center gap-1 text-xs">
+  return (
+    <div className="overflow-x-auto pb-1">
+      <div className="flex min-w-[640px] items-start">
         {TRACK_STATUSES.map((sv, i) => {
           const reached = i <= done;
+          const isCurrent = i === done;
+          const stamp = items.reduce<string | null>((acc, it) => {
+            const d = it.stages[i];
+            if (!d) return acc;
+            return !acc || new Date(d) > new Date(acc) ? d : acc;
+          }, null);
+          const parts = stamp ? stageParts(stamp) : null;
           return (
-            <div key={sv} className="flex items-center gap-1">
-              <span
-                className={`whitespace-nowrap rounded-full px-2 py-1 ${
-                  reached
-                    ? STATUS_BADGE[sv] ?? "bg-[#D97A7A] text-white"
-                    : "bg-black/10 text-black/50"
-                }`}
-              >
-                {STATUS_LABEL[sv]}
-              </span>
-              {i < TRACK_STATUSES.length - 1 && <span className="text-muted-foreground">→</span>}
-            </div>
+            <Fragment key={sv}>
+              {i > 0 && (
+                <span
+                  className={`mt-[13px] h-0.5 flex-1 rounded-full ${reached ? "bg-emerald-400" : "bg-black/10"}`}
+                />
+              )}
+              <div className="flex w-[100px] shrink-0 flex-col items-center gap-1 text-center">
+                <span
+                  className={`flex h-7 w-7 items-center justify-center rounded-full ${
+                    isCurrent
+                      ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                      : reached
+                        ? "bg-emerald-500 text-white"
+                        : "border border-black/10 bg-white text-black/30"
+                  }`}
+                >
+                  {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+                </span>
+                <span
+                  className={`text-[11px] font-medium leading-tight ${reached ? "text-black/80" : "text-black/40"}`}
+                >
+                  {STATUS_LABEL[sv] ?? sv}
+                </span>
+                {parts ? (
+                  <>
+                    <span className="text-[10px] leading-tight text-black/50">{parts.date}</span>
+                    <span className="text-[10px] leading-tight text-black/40">{parts.time}</span>
+                  </>
+                ) : null}
+              </div>
+            </Fragment>
           );
         })}
       </div>
+    </div>
+  );
+}
 
-      {(current === "SHIPPED_TO_CUSTOMER" || current === "ORDER_DELIVERED") && (
-        <>
-          <div className="mt-3 h-px w-full bg-black/15" />
-          <p className="mt-2 text-xs">
-            No Resi :{" "}
-            <span className="font-mono text-xs font-semibold break-all">{order.trackingNumber || "—"}</span>
-          </p>
-        </>
-      )}
+export function TrackCard({ order }: { order: OrderDTO }) {
+  const [detailOpen, setDetailOpen] = useState(false);
+  const cover = order.items.find((it) => it.image)?.image ?? null;
+  const earliestEta = [...order.items]
+    .map((it) => it.eta)
+    .sort(
+      (a, b) =>
+        ETA_TYPE.indexOf(a as (typeof ETA_TYPE)[number]) -
+        ETA_TYPE.indexOf(b as (typeof ETA_TYPE)[number])
+    )[0];
+
+  return (
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm sm:p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex min-w-0 flex-1 gap-3">
+          <div className="relative h-[92px] w-[66px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70">
+            {cover ? (
+              <Image
+                src={cover}
+                alt={order.items[0]?.book.title ?? "Item pesanan"}
+                fill
+                sizes="66px"
+                className="object-cover object-center"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <ImageIcon className="h-5 w-5 text-black/30" />
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
+                <Truck className="h-3.5 w-3.5 text-[#D97A7A]" />
+              </span>
+              <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
+            </span>
+
+            <div className="mt-2 space-y-1.5">
+              {order.items.map((it, i) => (
+                <div key={i}>
+                  <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-1">
+                    <ProductTag kind={it.kind} />
+                    {it.book.formats.map((f) => (
+                      <span
+                        key={f}
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {it.quantity} × {formatIDR(it.unitPrice)} · ETA {etaLabel(it.eta)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-2 text-[11px] text-muted-foreground">{formatDateTime(order.soldAt)}</p>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+          <BadgeGroup payment={order.paymentStatus} />
+
+          <div className="text-xs text-black/70 md:text-right">
+            <p className="flex items-center gap-1 md:justify-end">
+              <span className="text-muted-foreground">No. Resi:</span>
+              <CopyResi value={order.trackingNumber} />
+            </p>
+            <p className="mt-0.5">
+              <span className="text-muted-foreground">Estimasi Tiba:</span>{" "}
+              <span className="font-semibold">{etaLabel(earliestEta)}</span>
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => setDetailOpen(true)}
+            className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white/70 px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+          >
+            Lihat Detail Pengiriman
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3">
+        <StageTimeline items={order.items} />
+      </div>
+
+      <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }
@@ -568,18 +728,21 @@ export function BuyerTabs({
     navigate(`${basePath}?${params.toString()}`);
   }
 
+  const tabTriggerCls =
+    "flex-1 gap-1.5 rounded-none border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:border-[#D97A7A] data-[state=active]:bg-transparent data-[state=active]:text-[#B04A4A] data-[state=active]:shadow-none";
+
   return (
     <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="w-full">
-        <TabsTrigger value="invoice" className="flex-1 gap-1.5">
+      <TabsList className="h-auto w-full gap-1 rounded-none border-b border-[#F0CBCB] bg-transparent p-0">
+        <TabsTrigger value="invoice" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
         </TabsTrigger>
-        <TabsTrigger value="payment" className="flex-1 gap-1.5">
+        <TabsTrigger value="payment" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
           Pembayaran
         </TabsTrigger>
-        <TabsTrigger value="shipment" className="flex-1 gap-1.5">
+        <TabsTrigger value="shipment" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Lacak
         </TabsTrigger>

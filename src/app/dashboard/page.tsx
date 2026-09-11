@@ -31,8 +31,8 @@ const orderInclude = {
   items: {
     include: {
       batch: { select: { name: true } },
-      book: { select: { title: true, formats: true } },
-      toy: { select: { title: true } },
+      book: { select: { title: true, formats: true, image: true } },
+      toy: { select: { title: true, image: true } },
     },
   },
 } satisfies Prisma.OrderInclude;
@@ -62,6 +62,15 @@ function toDTO(s: OrderWithItems): OrderDTO {
       batchName: i.batch?.name ?? null,
       eta: i.eta,
       kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
+      image: i.book?.image ?? i.toy?.image ?? null,
+      stages: [
+        i.placedAt,
+        i.shippingToIndonesiaAt,
+        i.arrivedInIndonesiaAt,
+        i.arrivedAtWarehouseAt,
+        i.shippedToCustomerAt,
+        i.deliveredAt,
+      ].map((d) => d?.toISOString() ?? null),
       book: {
         title: i.book?.title ?? i.toy?.title ?? "—",
         formats: i.book?.formats ?? [],

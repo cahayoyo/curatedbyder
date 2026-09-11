@@ -20,9 +20,11 @@ let didHandleInitialPer = false;
 export function PageSizeSelect({
   basePath,
   defaultPer = DEFAULT_PAGE_SIZE,
+  suffix,
 }: {
   basePath: string;
   defaultPer?: number;
+  suffix?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -62,7 +64,8 @@ export function PageSizeSelect({
         title="Item per halaman"
         disabled={isPending}
         className={cn(
-          "h-9 w-20 shrink-0 bg-white",
+          "h-9 shrink-0 gap-1.5 bg-white",
+          suffix ? "w-auto px-3" : "w-20",
           isPending && "cursor-wait opacity-70"
         )}
       >
@@ -71,6 +74,7 @@ export function PageSizeSelect({
         ) : (
           <SelectValue />
         )}
+        {suffix && <span className="text-xs font-medium text-muted-foreground">{suffix}</span>}
       </SelectTrigger>
       <SelectContent className="bg-white">
         {PAGE_SIZES.map((s) => (
