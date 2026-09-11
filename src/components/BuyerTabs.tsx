@@ -676,7 +676,7 @@ export function TrackCard({ order }: { order: OrderDTO }) {
           </p>
         </div>
 
-        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+        <div className="flex shrink-0 flex-col items-start gap-4 md:items-end">
           <BadgeGroup payment={order.paymentStatus} />
 
           <Button
