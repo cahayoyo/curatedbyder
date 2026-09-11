@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
@@ -346,14 +346,12 @@ export function OrderForm({
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
-
-  useEffect(() => {
-    if (remaining === 0) {
-      if (paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
-    } else if (paymentStatus === "LUNAS") {
-      setPaymentStatus("NO_PAYMENT");
-    }
-  }, [remaining, paymentStatus]);
+  const effectivePaymentStatus =
+    remaining === 0
+      ? "LUNAS"
+      : paymentStatus === "LUNAS"
+        ? "NO_PAYMENT"
+        : paymentStatus;
 
   const previewItems = items
     .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
@@ -499,7 +497,7 @@ export function OrderForm({
       }));
 
     if (!buyerId) return error("Nama/buyer wajib dipilih");
-    if (!paymentStatus) return error("Status pembayaran wajib dipilih");
+    if (!effectivePaymentStatus) return error("Status pembayaran wajib dipilih");
     if (itemPayload.length === 0) return error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
     if (hasEmptyProduct) return error("Semua baris produk wajib diisi");
@@ -513,7 +511,7 @@ export function OrderForm({
           dp: effectiveDp,
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
-          paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
+          paymentStatus: effectivePaymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
           items: itemPayload,
         };
         if (initial?.id) {
@@ -526,7 +524,7 @@ export function OrderForm({
           capture("order_updated", {
             item_count: itemPayload.length,
             total,
-            payment_status: paymentStatus,
+            payment_status: effectivePaymentStatus,
             has_shipping_cost: shippingCostNum > 0,
           });
         } else {
@@ -539,7 +537,7 @@ export function OrderForm({
           capture("order_created", {
             item_count: itemPayload.length,
             total,
-            payment_status: paymentStatus,
+            payment_status: effectivePaymentStatus,
             has_shipping_cost: shippingCostNum > 0,
           });
         }
@@ -812,11 +810,11 @@ export function OrderForm({
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             Status Pembayaran
           </Label>
-          <Select value={paymentStatus} onValueChange={setPaymentStatus}>
+          <Select value={effectivePaymentStatus} onValueChange={setPaymentStatus}>
             <SelectTrigger
               className={cn(
                 "font-medium",
-                PAYMENT_BADGE[paymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
+                PAYMENT_BADGE[effectivePaymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
               )}
             >
               <SelectValue />
@@ -1102,7 +1100,7 @@ export function OrderForm({
           <OrderInvoicePreview
             invoiceNumber={initial?.invoiceNumber ?? null}
             date={new Date()}
-            statusValue={paymentStatus}
+            statusValue={effectivePaymentStatus}
             items={previewItems}
             subtotal={productTotal}
             shippingCost={shippingCostNum}
