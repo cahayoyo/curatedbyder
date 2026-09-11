@@ -49,16 +49,28 @@ export function CatalogCarousel({
   );
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [maxDot, setMaxDot] = useState(0);
   const pinned = useRef<number | null>(null);
 
   const visible = isDesktop ? items : items.filter((i) => i.kind === tab);
 
   const metrics = useCallback(() => {
     const el = trackRef.current;
-    if (!el || pinned.current !== null) return;
+    if (!el) return;
     const cards = (Array.from(el.children) as HTMLElement[]).filter(
       (c) => c.getAttribute("aria-hidden") !== "true"
     );
+    if (cards.length === 0) return;
+    let lastReachable = cards.length - 1;
+    if (isDesktop) {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      lastReachable = 0;
+      cards.forEach((c, i) => {
+        if (c.offsetLeft <= maxScroll + 1) lastReachable = i;
+      });
+    }
+    setMaxDot(lastReachable);
+    if (pinned.current !== null) return;
     let best = 0;
     let bestDist = Infinity;
     cards.forEach((c, i) => {
@@ -93,14 +105,15 @@ export function CatalogCarousel({
 
   function nudge(dir: -1 | 1) {
     if (visible.length === 0) return;
-    const next = Math.min(visible.length - 1, Math.max(0, activeIdx + dir));
+    const next = Math.min(maxDot, Math.max(0, activeIdx + dir));
     goToDot(next);
   }
 
   function goToDot(i: number) {
-    pinned.current = i;
-    setActiveIdx(i);
-    const card = trackRef.current?.children[i] as HTMLElement | undefined;
+    const idx = Math.min(Math.max(0, i), maxDot);
+    pinned.current = idx;
+    setActiveIdx(idx);
+    const card = trackRef.current?.children[idx] as HTMLElement | undefined;
     card?.scrollIntoView({
       behavior: "smooth",
       inline: isDesktop ? "start" : "center",
@@ -179,6 +192,8 @@ export function CatalogCarousel({
     );
     if (link) window.open(link, "_blank");
   }
+
+  const dotCount = Math.min(maxDot, Math.max(0, visible.length - 1)) + 1;
 
   const arrows = (
     <div className="flex gap-2">
@@ -378,16 +393,16 @@ export function CatalogCarousel({
                 )}
               </div>
 
-              {visible.length > 1 && (
+              {dotCount > 1 && (
                 <div className="mt-3 flex justify-center gap-2">
-                  {Array.from({ length: visible.length }, (_, i) => (
+                  {Array.from({ length: dotCount }, (_, i) => (
                     <button
                       key={i}
                       type="button"
                       aria-label={`Katalog ${i + 1}`}
                       onClick={() => goToDot(i)}
                       className={`h-2 rounded-full transition-all ${
-                        i === activeIdx
+                        i === Math.min(activeIdx, dotCount - 1)
                           ? "w-4 bg-[#C96A6A]"
                           : "w-2 bg-[#C96A6A]/40 hover:bg-[#C96A6A]/60"
                       }`}
