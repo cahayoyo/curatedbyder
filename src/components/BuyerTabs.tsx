@@ -587,11 +587,11 @@ export function TrackCard({
                 )}
               </span>
 
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-3 space-y-2.5">
                 {order.items.map((it, i) => (
                   <div key={i}>
                     <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-1">
+                    <p className="mt-1 flex flex-wrap items-center gap-1">
                       <ProductTag kind={it.kind} />
                       {it.book.formats.map((f) => (
                         <span
@@ -602,7 +602,7 @@ export function TrackCard({
                         </span>
                       ))}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="mt-1 text-[11px] text-muted-foreground">
                       {it.quantity} × {formatIDR(it.unitPrice)} · ETA {etaLabel(it.eta)}
                     </p>
                   </div>
