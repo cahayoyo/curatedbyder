@@ -177,11 +177,13 @@ export default async function DashboardPage() {
         include: orderInclude,
       }),
       db.book.findMany({
+        where: { image: { not: null } },
         orderBy: { createdAt: "desc" },
         take: 3,
         select: { id: true, title: true, image: true, info: true, formats: true },
       }),
       db.toy.findMany({
+        where: { image: { not: null } },
         orderBy: { createdAt: "desc" },
         take: 3,
         select: { id: true, title: true, image: true, info: true },
