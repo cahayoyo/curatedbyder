@@ -123,24 +123,24 @@ export function OrderCard({
               <MoreVertical className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+          <DropdownMenuContent align="end" className="border-[#F0CBCB] bg-white">
             <DropdownMenuItem
               onSelect={() => setDetailOpen(true)}
-              className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+              className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
             >
               <Eye className="h-4 w-4" />
               Lihat
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => router.push(`/admin/orders/${order.id}/edit`)}
-              className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+              className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
             >
               <Pencil className="h-4 w-4" />
               Ubah
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => setDeleteOpen(true)}
-              className="cursor-pointer text-red-600 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+              className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
             >
               <Trash2 className="h-4 w-4" />
               Hapus

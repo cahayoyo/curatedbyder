@@ -24,7 +24,7 @@ export function UserNav({ variant }: { variant: "desktop" | "mobile" }) {
     return (
       <nav
         aria-label="User navigation"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-[#FDF1F1] xl:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-[#F0CBCB] bg-white shadow-[0_-4px_12px_rgba(217,122,122,0.15)] xl:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="grid grid-cols-4 px-2 py-1">
