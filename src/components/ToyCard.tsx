@@ -59,7 +59,7 @@ function HintIcon({ icon, title, detail }: { icon: React.ReactNode; title: strin
 function stockBadgeClass(stock: number) {
   if (stock <= 0) return "border-red-300 bg-red-500 text-white";
   if (stock <= 10) return "border-amber-300 bg-yellow-300 text-yellow-900";
-  return "border-transparent bg-primary text-primary-foreground";
+  return "border-emerald-300 bg-emerald-500 text-white";
 }
 
 function statusBadgeClass(status: ToyDTO["status"]) {
