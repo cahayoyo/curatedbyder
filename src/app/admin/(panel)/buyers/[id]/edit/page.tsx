@@ -12,7 +12,7 @@ export default async function EditBuyerPage({
   const { id } = await params;
   const buyer = await db.user.findUnique({
     where: { id },
-    select: { id: true, name: true, username: true, phone: true, contact: true },
+    select: { id: true, name: true, phone: true, contact: true },
   });
   if (!buyer) notFound();
 
@@ -44,7 +44,6 @@ export default async function EditBuyerPage({
         initial={{
           id: buyer.id,
           name: buyer.name,
-          username: buyer.username,
           phone: buyer.phone ?? "",
           contact: buyer.contact,
         }}

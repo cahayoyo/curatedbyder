@@ -10,24 +10,10 @@ import { generateUsername } from "@/lib/username";
 import type { User } from "@prisma/client";
 import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
 
-const usernameField = z.preprocess(
-  (v) => {
-    if (typeof v !== "string") return v;
-    const s = v.trim().toLowerCase();
-    return s === "" ? undefined : s;
-  },
-  z
-    .string()
-    .min(3, "Username minimal 3 karakter")
-    .regex(/^[a-z0-9._-]+$/, "Format username tidak valid")
-    .optional()
-);
-
 const buyerSchema = z.object({
   name: z.string().min(2),
   phone: z.string().min(6).regex(/^\d+$/, "Nomor telepon hanya boleh angka"),
   contact: z.string().optional().nullable(),
-  username: usernameField,
 });
 
 export async function createBuyer(
@@ -36,31 +22,24 @@ export async function createBuyer(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const parsed = buyerSchema.safeParse(input);
-  if (!parsed.success)
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Data pembeli tidak valid" };
-  const data = parsed.data;
-  const username = data.username ?? generateUsername(data.name, data.phone);
-
+  const data = buyerSchema.parse(input);
   const [existingByPhone, existingByUsername] = await Promise.all([
     db.user.findUnique({ where: { phone: data.phone } }),
-    db.user.findUnique({ where: { username } }),
+    (async () => {
+      const username = generateUsername(data.name, data.phone);
+      return db.user.findUnique({ where: { username } });
+    })(),
   ]);
   if (existingByPhone) return { ok: false, error: "Nomor telepon sudah dipakai pembeli lain" };
   if (existingByUsername)
-    return {
-      ok: false,
-      error: data.username
-        ? "Username sudah dipakai"
-        : "Username sudah dipakai, ubah nama atau nomor telepon",
-    };
+    return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
   let buyer: User;
   try {
     buyer = await db.user.create({
       data: {
         name: data.name,
-        username,
+        username: generateUsername(data.name, data.phone),
         phone: data.phone,
         contact: data.contact,
         role: "USER",
@@ -84,23 +63,15 @@ export async function updateBuyer(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const parsed = buyerSchema.safeParse(input);
-  if (!parsed.success)
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Data pembeli tidak valid" };
-  const data = parsed.data;
-  const username = data.username ?? generateUsername(data.name, data.phone);
+  const data = buyerSchema.parse(input);
+  const username = generateUsername(data.name, data.phone);
   const [existingByPhone, existingByUsername] = await Promise.all([
     db.user.findFirst({ where: { phone: data.phone, NOT: { id } } }),
     db.user.findFirst({ where: { username, NOT: { id } } }),
   ]);
   if (existingByPhone) return { ok: false, error: "Nomor telepon sudah dipakai pembeli lain" };
   if (existingByUsername)
-    return {
-      ok: false,
-      error: data.username
-        ? "Username sudah dipakai"
-        : "Username sudah dipakai, ubah nama atau nomor telepon",
-    };
+    return { ok: false, error: "Username sudah dipakai, ubah nama atau nomor telepon" };
 
   let buyer: User;
   try {

@@ -17,7 +17,6 @@ type InitialBuyer = {
   name: string;
   phone: string;
   contact: string | null;
-  username?: string | null;
 };
 
 type BuyerRow = {
@@ -25,7 +24,6 @@ type BuyerRow = {
   name: string;
   phone: string;
   contact: string;
-  username: string;
 };
 
 function RequiredMark() {
@@ -71,10 +69,9 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
             name: initial.name,
             phone: initial.phone,
             contact: initial.contact ?? "",
-            username: initial.username ?? "",
           },
         ]
-      : [{ name: "", phone: "", contact: "", username: "" }]
+      : [{ name: "", phone: "", contact: "" }]
   );
 
   function upRow(index: number, key: keyof BuyerRow, value: string) {
@@ -82,7 +79,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
   }
 
   function addRow() {
-    setRows((rs) => [...rs, { name: "", phone: "", contact: "", username: "" }]);
+    setRows((rs) => [...rs, { name: "", phone: "", contact: "" }]);
   }
 
   function removeRow(index: number) {
@@ -97,7 +94,6 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
           name: r.name,
           phone: r.phone,
           contact: r.contact || null,
-          username: r.username.trim() ? r.username : undefined,
         });
         if (initial?.id) {
           const r = rows[0];
@@ -181,24 +177,21 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
               </div>
 
               <div className="space-y-1.5">
-                <Label>
-                  Username <RequiredMark />
-                </Label>
+                <Label>Username</Label>
                 <div className="relative">
                   <AtSign className={fieldIconCls} />
                   <Input
-                    value={r.username}
-                    onChange={(e) => upRow(i, "username", e.target.value)}
-                    placeholder={
-                      r.name.trim() && r.phone
-                        ? generateUsername(r.name, r.phone)
-                        : "Masukkan username..."
+                    value={
+                      r.name.trim() && r.phone ? generateUsername(r.name, r.phone) : ""
                     }
-                    className="pl-9 placeholder:text-[#b5b5b5]"
+                    disabled
+                    placeholder="Terisi otomatis..."
+                    className="pl-9 font-mono text-muted-foreground disabled:bg-black/5 disabled:text-muted-foreground disabled:opacity-100 placeholder:text-[#b5b5b5]"
                   />
                 </div>
                 <p className="text-[13px] text-muted-foreground">
-                  Username harus unik dan akan digunakan untuk login.
+                  Terbentuk otomatis dari nama depan dan 4 digit terakhir nomor telepon, lalu
+                  digunakan untuk login.
                 </p>
               </div>
 
