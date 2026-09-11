@@ -421,8 +421,7 @@ export default async function AdminToysPage({
 }) {
   const sp = scalarize(await searchParams, ["status"]) as ToySearchParams;
   return (
-<div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
+    <div className="space-y-4 px-2 md:px-6">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-bold">
             <ToyBrick className="h-6 w-6" />
@@ -458,7 +457,6 @@ export default async function AdminToysPage({
         <Suspense fallback={<ListLoader />}>
           <ToysList searchParams={sp} />
         </Suspense>
-      </div>
     </div>
   );
 }

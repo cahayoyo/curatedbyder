@@ -5,17 +5,20 @@ import Image from "next/image";
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { ImageIcon, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function BookImagePicker({
   image,
   alt,
   onChange,
   endpoint = "bookImage",
+  variant = "default",
 }: {
   image: string;
   alt: string;
   onChange: (url: string) => void;
   endpoint?: "bookImage" | "paymentProof";
+  variant?: "default" | "dropzone";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
@@ -46,6 +49,87 @@ export function BookImagePicker({
   const uploadLabel = isUploading ? `Mengunggah ${progress}%` : image ? "Ubah Gambar" : "Pilih Gambar";
   const baseBtn =
     "cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-70";
+
+  if (variant === "dropzone") {
+    return (
+      <div className="space-y-1.5">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={openPicker}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openPicker();
+            }
+          }}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            handleFiles(e.dataTransfer.files);
+          }}
+          className={cn(
+            "relative flex h-48 w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-[#E3B4B4] bg-[#FDF1F1] transition-colors hover:border-[#D97A7A]",
+            isUploading && "cursor-wait opacity-80"
+          )}
+        >
+          {image ? (
+            <>
+              <Image
+                src={image}
+                alt={alt}
+                fill
+                sizes="(max-width: 640px) 100vw, 480px"
+                className="object-cover object-center"
+              />
+              {!isUploading && (
+                <div className="absolute inset-0 flex items-end justify-center gap-2 bg-black/35 p-2 opacity-0 transition-opacity hover:opacity-100">
+                  <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-black">
+                    Ubah
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange("");
+                    }}
+                    className="rounded-md bg-red-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-600"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5 px-4 text-center">
+              <ImageIcon className="h-8 w-8 text-[#D97A7A]" />
+              <p className="text-base font-medium text-[#C96A6A]">
+                {isUploading ? `Mengunggah ${progress}%` : "Klik untuk upload gambar"}
+              </p>
+              <p className="text-[15px] text-muted-foreground">atau drag &amp; drop di sini</p>
+            </div>
+          )}
+          {isUploading && image && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-base font-medium text-white">
+              Mengunggah {progress}%
+            </div>
+          )}
+        </div>
+        <p className="text-[15px] text-muted-foreground">PNG, JPG, WEBP (maks. 4MB)</p>
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            handleFiles(e.target.files);
+            e.currentTarget.value = "";
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1.5">
