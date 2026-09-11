@@ -1,9 +1,9 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prismaClient";
 
 // Seed data dev (5 user, 5 buku, 5 mainan, 5 pesanan).
 // Double guard: script ini menolak jalan jika DATABASE_URL menunjuk DB prod.
-const db = new PrismaClient();
+const db = createPrismaClient();
 
 if (process.env.DATABASE_URL?.includes("ep-solitary-grass")) {
   console.error("AMAN: DATABASE_URL menunjuk DB PROD — seed dibatalkan");

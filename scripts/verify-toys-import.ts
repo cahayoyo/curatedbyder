@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-const p = new PrismaClient();
+import { createPrismaClient } from "../src/lib/prismaClient";
+const p = createPrismaClient();
 (async () => {
   const toys = await p.toy.count();
   const toyOrders = await p.order.count({ where: { items: { some: { toy: { isNot: null } } } } });
