@@ -178,16 +178,21 @@ export function CatalogCarousel({
                   key={`${item.kind}-${item.id}`}
                   type="button"
                   onClick={() => order(item)}
-                  className="flex w-[232px] shrink-0 snap-start flex-col rounded-xl border border-[#F0CBCB]/60 bg-white p-2.5 text-left shadow-sm transition-shadow hover:shadow-md"
+                  className="relative flex w-[240px] shrink-0 snap-start flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-3 pt-4 text-left shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className="flex items-start gap-2.5">
-                    <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-md border bg-black/5">
+                  <span
+                    className={`absolute -top-2.5 left-3 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${kindCls[item.kind]}`}
+                  >
+                    {item.kind === "BUKU" ? "Buku" : "Mainan"}
+                  </span>
+                  <div className="flex items-start gap-3">
+                    <div className="relative h-[104px] w-[76px] shrink-0 overflow-hidden rounded-lg border bg-black/5 shadow-sm">
                       {item.image ? (
                         <Image
                           src={item.image}
                           alt={item.title}
                           fill
-                          sizes="64px"
+                          sizes="76px"
                           className="object-cover"
                         />
                       ) : (
@@ -196,27 +201,24 @@ export function CatalogCarousel({
                         </span>
                       )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-sm font-semibold leading-snug">
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p className="line-clamp-2 text-[15px] font-bold leading-snug">
                         {item.title}
                       </p>
-                      <p className="mt-1 flex flex-wrap items-center gap-1">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-1.5 text-[10px] font-semibold ${kindCls[item.kind]}`}
-                        >
-                          {item.kind === "BUKU" ? "Buku" : "Mainan"}
-                        </span>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
                         {item.formats.map((f) => (
                           <FormatBadge key={f} value={f} />
                         ))}
-                      </p>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className={priceCls}>{formatIDR(item.price)}</span>
+                    <span className="rounded-full bg-[#FBE6E6] px-3.5 py-1.5 text-[15px] font-bold text-[#B85C5C]">
+                      {formatIDR(item.price)}
+                    </span>
                     <span
                       aria-hidden="true"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D97A7A] text-white"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D97A7A] text-white shadow-sm"
                     >
                       <ShoppingCart className="h-4 w-4" />
                     </span>
