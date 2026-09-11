@@ -171,27 +171,27 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
             c.card
           )}
         >
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
             <span
               className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
                 c.circle
               )}
             >
               <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] leading-tight text-black/60 sm:text-sm">
+              <p className="text-xs leading-tight text-black/60 sm:text-sm">
                 <span className="sm:hidden">{c.short}</span>
                 <span className="hidden sm:inline">{c.label}</span>
               </p>
-              <p className="text-xl font-bold leading-tight sm:text-3xl">{c.value}</p>
+              <p className="text-2xl font-bold leading-tight sm:text-3xl">{c.value}</p>
             </div>
           </div>
           <c.icon
             aria-hidden
             className={cn(
-              "pointer-events-none absolute -right-1 top-1/2 h-10 w-10 -translate-y-1/2 opacity-40 sm:right-6 sm:h-14 sm:w-14 sm:opacity-50",
+              "pointer-events-none absolute right-1 top-2 h-11 w-11 opacity-40 sm:right-6 sm:top-1/2 sm:h-14 sm:w-14 sm:-translate-y-1/2 sm:opacity-50",
               c.watermark
             )}
           />

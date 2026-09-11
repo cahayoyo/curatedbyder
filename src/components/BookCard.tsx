@@ -62,7 +62,7 @@ export function BookCard({
   }
 
   return (
-    <div className="flex gap-3 rounded-xl border bg-white p-3 shadow-sm">
+    <div className="flex gap-3 rounded-xl border border-[#F5D9D3] bg-[#FCEBE6] p-3 shadow-sm">
       <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
         {book.image ? (
           <Image
