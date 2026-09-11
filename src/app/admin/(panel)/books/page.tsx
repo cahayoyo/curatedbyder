@@ -444,7 +444,7 @@ export default async function AdminBooksPage({
     .filter((p): p is string => Boolean(p));
 
   return (
-    <div className="space-y-4 px-2 md:px-6">
+    <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -469,7 +469,7 @@ export default async function AdminBooksPage({
         </Suspense>
 
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 md:max-w-4xl">
             <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
           </div>
           <div className="flex flex-wrap items-center gap-2">
