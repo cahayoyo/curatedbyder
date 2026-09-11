@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
@@ -346,14 +346,12 @@ export function OrderForm({
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
-
-  useEffect(() => {
-    if (remaining === 0) {
-      if (paymentStatus !== "LUNAS") setPaymentStatus("LUNAS");
-    } else if (paymentStatus === "LUNAS") {
-      setPaymentStatus("NO_PAYMENT");
-    }
-  }, [remaining, paymentStatus]);
+  const effectivePaymentStatus =
+    remaining === 0
+      ? "LUNAS"
+      : paymentStatus === "LUNAS"
+        ? "NO_PAYMENT"
+        : paymentStatus;
 
   const previewItems = items
     .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
@@ -382,7 +380,7 @@ export function OrderForm({
     const amount = Number(dpAmountDraft || dp || 0);
     if (!Number.isInteger(amount) || amount < 0) return error("Jumlah pembayaran tidak valid");
     if (amount > total - paidSum) {
-      return error(`Pembayaran I melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
+      return error(`DP melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
     }
     startTransition(async () => {
       try {
@@ -394,7 +392,7 @@ export function OrderForm({
           error(res.error);
           return;
         }
-        success("Pembayaran I berhasil diubah!");
+        success("DP berhasil diubah!");
         capture("order_dp_updated", { amount, has_proof: Boolean(dpProofDraft) });
         setDp(dpAmountDraft);
         setDpProofUrl(dpProofDraft);
@@ -499,7 +497,7 @@ export function OrderForm({
       }));
 
     if (!buyerId) return error("Nama/buyer wajib dipilih");
-    if (!paymentStatus) return error("Status pembayaran wajib dipilih");
+    if (!effectivePaymentStatus) return error("Status pembayaran wajib dipilih");
     if (itemPayload.length === 0) return error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
     if (hasEmptyProduct) return error("Semua baris produk wajib diisi");
@@ -513,7 +511,7 @@ export function OrderForm({
           dp: effectiveDp,
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
-          paymentStatus: paymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
+          paymentStatus: effectivePaymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
           items: itemPayload,
         };
         if (initial?.id) {
@@ -526,7 +524,7 @@ export function OrderForm({
           capture("order_updated", {
             item_count: itemPayload.length,
             total,
-            payment_status: paymentStatus,
+            payment_status: effectivePaymentStatus,
             has_shipping_cost: shippingCostNum > 0,
           });
         } else {
@@ -539,7 +537,7 @@ export function OrderForm({
           capture("order_created", {
             item_count: itemPayload.length,
             total,
-            payment_status: paymentStatus,
+            payment_status: effectivePaymentStatus,
             has_shipping_cost: shippingCostNum > 0,
           });
         }
@@ -780,7 +778,7 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            DP (30% Dari Total Tagihan)
+            DP (Min. 30% dari Total Order)
           </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
@@ -788,11 +786,12 @@ export function OrderForm({
             </span>
             <Input
               inputMode="numeric"
-              readOnly
-              disabled
+              readOnly={!isEdit}
+              disabled={!isEdit}
               className="pl-10 placeholder:text-black/30 bg-black/5"
               value={isEdit ? (dp ? formatRp(dp) : "") : effectiveDp ? formatRp(String(effectiveDp)) : ""}
-              placeholder="Auto 30%"
+              onChange={(e) => setDp(e.target.value.replace(/\D/g, ""))}
+              placeholder="Masukkan jumlah..."
             />
           </div>
         </div>
@@ -811,11 +810,11 @@ export function OrderForm({
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             Status Pembayaran
           </Label>
-          <Select value={paymentStatus} onValueChange={setPaymentStatus}>
+          <Select value={effectivePaymentStatus} onValueChange={setPaymentStatus}>
             <SelectTrigger
               className={cn(
                 "font-medium",
-                PAYMENT_BADGE[paymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
+                PAYMENT_BADGE[effectivePaymentStatus] ?? "border-gray-300 bg-gray-100 text-gray-700"
               )}
             >
               <SelectValue />
@@ -848,21 +847,20 @@ export function OrderForm({
             <div className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-input bg-white/50 p-2.5">
               <div className="flex min-h-9 flex-wrap items-center gap-2">
                 <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
-                  Pembayaran I
+                  DP
                 </span>
                 <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">DP</span>
                 {dpProofUrl && (
                   <a
                     href={dpProofUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="shrink-0"
-                    aria-label="Lihat bukti pembayaran I"
+                    aria-label="Lihat bukti DP"
                   >
                     <Image
                       src={dpProofUrl}
-                      alt="Bukti pembayaran I"
+                      alt="Bukti DP"
                       width={36}
                       height={36}
                       className="h-9 w-9 rounded border border-input object-cover"
@@ -876,7 +874,7 @@ export function OrderForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="Edit pembayaran I"
+                    aria-label="Edit DP"
                     onClick={() => {
                       setDpAmountDraft(dp ?? "");
                       setDpProofDraft(dpProofUrl);
@@ -959,10 +957,9 @@ export function OrderForm({
                   </span>
                   <Input
                     inputMode="numeric"
-                    readOnly
-                    disabled
-                    className="pl-10 bg-black/5"
+                    className="pl-10 placeholder:text-black/30"
                     value={dpAmountDraft ? formatRp(dpAmountDraft) : ""}
+                    onChange={(e) => setDpAmountDraft(e.target.value.replace(/\D/g, ""))}
                     placeholder="Masukkan jumlah..."
                   />
                 </div>
@@ -971,7 +968,7 @@ export function OrderForm({
                 <Label>Foto Bukti (opsional)</Label>
                 <BookImagePicker
                   image={dpProofDraft}
-                  alt="Bukti pembayaran I"
+                  alt="Bukti DP"
                   endpoint="paymentProof"
                   onChange={setDpProofDraft}
                 />
@@ -984,7 +981,7 @@ export function OrderForm({
                   className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
                 >
                   <Save className="h-4 w-4" />
-                  {pending ? "Menyimpan..." : "Simpan Pembayaran I"}
+                  {pending ? "Menyimpan..." : "Simpan DP"}
                 </Button>
                 <Button
                   type="button"
@@ -1103,12 +1100,12 @@ export function OrderForm({
           <OrderInvoicePreview
             invoiceNumber={initial?.invoiceNumber ?? null}
             date={new Date()}
-            statusValue={paymentStatus}
+            statusValue={effectivePaymentStatus}
             items={previewItems}
             subtotal={productTotal}
             shippingCost={shippingCostNum}
             dp={effectiveDp}
-            dpLabel="DP (30% Dari Total Tagihan)"
+            dpLabel="DP (Min. 30% dari Total Order)"
             total={total}
           />
         </div>
