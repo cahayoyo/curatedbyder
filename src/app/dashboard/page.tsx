@@ -275,6 +275,13 @@ export default async function DashboardPage() {
             Terima kasih sudah menjadi bagian dari CuratedByDer. Terus temukan cerita baru dan
             buat harimu lebih bermakna!
           </p>
+          <Link
+            href="/dashboard/catalog"
+            className="mt-3 flex w-fit items-center gap-1.5 rounded-full bg-[#D97A7A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#c9686b] md:hidden"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Jelajahi Katalog
+          </Link>
         </div>
         <div className="hidden shrink-0 items-center gap-4 md:flex">
           <HeroDecor />
