@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { Fragment, Suspense } from "react";
 import {
@@ -12,34 +13,28 @@ import { Badge } from "@/components/ui/badge";
 import {
   ToyBrick,
   Pencil,
-  Package,
-  ListOrdered,
-  Banknote,
-  Boxes,
-  Hand,
-  Info,
+  Plus,
   ImageIcon,
-  CircleCheckBig,
   PackageCheck,
   Clock,
-  ShoppingCart,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
 import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BookFilter } from "@/components/BookFilter";
+import { BookSortSelect } from "@/components/BookSortSelect";
 import { SortButton } from "@/components/SortButton";
 import { formatIDR } from "@/lib/format";
 import { deleteToy } from "@/server/actions/toys";
 import { Pagination } from "@/components/Pagination";
-import { BookThumbnail } from "@/components/BookThumbnail";
 import { ToyCard } from "@/components/ToyCard";
+import { MobileToyFilters } from "@/components/MobileToyFilters";
 import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 
-type ToySearchParams = { q?: string; toyQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+type ToySearchParams = { q?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
 
 function parseFilters(searchParams: ToySearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -105,85 +100,72 @@ async function ToysStats({ searchParams }: { searchParams: ToySearchParams }) {
   const preOrderCount =
     statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
 
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-      <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Package className="h-4 w-4" />
-          Total Mainan
-        </p>
-        <p className="text-2xl font-bold">{totalFiltered}</p>
-      </div>
-      <div className="rounded-lg border p-4">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <PackageCheck className="h-4 w-4" />
-          Total Mainan Ready Stok
-        </p>
-        <p className="text-2xl font-bold">{readyCount}</p>
-      </div>
-      <div className="rounded-lg border p-4">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          Total Mainan Pre Order
-        </p>
-        <p className="text-2xl font-bold">{preOrderCount}</p>
-      </div>
-    </div>
-  );
-}
-
-async function ToyOrderCount({ searchParams }: { searchParams: ToySearchParams }) {
-  const toyQ = (searchParams?.toyQ ?? "").trim();
-
-  const toys = toyQ
-    ? await db.toy.findMany({
-        where: { title: { contains: toyQ, mode: "insensitive" } },
-        orderBy: { title: "asc" },
-        take: 5,
-      })
-    : [];
-
-  const orderCounts = new Map<string, number>();
-  if (toys.length > 0) {
-    const items = await db.orderItem.findMany({
-      where: { toyId: { in: toys.map((t) => t.id) } },
-      select: { toyId: true, orderId: true },
-    });
-    const seen = new Map<string, Set<string>>();
-    for (const item of items) {
-      if (!item.toyId) continue;
-      const set = seen.get(item.toyId) ?? new Set<string>();
-      set.add(item.orderId);
-      seen.set(item.toyId, set);
-    }
-    for (const t of toys) orderCounts.set(t.id, seen.get(t.id)?.size ?? 0);
-  }
+  const cards = [
+    {
+      label: "Total Mainan",
+      short: "Total Mainan",
+      value: totalFiltered,
+      icon: ToyBrick,
+      card: "border-[#F3CFCF] from-[#FDF0F0] to-[#F9DEDE]",
+      circle: "bg-[#F6CFCF] text-[#C96A6A]",
+      watermark: "text-[#E9B5B5]",
+    },
+    {
+      label: "Total Mainan Ready Stok",
+      short: "Stok Ready",
+      value: readyCount,
+      icon: PackageCheck,
+      card: "border-[#CDE6D2] from-[#EEF7EF] to-[#DFF0E2]",
+      circle: "bg-[#CFE8D5] text-[#3F8A54]",
+      watermark: "text-[#BFDCC6]",
+    },
+    {
+      label: "Total Mainan Pre Order",
+      short: "Pre Order",
+      value: preOrderCount,
+      icon: Clock,
+      card: "border-[#F0DDB4] from-[#FDF6E7] to-[#F9EBCB]",
+      circle: "bg-[#F6E3B8] text-[#B98A1F]",
+      watermark: "text-[#EED9A8]",
+    },
+  ];
 
   return (
-    <div>
-      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-        <ShoppingCart className="h-4 w-4" />
-        Total Pesanan Mainan
-      </p>
-      <div className="w-full md:w-1/2">
-        <SearchInput basePath="/admin/toys" paramKey="toyQ" placeholder="Masukkan nama mainan..." />
-      </div>
-      {toyQ && (
-        <div className="mt-3 rounded-lg border p-4">
-          {toys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Mainan tidak ditemukan</p>
-          ) : (
-            <ul className="space-y-1 text-sm">
-              {toys.map((t) => (
-                <li key={t.id} className="flex justify-between">
-                  <span>{t.title}</span>
-                  <span className="font-medium">{orderCounts.get(t.id) ?? 0} pesanan</span>
-                </li>
-              ))}
-            </ul>
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      {cards.map((c) => (
+        <div
+          key={c.label}
+          className={cn(
+            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-3 shadow-sm sm:p-4",
+            c.card
           )}
+        >
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <span
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
+                c.circle
+              )}
+            >
+              <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[13px] leading-tight text-black/60 sm:text-[15px]">
+                <span className="sm:hidden">{c.short}</span>
+                <span className="hidden sm:inline">{c.label}</span>
+              </p>
+              <p className="text-[26px] font-bold leading-tight sm:text-3xl">{c.value}</p>
+            </div>
+          </div>
+          <c.icon
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute right-1 top-2 h-11 w-11 opacity-40 sm:right-6 sm:top-1/2 sm:h-14 sm:w-14 sm:-translate-y-1/2 sm:opacity-50",
+              c.watermark
+            )}
+          />
         </div>
-      )}
+      ))}
     </div>
   );
 }
@@ -205,6 +187,17 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
     }),
   ]);
 
+  const from = totalFiltered === 0 ? 0 : (page - 1) * per + 1;
+  const to = Math.min(page * per, totalFiltered);
+
+  const sortQuery = {
+    q: qRaw,
+    status: searchParams?.status ?? "",
+    min: min != null ? String(min) : "",
+    max: max != null ? String(max) : "",
+    per: searchParams?.per ?? "",
+  };
+
   return (
     <>
       {/* Mobile: card layout */}
@@ -217,71 +210,48 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
               title: b.title,
               image: b.image,
               info: b.info,
-              price: b.price,
               stock: b.stock,
               status: b.status,
+              variants: [
+                { key: `${b.id}-main`, label: "Utama", price: b.price },
+                ...b.batchPrices.map((bp) => ({
+                  key: bp.id,
+                  label: bp.batch.name,
+                  price: bp.price,
+                })),
+              ],
             }}
             onDelete={deleteToy.bind(null, b.id)}
           />
         ))}
         {toys.length === 0 && (
-          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border p-6 text-center text-[15px] text-muted-foreground">
             Belum ada mainan.
           </div>
         )}
       </div>
 
       {/* Desktop: table layout */}
-      <div className="hidden overflow-x-auto rounded-lg border md:block">
-        <Table className="border-collapse">
+      <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-[#FDF1F1] [&_td]:border-r-0 [&_th]:border-r-0 md:block">
+        <Table className="border-collapse text-[15px]">
           <TableHeader>
-            <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
+            <TableRow className="hover:bg-transparent" style={{ backgroundColor: "#F3CFCF" }}>
+              <TableHead className="w-12 text-center font-bold">#</TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <ListOrdered className="h-3.5 w-3.5" />
-                  <SortButton label="Judul" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
-                </span>
+                <SortButton label="Mainan" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
               </TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  Gambar
-                </span>
+                <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
               </TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Info className="h-3.5 w-3.5" />
-                  Informasi
-                </span>
+                <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
               </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Banknote className="h-3.5 w-3.5" />
-                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Boxes className="h-3.5 w-3.5" />
-                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={{ q: qRaw, min: min != null ? String(min) : "", max: max != null ? String(max) : "", status: searchParams?.status ?? "", per: searchParams?.per ?? "" }} />
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <CircleCheckBig className="h-3.5 w-3.5" />
-                  Status
-                </span>
-              </TableHead>
-              <TableHead className="text-center font-bold">
-                <span className="inline-flex items-center gap-1">
-                  <Hand className="h-3.5 w-3.5" />
-                  Aksi
-                </span>
-              </TableHead>
+              <TableHead className="font-bold">Status</TableHead>
+              <TableHead className="text-center font-bold">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {toys.map((b) => {
+            {toys.map((b, i) => {
               const variants: {
                 key: string;
                 label: string;
@@ -303,71 +273,91 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                   {variants.map((v, vi) => (
                     <TableRow
                       key={v.key}
-                      className={`border-b border-input last:border-0 ${vi > 0 ? "border-t-2 border-t-black/30" : ""}`}
+                      className="hover:bg-[#F9DEDE]"
                     >
                       {vi === 0 && (
                         <>
-                          <TableCell className="font-medium" rowSpan={variants.length}>
-                            {b.title}
+                          <TableCell className="text-center text-black/60" rowSpan={variants.length}>
+                            {(page - 1) * per + i + 1}
                           </TableCell>
                           <TableCell rowSpan={variants.length}>
-                            {b.image ? (
-                              <BookThumbnail src={b.image} alt={b.title} />
-                            ) : (
-                              <div className="flex h-32 w-28 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-xs font-medium text-[#D97A7A]/70">
-                                <span className="flex flex-col items-center gap-1">
-                                  <ImageIcon className="h-7 w-7" />
-                                  empty
-                                </span>
+                            <div className="flex items-center gap-3">
+                              <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
+                                {b.image ? (
+                                  <Image
+                                    src={b.image}
+                                    alt={b.title}
+                                    fill
+                                    sizes="48px"
+                                    className="object-cover object-center"
+                                  />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center">
+                                    <ImageIcon className="h-5 w-5 text-black/30" />
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="max-w-[200px]" rowSpan={variants.length}>
-                            <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
+                              <div className="min-w-0">
+                                <p className="line-clamp-1 font-semibold">{b.title}</p>
+                                <p className="mt-0.5 line-clamp-2 text-[13px] italic text-muted-foreground">
+                                  {b.info || "—"}
+                                </p>
+                              </div>
+                            </div>
                           </TableCell>
                         </>
                       )}
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {variants.length > 1 && (
-                          <span className="mr-1 text-[10px] font-medium text-muted-foreground">{v.label}</span>
+                          <span className="block text-[10px] font-semibold uppercase tracking-wide text-[#C96A6A]">
+                            {v.label}
+                          </span>
                         )}
-                        {formatIDR(v.price)}
+                        <span className="font-medium">{formatIDR(v.price)}</span>
                       </TableCell>
                       {vi === 0 && (
                         <>
-                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
+                          <TableCell rowSpan={variants.length}>
                             <Badge
                               variant="outline"
                               className={cn(
                                 stockBadgeClass(b.stock),
-                                "h-6 w-9 justify-center px-0 text-xs"
+                                "h-6 min-w-9 justify-center px-2 text-[13px]"
                               )}
                             >
                               {b.stock}
                             </Badge>
                           </TableCell>
-                          <TableCell className="border-l border-input" rowSpan={variants.length}>
+                          <TableCell rowSpan={variants.length}>
                             <Badge
                               variant="outline"
                               className={
                                 b.status === "PRE_ORDER"
-                                  ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                                  : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                                  ? "gap-1.5 border-amber-300 bg-yellow-300 text-yellow-900"
+                                  : "gap-1.5 border-emerald-300 bg-emerald-100 text-emerald-800"
                               }
                             >
+                              <span
+                                className={
+                                  b.status === "PRE_ORDER"
+                                    ? "h-1.5 w-1.5 rounded-full bg-amber-500"
+                                    : "h-1.5 w-1.5 rounded-full bg-emerald-500"
+                                }
+                              />
                               {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
+                          <TableCell className="text-center" rowSpan={variants.length}>
                             <div className="flex justify-center gap-2">
                               <NavActionButton
                                 href={`/admin/toys/${b.id}/edit`}
                                 icon={<Pencil className="h-3.5 w-3.5" />}
-                                className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
+                                className="h-8 w-8 rounded-md border border-[#D97A7A]/40 bg-white p-0 text-[#D97A7A] shadow-sm hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
                               >
-                                Ubah
+                                <span className="sr-only">Ubah</span>
                               </NavActionButton>
                               <ConfirmDeleteButton
+                                size="icon"
                                 title="Konfirmasi Hapus"
                                 description={`Apakah anda benar ingin menghapus mainan "${b.title}"?`}
                                 successMessage={`${b.title} berhasil dihapus!`}
@@ -384,7 +374,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
             })}
             {toys.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   Belum ada mainan.
                 </TableCell>
               </TableRow>
@@ -393,8 +383,14 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
         </Table>
       </div>
 
-      <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[15px] text-black/60">
+          {totalFiltered === 0
+            ? "Tidak ada mainan."
+            : `Menampilkan ${from} - ${to} dari ${totalFiltered} mainan.`}
+        </p>
         <Pagination
+          variant="rose"
           total={totalFiltered}
           page={page}
           pageSize={per}
@@ -421,16 +417,21 @@ export default async function AdminToysPage({
 }) {
   const sp = scalarize(await searchParams, ["status"]) as ToySearchParams;
   return (
-    <div className="space-y-4 px-2 md:px-6">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-bold">
-            <ToyBrick className="h-6 w-6" />
-            Daftar Mainan
-          </h2>
+    <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">
+        <div className="flex items-start justify-between gap-3 rounded-xl border border-[#F3CFCF] bg-gradient-to-br from-[#FDF0F0] to-[#F9DEDE] p-4 shadow-sm md:border-0 md:bg-none md:p-0 md:shadow-none">
+          <div>
+            <h2 className="flex items-center gap-2 text-2xl font-bold">
+              <ToyBrick className="h-6 w-6 text-[#D97A7A]" />
+              Daftar Mainan
+            </h2>
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              Kelola koleksi mainan di CuratedByDer. Tambah, ubah, atau hapus mainan dengan mudah.
+            </p>
+          </div>
           <NavActionButton
             href="/admin/toys/new"
-            icon={<ToyBrick className="h-4 w-4" />}
-            className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+            icon={<Plus className="h-4 w-4" />}
+            className="h-9 shrink-0 gap-1.5 rounded-md bg-[#D97A7A] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white sm:h-11 sm:gap-2 sm:px-5 sm:text-[15px]"
           >
             Tambah Mainan
           </NavActionButton>
@@ -440,18 +441,23 @@ export default async function AdminToysPage({
           <ToysStats searchParams={sp} />
         </Suspense>
 
-        <Suspense fallback={null}>
-          <ToyOrderCount searchParams={sp} />
-        </Suspense>
+        <MobileToyFilters basePath="/admin/toys" />
 
-        <div className="flex flex-col gap-2 md:flex-row md:items-start">
-          <div className="flex w-full items-center gap-2 md:w-[80%]">
-            <div className="w-full">
-              <SearchInput basePath="/admin/toys" placeholder="Cari judul..." />
-            </div>
-            <PageSizeSelect basePath="/admin/toys" />
+        <div className="hidden items-center gap-2 md:flex">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              basePath="/admin/toys"
+              placeholder="Masukkan nama mainan..."
+              inputClassName="bg-white text-[15px]"
+            />
           </div>
-          <BookFilter basePath="/admin/toys" className="w-full md:order-first md:w-[20%]" />
+          <BookFilter
+            basePath="/admin/toys"
+            className="w-full md:w-auto"
+            triggerClassName="w-full bg-white text-[15px] text-black hover:bg-[#FED6D6] hover:text-black md:w-auto"
+          />
+          <BookSortSelect basePath="/admin/toys" triggerClassName="w-auto flex-1 sm:w-40 sm:flex-none" />
+          <PageSizeSelect basePath="/admin/toys" />
         </div>
 
         <Suspense fallback={<ListLoader />}>
