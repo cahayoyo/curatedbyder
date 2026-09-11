@@ -1,3 +1,5 @@
+export const ADMIN_WA = "6281381346059";
+
 function normalizePhone(phone: string): string {
   let p = phone.replace(/[^\d+]/g, "");
   if (p.startsWith("+")) p = p.slice(1);
