@@ -79,7 +79,7 @@ export default async function DashboardPage({
               Pesanan
             </Link>
             <ChevronRight className="h-3 w-3" />
-            <span>{meta.crumb}</span>
+            <span className="font-medium text-[#B04A4A]">{meta.crumb}</span>
           </p>
           <h2 className="mt-1 flex items-center gap-2 text-2xl font-bold">
             <TabIcon className="h-6 w-6 text-[#D97A7A]" />

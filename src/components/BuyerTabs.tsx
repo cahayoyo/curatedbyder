@@ -663,19 +663,21 @@ export function TrackCard({ order }: { order: OrderDTO }) {
           </div>
         </div>
 
+        <div className="flex shrink-0 flex-col gap-1.5 text-xs text-black/70">
+          <p className="flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">No. Resi:</span>
+            <CopyResi value={order.trackingNumber} />
+          </p>
+          <p className="flex items-center gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Estimasi Tiba:</span>
+            <span className="font-semibold">{etaLabel(earliestEta)}</span>
+          </p>
+        </div>
+
         <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
           <BadgeGroup payment={order.paymentStatus} />
-
-          <div className="text-xs text-black/70 md:text-right">
-            <p className="flex items-center gap-1 md:justify-end">
-              <span className="text-muted-foreground">No. Resi:</span>
-              <CopyResi value={order.trackingNumber} />
-            </p>
-            <p className="mt-0.5">
-              <span className="text-muted-foreground">Estimasi Tiba:</span>{" "}
-              <span className="font-semibold">{etaLabel(earliestEta)}</span>
-            </p>
-          </div>
 
           <Button
             type="button"
@@ -734,7 +736,7 @@ export function BuyerTabs({
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 rounded-none border-b border-[#F0CBCB] bg-transparent p-0">
+      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-white p-0">
         <TabsTrigger value="invoice" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
