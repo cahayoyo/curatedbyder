@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -548,7 +548,7 @@ function StageTimeline({ items }: { items: OrderItemDTO[] }) {
 
   return (
     <div className="overflow-x-auto pb-1">
-      <div className="flex min-w-[640px] items-start">
+      <div className="grid min-w-[760px] grid-cols-6 items-start">
         {TRACK_STATUSES.map((sv, i) => {
           const reached = i <= done;
           const isCurrent = i === done;
@@ -559,37 +559,38 @@ function StageTimeline({ items }: { items: OrderItemDTO[] }) {
           }, null);
           const parts = stamp ? stageParts(stamp) : null;
           return (
-            <Fragment key={sv}>
-              {i > 0 && (
+            <div key={sv} className="relative flex flex-col items-center gap-1 px-0.5 text-center">
+              {i < TRACK_STATUSES.length - 1 && (
                 <span
-                  className={`mt-[13px] h-0.5 flex-1 rounded-full ${reached ? "bg-emerald-400" : "bg-black/10"}`}
+                  aria-hidden
+                  className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-full ${
+                    i < done ? "bg-emerald-400" : "bg-black/10"
+                  }`}
                 />
               )}
-              <div className="flex w-[100px] shrink-0 flex-col items-center gap-1 text-center">
-                <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-full ${
-                    isCurrent
-                      ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
-                      : reached
-                        ? "bg-emerald-500 text-white"
-                        : "border border-black/10 bg-white text-black/30"
-                  }`}
-                >
-                  {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
-                </span>
-                <span
-                  className={`text-[11px] font-medium leading-tight ${reached ? "text-black/80" : "text-black/40"}`}
-                >
-                  {STATUS_LABEL[sv] ?? sv}
-                </span>
-                {parts ? (
-                  <>
-                    <span className="text-[10px] leading-tight text-black/50">{parts.date}</span>
-                    <span className="text-[10px] leading-tight text-black/40">{parts.time}</span>
-                  </>
-                ) : null}
-              </div>
-            </Fragment>
+              <span
+                className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full ${
+                  isCurrent
+                    ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                    : reached
+                      ? "bg-emerald-500 text-white"
+                      : "border border-black/10 bg-white text-black/30"
+                }`}
+              >
+                {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+              </span>
+              <span
+                className={`text-[11px] font-medium leading-tight ${reached ? "text-black/80" : "text-black/40"}`}
+              >
+                {STATUS_LABEL[sv] ?? sv}
+              </span>
+              {parts ? (
+                <>
+                  <span className="text-[10px] leading-tight text-black/50">{parts.date}</span>
+                  <span className="text-[10px] leading-tight text-black/40">{parts.time}</span>
+                </>
+              ) : null}
+            </div>
           );
         })}
       </div>
