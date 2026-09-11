@@ -307,10 +307,10 @@ export default async function DashboardPage() {
           >
             <s.icon
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-1 right-4 h-16 w-16 ${s.watermarkCls}`}
+              className={`pointer-events-none absolute bottom-1 right-4 h-12 w-12 md:h-16 md:w-16 ${s.watermarkCls}`}
             />
             <div className="relative">
-              <p className="text-[13px] leading-snug text-black/60">{s.label}</p>
+              <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
               <div className="mt-1.5 flex items-center gap-3">
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
