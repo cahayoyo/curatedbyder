@@ -24,6 +24,7 @@ import {
   PieChart,
   Plane,
   ReceiptText,
+  Settings,
   ShoppingCart,
   Trophy,
   ToyBrick,
@@ -344,6 +345,14 @@ export default async function AdminOverviewPage({
               </p>
             </div>
           </div>
+          <Link
+            href="/admin/settings"
+            aria-label="Pengaturan"
+            className="flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#FBE6E6] px-4 py-3 text-xs font-bold text-[#B04A4A] transition-colors hover:bg-[#F6D5D5] sm:gap-3 sm:px-5 sm:text-sm"
+          >
+            <Settings className="h-5 w-5 shrink-0 text-[#C96A6A] sm:h-6 sm:w-6" />
+            <span className="hidden whitespace-nowrap sm:inline">Pengaturan</span>
+          </Link>
           <RangePicker value={range?.days} />
         </div>
       </div>

@@ -57,6 +57,15 @@ enum StockStatus {
   PRE_ORDER
 }
 
+model StoreSetting {
+  id            String   @id @default("singleton")
+  fixedCost     Int
+  serviceFee    Int
+  myrToIdr      Int
+  shippingPerKg Int
+  updatedAt     DateTime @updatedAt
+}
+
 model Batch {
   id         String          @id @default(cuid())
   name       String          @unique
@@ -73,6 +82,7 @@ model Toy {
   price       Int
   stock       Int             @default(0)
   status      StockStatus     @default(READY_STOCK)
+  showOnDashboard Boolean     @default(true)
   createdAt   DateTime        @default(now())
   batchPrices ToyBatchPrice[]
   orderItems  OrderItem[]
@@ -114,6 +124,7 @@ model Book {
   stock     Int        @default(0)
   status    StockStatus @default(READY_STOCK)
   formats   Format[]   @default([])
+  showOnDashboard Boolean @default(true)
   createdAt DateTime   @default(now())
   items     OrderItem[]
   batchPrices BookBatchPrice[]
