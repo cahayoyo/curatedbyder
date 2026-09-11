@@ -219,28 +219,36 @@ export default async function DashboardPage() {
       value: activeCount,
       caption: "Sedang diproses",
       icon: ShoppingCart,
-      iconCls: "border-red-200 bg-red-50 text-[#D97A7A]",
+      cardCls: "border-[#F0CBCB] bg-gradient-to-br from-white via-[#FBE9E9] to-[#F6D5D5]",
+      iconCls: "bg-[#F6C9C9] text-[#B85C5C]",
+      watermarkCls: "text-[#D97A7A]/15",
     },
     {
       label: "Menunggu Sisa Tagihan",
       value: unpaidCount,
       caption: "Segera selesaikan",
       icon: Wallet,
-      iconCls: "border-orange-200 bg-orange-50 text-orange-500",
+      cardCls: "border-amber-200 bg-gradient-to-br from-white via-amber-50 to-amber-100",
+      iconCls: "bg-amber-200 text-amber-600",
+      watermarkCls: "text-amber-500/15",
     },
     {
       label: "Dalam Pengiriman",
       value: shippingCount,
       caption: "Menuju alamatmu",
       icon: Truck,
-      iconCls: "border-sky-200 bg-sky-50 text-sky-500",
+      cardCls: "border-sky-200 bg-gradient-to-br from-white via-sky-50 to-sky-100",
+      iconCls: "bg-sky-200 text-sky-600",
+      watermarkCls: "text-sky-500/15",
     },
     {
       label: "Selesai",
       value: doneCount,
       caption: "Pesanan telah diterima",
       icon: CheckCircle2,
-      iconCls: "border-emerald-200 bg-emerald-50 text-emerald-500",
+      cardCls: "border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-emerald-100",
+      iconCls: "bg-emerald-200 text-emerald-600",
+      watermarkCls: "text-emerald-500/15",
     },
   ];
 
@@ -263,6 +271,13 @@ export default async function DashboardPage() {
             Terima kasih sudah menjadi bagian dari CuratedByDer. Terus temukan cerita baru dan
             buat harimu lebih bermakna!
           </p>
+          <Link
+            href="/dashboard/catalog"
+            className="mt-3 flex w-fit items-center gap-1.5 rounded-full bg-[#D97A7A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#c9686b] md:hidden"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Jelajahi Katalog
+          </Link>
         </div>
         <div className="hidden shrink-0 items-center gap-4 md:flex">
           <HeroDecor />
@@ -288,17 +303,25 @@ export default async function DashboardPage() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="flex items-center gap-3 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
+            className={`relative overflow-hidden rounded-xl border p-3 shadow-sm ${s.cardCls}`}
           >
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${s.iconCls}`}
-            >
-              <s.icon className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm text-black/60">{s.label}</p>
-              <p className="text-2xl font-bold leading-tight">{s.value}</p>
-              <p className="truncate text-xs text-black/50">{s.caption}</p>
+            <s.icon
+              aria-hidden="true"
+              className={`pointer-events-none absolute bottom-4 right-4 h-12 w-12 md:bottom-1 md:h-16 md:w-16 ${s.watermarkCls}`}
+            />
+            <div className="relative">
+              <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
+                >
+                  <s.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold leading-tight">{s.value}</p>
+                  <p className="truncate text-xs text-black/50">{s.caption}</p>
+                </div>
+              </div>
             </div>
           </div>
         ))}
