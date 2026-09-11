@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone, ShoppingCart } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone } from "lucide-react";
 import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
@@ -52,32 +52,33 @@ export function CatalogCarousel({
 
   const visible = isDesktop ? items : items.filter((i) => i.kind === tab);
 
-  function metrics() {
+  const metrics = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
-    const mid = el.scrollLeft + el.clientWidth / 2;
     const cards = Array.from(el.children) as HTMLElement[];
     let best = 0;
     let bestDist = Infinity;
     cards.forEach((c, i) => {
-      const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid);
+      const d = isDesktop
+        ? Math.abs(c.offsetLeft - el.scrollLeft)
+        : Math.abs(c.offsetLeft + c.offsetWidth / 2 - (el.scrollLeft + el.clientWidth / 2));
       if (d < bestDist) {
         bestDist = d;
         best = i;
       }
     });
     setActiveIdx(best);
-  }
+  }, [isDesktop]);
 
   useEffect(() => {
     const id = requestAnimationFrame(metrics);
     return () => cancelAnimationFrame(id);
-  }, [isDesktop]);
+  }, [metrics]);
 
   useEffect(() => {
     window.addEventListener("resize", metrics);
     return () => window.removeEventListener("resize", metrics);
-  }, []);
+  }, [metrics]);
 
   function selectTab(k: CatalogItem["kind"]) {
     setTab(k);
@@ -244,11 +245,9 @@ export function CatalogCarousel({
               >
                 {visible.map((item, i) =>
                   isDesktop ? (
-                    <button
+                    <div
                       key={`${item.kind}-${item.id}`}
-                      type="button"
-                      onClick={() => order(item)}
-                      className="relative flex w-[240px] shrink-0 snap-start flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-3 pt-4 text-left shadow-sm transition-shadow hover:shadow-md"
+                      className="relative flex w-[240px] shrink-0 snap-start flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-3 pt-4 shadow-sm"
                     >
                       <span
                         className={`absolute -top-2.5 left-3 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${kindCls[item.kind]}`}
@@ -256,7 +255,7 @@ export function CatalogCarousel({
                         {item.kind === "BUKU" ? "Buku" : "Mainan"}
                       </span>
                       <div className="flex items-start gap-3">
-                        <div className="relative h-[104px] w-[76px] shrink-0 overflow-hidden rounded-lg border bg-black/5 shadow-sm">
+                        <div className="relative h-[104px] w-[76px] shrink-0 overflow-hidden rounded-lg bg-black/5 shadow-md">
                           {item.image ? (
                             <Image
                               src={item.image}
@@ -287,14 +286,16 @@ export function CatalogCarousel({
                         <span className="rounded-full bg-[#FBE6E6] px-3.5 py-1.5 text-[15px] font-bold text-[#B85C5C]">
                           {formatIDR(item.price)}
                         </span>
-                        <span
-                          aria-hidden="true"
-                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D97A7A] text-white shadow-sm"
+                        <button
+                          type="button"
+                          onClick={() => order(item)}
+                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                        </span>
+                          <Phone className="h-4 w-4" />
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   ) : (
                     <div
                       key={`${item.kind}-${item.id}`}
