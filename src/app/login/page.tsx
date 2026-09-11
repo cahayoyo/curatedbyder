@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import { Heart, Package, Truck } from "lucide-react";
 import { authOptions } from "@/lib/auth";
+import { getStoreSettings } from "@/lib/store-settings";
 import { BookxcessCalculator } from "@/components/BookxcessCalculator";
 import { HomeLogin } from "@/components/HomeLogin";
 import logo from "@/assets/img/logoderbaru.jpeg";
@@ -14,7 +15,9 @@ const FEATURES = [
   { icon: Heart, title: "A Happier You", sub: "One book at a time" },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const settings = await getStoreSettings();
+
   return (
     <>
       <Suspense fallback={null}>
@@ -66,7 +69,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 mt-4 w-full max-w-sm sm:mt-5 sm:max-w-md">
-          <BookxcessCalculator />
+          <BookxcessCalculator settings={settings} />
         </div>
 
         <div className="relative z-10 mt-8 grid w-full max-w-sm grid-cols-3 gap-2 sm:max-w-2xl sm:gap-4">
