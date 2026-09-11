@@ -555,51 +555,52 @@ export function TrackCard({
             )}
           </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-1 gap-2">
+            <div className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-2">
                 <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
               </span>
-              {variant === "list" && (
-                <span className="flex shrink-0 flex-col items-end gap-2 md:hidden">
-                  <BadgeGroup payment={order.paymentStatus} />
-                  <button
-                    type="button"
-                    onClick={() => setExpanded((v) => !v)}
-                    className="flex h-7 items-center gap-1 rounded-lg bg-[#FBE6E6] px-2.5 text-[11px] font-semibold text-[#B04A4A] transition-colors hover:bg-[#F6D5D5]"
-                  >
-                    {expanded ? "Sembunyikan" : "Tampilkan"}
-                    {expanded ? (
-                      <ChevronUp className="h-3.5 w-3.5" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                </span>
-              )}
+
+              <div className="mt-2 space-y-1.5">
+                {order.items.map((it, i) => (
+                  <div key={i}>
+                    <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-1">
+                      <ProductTag kind={it.kind} />
+                      {it.book.formats.map((f) => (
+                        <span
+                          key={f}
+                          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {it.quantity} × {formatIDR(it.unitPrice)} · ETA {etaLabel(it.eta)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-2 space-y-1.5">
-              {order.items.map((it, i) => (
-                <div key={i}>
-                  <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
-                  <p className="mt-0.5 flex flex-wrap items-center gap-1">
-                    <ProductTag kind={it.kind} />
-                    {it.book.formats.map((f) => (
-                      <span
-                        key={f}
-                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                      >
-                        {f}
-                      </span>
-                    ))}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {it.quantity} × {formatIDR(it.unitPrice)} · ETA {etaLabel(it.eta)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {variant === "list" && (
+              <div className="flex shrink-0 flex-col items-end justify-between gap-2 md:hidden">
+                <BadgeGroup payment={order.paymentStatus} />
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="flex h-7 items-center gap-1 rounded-lg bg-[#FBE6E6] px-2.5 text-[11px] font-semibold text-[#B04A4A] transition-colors hover:bg-[#F6D5D5]"
+                >
+                  {expanded ? "Sembunyikan" : "Tampilkan"}
+                  {expanded ? (
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
