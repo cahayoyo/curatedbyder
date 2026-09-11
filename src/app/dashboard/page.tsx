@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import {
   ArrowRight,
@@ -9,7 +8,6 @@ import {
   FileText,
   Heart,
   Home,
-  ImageIcon,
   ReceiptText,
   ShoppingCart,
   Truck,
@@ -24,8 +22,8 @@ import {
   STATUS_LABEL,
 } from "@/lib/orderOptions";
 import { dateLabel, formatIDR } from "@/lib/format";
-import { FormatBadge } from "@/components/FormatBadge";
 import { OrderDTO, TrackCard } from "@/components/BuyerTabs";
+import { CatalogCarousel } from "@/components/dashboard/CatalogCarousel";
 import {
   OrderDetailButton,
   PayNowButton,
@@ -179,14 +177,14 @@ export default async function DashboardPage() {
       db.book.findMany({
         where: { image: { not: null } },
         orderBy: { createdAt: "desc" },
-        take: 3,
-        select: { id: true, title: true, image: true, info: true, formats: true },
+        take: 8,
+        select: { id: true, title: true, image: true, price: true, formats: true },
       }),
       db.toy.findMany({
         where: { image: { not: null } },
         orderBy: { createdAt: "desc" },
-        take: 3,
-        select: { id: true, title: true, image: true, info: true },
+        take: 8,
+        select: { id: true, title: true, image: true, price: true },
       }),
     ]);
 
@@ -199,7 +197,7 @@ export default async function DashboardPage() {
       id: b.id,
       title: b.title,
       image: b.image,
-      info: b.info,
+      price: b.price,
       kind: "BUKU" as const,
       formats: b.formats as string[],
     })),
@@ -207,7 +205,7 @@ export default async function DashboardPage() {
       id: t.id,
       title: t.title,
       image: t.image,
-      info: t.info,
+      price: t.price,
       kind: "MAINAN" as const,
       formats: [] as string[],
     })),
@@ -218,6 +216,7 @@ export default async function DashboardPage() {
       label: "Pesanan Aktif",
       value: activeCount,
       caption: "Sedang diproses",
+      href: "/dashboard/orders",
       icon: ShoppingCart,
       cardCls: "border-[#F0CBCB] bg-gradient-to-br from-white via-[#FBE9E9] to-[#F6D5D5]",
       iconCls: "bg-[#F6C9C9] text-[#B85C5C]",
@@ -227,6 +226,7 @@ export default async function DashboardPage() {
       label: "Menunggu Sisa Tagihan",
       value: unpaidCount,
       caption: "Segera selesaikan",
+      href: "/dashboard/orders?tab=payment",
       icon: Wallet,
       cardCls: "border-amber-200 bg-gradient-to-br from-white via-amber-50 to-amber-100",
       iconCls: "bg-amber-200 text-amber-600",
@@ -236,6 +236,7 @@ export default async function DashboardPage() {
       label: "Dalam Pengiriman",
       value: shippingCount,
       caption: "Menuju alamatmu",
+      href: "/dashboard/orders?tab=shipment",
       icon: Truck,
       cardCls: "border-sky-200 bg-gradient-to-br from-white via-sky-50 to-sky-100",
       iconCls: "bg-sky-200 text-sky-600",
@@ -245,6 +246,7 @@ export default async function DashboardPage() {
       label: "Selesai",
       value: doneCount,
       caption: "Pesanan telah diterima",
+      href: "/dashboard/orders?status=ORDER_DELIVERED",
       icon: CheckCircle2,
       cardCls: "border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-emerald-100",
       iconCls: "bg-emerald-200 text-emerald-600",
@@ -264,16 +266,16 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] px-12 py-5 md:px-16">
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#FBE6E6] to-[#F6D5D5] px-6 py-5 md:px-12">
         <div className="min-w-0">
           <h3 className="text-xl font-bold">Halo, {session.user.name ?? "Pembaca"} 👋</h3>
           <p className="mt-1 max-w-md text-sm text-black/70">
-            Terima kasih sudah menjadi bagian dari CuratedByDer. Terus temukan cerita baru dan
-            buat harimu lebih bermakna!
+            Terima kasih sudah menjadi bagian dari CuratedByDer. Temukan cerita baru dan buat
+            harimu lebih bermakna!
           </p>
           <Link
             href="/dashboard/catalog"
-            className="mt-3 flex w-fit items-center gap-1.5 rounded-full bg-[#D97A7A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#c9686b] md:hidden"
+            className="mt-3 flex w-fit items-center gap-1.5 rounded-full bg-[#D97A7A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#c9686b]"
           >
             <BookOpen className="h-3.5 w-3.5" />
             Jelajahi Katalog
@@ -281,219 +283,155 @@ export default async function DashboardPage() {
         </div>
         <div className="hidden shrink-0 items-center gap-4 md:flex">
           <HeroDecor />
-          <div className="flex flex-col items-center gap-3">
-          <p className="text-right font-serif text-2xl italic leading-tight text-[#C96A6A]">
-            Good Books,
-            <br />
-            Brighter Days
-            <Heart className="ml-1 inline h-4 w-4 fill-[#D97A7A] text-[#D97A7A]" />
-          </p>
-          <Link
-            href="/dashboard/catalog"
-            className="flex items-center gap-1.5 rounded-full bg-[#D97A7A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#c9686b]"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            Jelajahi Katalog
-          </Link>
+          <div className="flex flex-col items-center">
+            <p className="text-center font-serif text-2xl italic leading-tight text-[#C96A6A]">
+              Good Books,
+              <br />
+              Brighter Days
+              <Heart className="ml-1 inline h-4 w-4 fill-[#D97A7A] text-[#D97A7A]" />
+            </p>
+            <span className="mt-2 h-0.5 w-10 rounded-full bg-[#D97A7A]/60" />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {stats.map((s) => (
-          <div
+          <Link
             key={s.label}
-            className={`relative overflow-hidden rounded-xl border p-3 shadow-sm ${s.cardCls}`}
+            href={s.href}
+            className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-shadow hover:shadow-md ${s.cardCls}`}
           >
             <s.icon
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-4 right-4 h-12 w-12 md:bottom-1 md:h-16 md:w-16 ${s.watermarkCls}`}
+              className={`pointer-events-none absolute -bottom-2 -right-2 h-16 w-16 ${s.watermarkCls}`}
             />
-            <div className="relative">
-              <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
-              <div className="mt-1.5 flex items-center gap-3">
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
-                >
-                  <s.icon className="h-5 w-5" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-2xl font-bold leading-tight">{s.value}</p>
-                  <p className="truncate text-xs text-black/50">{s.caption}</p>
-                </div>
+            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/40">
+              <ChevronRight className="h-3 w-3" />
+            </span>
+            <div className="relative flex items-center gap-3">
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
+              >
+                <s.icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[13px] font-bold leading-snug text-black/60">{s.label}</p>
+                <p className="text-2xl font-bold leading-tight">{s.value}</p>
+                <p className="truncate text-xs text-black/50">{s.caption}</p>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="space-y-4 lg:col-span-3">
-          <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-2 font-semibold">
-                <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
-                Pesanan Terbaru
-              </h4>
-              <Link
-                href="/dashboard/orders"
-                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-              >
-                Lihat Semua
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-          {recentOrders.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">Belum ada pesanan.</p>
-          ) : (
-            <>
-              <table className="mt-3 hidden w-full text-sm md:table">
-                <thead>
-                  <tr className="border-b border-[#F0CBCB] text-left text-xs text-black/60">
-                    <th className="py-2 font-medium">#</th>
-                    <th className="py-2 font-medium">Invoice</th>
-                    <th className="py-2 font-medium">Produk</th>
-                    <th className="py-2 font-medium">Tanggal</th>
-                    <th className="py-2 font-medium">Status</th>
-                    <th className="py-2 text-right font-medium">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((o, i) => (
-                    <tr key={o.id} className="border-b border-[#F0CBCB] last:border-0">
-                      <td className="py-2.5">{i + 1}</td>
-                      <td className="font-mono text-xs font-semibold break-all">
-                        {o.invoiceNumber}
-                      </td>
-                      <td className="max-w-[180px] truncate">{firstTitle(o)}</td>
-                      <td className="whitespace-nowrap text-xs">{dateLabel(o.soldAt)}</td>
-                      <td>
-                        <StatusBadge order={o} />
-                      </td>
-                      <td className="text-right">
-                        <OrderDetailButton
-                          order={o}
-                          className="whitespace-nowrap text-xs font-semibold text-[#D97A7A] hover:underline"
-                        >
-                          Lihat Detail
-                        </OrderDetailButton>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="mt-3 space-y-2 md:hidden">
-                {recentOrders.map((o) => (
-                  <div
-                    key={o.id}
-                    className="rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-mono text-xs font-bold break-all">{o.invoiceNumber}</p>
-                        <p className="mt-0.5 line-clamp-1 text-sm">{firstTitle(o)}</p>
-                        <p className="text-[11px] text-black/50">{dateLabel(o.soldAt)}</p>
-                      </div>
-                      <StatusBadge order={o} />
-                    </div>
-                    <OrderDetailButton
-                      order={o}
-                      className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A]"
-                    >
-                      Lihat Detail
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </OrderDetailButton>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-          </div>
-
-          <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-2 font-semibold">
-                <BookOpen className="h-4 w-4 text-[#D97A7A]" />
-                Katalog Buku &amp; Mainan
-              </h4>
-              <Link
-                href="/dashboard/catalog"
-                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-              >
-                Lihat Semua
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-            {catalogItems.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">Katalog segera hadir.</p>
-            ) : (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {catalogItems.map((item) => (
-                  <div
-                    key={`${item.kind}-${item.id}`}
-                    className="flex flex-col rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
-                        {item.image ? (
-                          <Image
-                            src={item.image}
-                            alt={item.title}
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <ImageIcon className="h-5 w-5 text-black/30" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-2 text-sm font-semibold leading-snug">
-                          {item.title}
-                        </p>
-                        <p className="mt-1 flex flex-wrap items-center gap-1">
-                          <span
-                            className={`inline-flex items-center rounded-full border px-1.5 text-[10px] font-semibold ${
-                              item.kind === "BUKU"
-                                ? "border-sky-300 bg-sky-100 text-sky-800"
-                                : "border-amber-300 bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {item.kind === "BUKU" ? "Buku" : "Mainan"}
-                          </span>
-                          {item.formats.map((f) => (
-                            <FormatBadge key={f} value={f} />
-                          ))}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex-1">
-                      {item.info && (
-                        <p className="line-clamp-2 text-xs italic text-black/60">
-                          &ldquo;{item.info}&rdquo;
-                        </p>
-                      )}
-                    </div>
-                    <Link
-                      href="/dashboard/catalog"
-                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A] hover:bg-[#D97A7A]/5"
-                    >
-                      <BookOpen className="h-3.5 w-3.5" />
-                      Lihat Katalog
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="flex items-center gap-2 font-semibold">
+            <ReceiptText className="h-4 w-4 text-[#D97A7A]" />
+            Pesanan Terbaru
+          </h4>
+          <Link
+            href="/dashboard/orders"
+            className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+          >
+            Lihat Semua
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
 
-        <div className="space-y-4 lg:col-span-2">
+        {recentOrders.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">Belum ada pesanan.</p>
+        ) : (
+          <>
+            <table className="mt-3 hidden w-full text-sm md:table">
+              <thead>
+                <tr className="border-b border-[#F0CBCB] text-left text-xs text-black/60">
+                  <th className="py-2 font-medium">#</th>
+                  <th className="py-2 font-medium">Invoice</th>
+                  <th className="py-2 font-medium">Produk</th>
+                  <th className="py-2 font-medium">Tanggal</th>
+                  <th className="py-2 font-medium">Status</th>
+                  <th className="py-2 text-right font-medium">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((o, i) => (
+                  <tr key={o.id} className="border-b border-[#F0CBCB] last:border-0">
+                    <td className="py-2.5">{i + 1}</td>
+                    <td className="font-mono text-xs font-semibold break-all">
+                      {o.invoiceNumber}
+                    </td>
+                    <td className="max-w-[180px] truncate">{firstTitle(o)}</td>
+                    <td className="whitespace-nowrap text-xs">{dateLabel(o.soldAt)}</td>
+                    <td>
+                      <StatusBadge order={o} />
+                    </td>
+                    <td className="text-right">
+                      <OrderDetailButton
+                        order={o}
+                        className="whitespace-nowrap text-xs font-semibold text-[#D97A7A] hover:underline"
+                      >
+                        Lihat Detail
+                      </OrderDetailButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="mt-3 space-y-2 md:hidden">
+              {recentOrders.map((o) => (
+                <div
+                  key={o.id}
+                  className="rounded-lg border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs font-bold break-all">{o.invoiceNumber}</p>
+                      <p className="mt-0.5 line-clamp-1 text-sm">{firstTitle(o)}</p>
+                      <p className="text-[11px] text-black/50">{dateLabel(o.soldAt)}</p>
+                    </div>
+                    <StatusBadge order={o} />
+                  </div>
+                  <OrderDetailButton
+                    order={o}
+                    className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A]"
+                  >
+                    Lihat Detail
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </OrderDetailButton>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="flex items-center gap-2 font-semibold">
+            <BookOpen className="h-4 w-4 text-[#D97A7A]" />
+            Katalog Buku &amp; Mainan
+          </h4>
+          <Link
+            href="/dashboard/catalog"
+            className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+          >
+            Lihat Semua
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {catalogItems.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">Katalog segera hadir.</p>
+        ) : (
+          <CatalogCarousel items={catalogItems} buyerName={session.user.name ?? "Pembaca"} />
+        )}
+      </div>
+
+      {(unpaidOrder || shippedOrder) && (
+        <div className="grid gap-4 md:grid-cols-2">
           {unpaidOrder && (
             <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
               <div className="flex items-center justify-between gap-2">
@@ -549,7 +487,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
