@@ -43,7 +43,7 @@ export function Pagination({
 
   const btn =
     variant === "rose"
-      ? "inline-flex h-9 w-9 items-center justify-center rounded-md border border-input text-sm font-medium transition-colors hover:bg-[#FED6D6] hover:text-black"
+      ? "inline-flex h-9 w-9 items-center justify-center rounded-md border border-input text-[15px] font-medium transition-colors hover:bg-[#FED6D6] hover:text-black"
       : "inline-flex h-9 items-center justify-center gap-1 rounded-md border border-input px-3 text-sm font-medium transition-colors hover:bg-[#FED6D6] hover:text-black";
 
   return (

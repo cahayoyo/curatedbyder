@@ -36,7 +36,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ id: s
         </Link>
         <div>
           <h2 className="text-2xl font-bold">Ubah Buku</h2>
-          <p className="text-[15px] text-muted-foreground">{book.title}</p>
+          <p className="text-base text-muted-foreground">{book.title}</p>
         </div>
       </div>
 

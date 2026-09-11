@@ -167,7 +167,7 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
         <div
           key={c.label}
           className={cn(
-            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-2.5 shadow-sm sm:p-4",
+            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-3 shadow-sm sm:p-4",
             c.card
           )}
         >
@@ -181,11 +181,11 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
               <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-xs leading-tight text-black/60 sm:text-sm">
+              <p className="text-[13px] leading-tight text-black/60 sm:text-[15px]">
                 <span className="sm:hidden">{c.short}</span>
                 <span className="hidden sm:inline">{c.label}</span>
               </p>
-              <p className="text-2xl font-bold leading-tight sm:text-3xl">{c.value}</p>
+              <p className="text-[26px] font-bold leading-tight sm:text-3xl">{c.value}</p>
             </div>
           </div>
           <c.icon
@@ -251,7 +251,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
           />
         ))}
         {books.length === 0 && (
-          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border p-6 text-center text-[15px] text-muted-foreground">
             Belum ada buku.
           </div>
         )}
@@ -259,11 +259,11 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
 
       {/* Desktop: table layout */}
       <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 md:block">
-        <Table className="border-collapse">
+        <Table className="border-collapse text-[15px]">
           <TableHeader>
             <TableRow
               className="border-b border-[#F0CBCB] hover:bg-transparent"
-              style={{ backgroundColor: "#F6EFEF" }}
+              style={{ backgroundColor: "#FBE6E6" }}
             >
               <TableHead className="w-12 text-center font-bold">#</TableHead>
               <TableHead className="font-bold">
@@ -316,7 +316,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
           <TableBody>
             {books.map((b, i) => (
               <TableRow key={b.id} className="border-b border-[#F0CBCB]/60 last:border-0">
-                <TableCell className="text-center text-sm text-black/60">
+                <TableCell className="text-center text-[15px] text-black/60">
                   {(page - 1) * per + i + 1}
                 </TableCell>
                 <TableCell>
@@ -338,7 +338,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                     </div>
                     <div className="min-w-0">
                       <p className="line-clamp-1 font-semibold">{b.title}</p>
-                      <p className="mt-0.5 line-clamp-2 text-xs italic text-muted-foreground">
+                      <p className="mt-0.5 line-clamp-2 text-[13px] italic text-muted-foreground">
                         {b.info || "—"}
                       </p>
                     </div>
@@ -366,7 +366,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                     variant="outline"
                     className={cn(
                       stockBadgeClass(b.stock),
-                      "h-6 min-w-9 justify-center px-2 text-xs"
+                      "h-6 min-w-9 justify-center px-2 text-[13px]"
                     )}
                   >
                     {b.stock}
@@ -419,7 +419,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-black/60">
+        <p className="text-[15px] text-black/60">
           {totalFiltered === 0
             ? "Tidak ada buku."
             : `Menampilkan ${from} - ${to} dari ${totalFiltered} buku.`}
@@ -472,7 +472,7 @@ export default async function AdminBooksPage({
             <BookOpen className="h-6 w-6 text-[#D97A7A]" />
             Daftar Buku
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[15px] text-muted-foreground">
             Kelola koleksi buku di CuratedByDer. Tambah, ubah, atau hapus buku dengan mudah.
           </p>
         </div>
@@ -493,13 +493,17 @@ export default async function AdminBooksPage({
 
       <div className="hidden items-center gap-2 lg:flex">
         <div className="min-w-0 flex-1">
-          <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
+          <SearchInput
+            basePath="/admin/books"
+            placeholder="Masukkan judul buku..."
+            inputClassName="bg-white text-[15px]"
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <BookFilter
             basePath="/admin/books"
             className="w-full sm:w-auto"
-            triggerClassName="bg-white text-black hover:bg-[#FED6D6] hover:text-black"
+            triggerClassName="bg-white text-[15px] text-black hover:bg-[#FED6D6] hover:text-black"
           />
           <PublisherSelect basePath="/admin/books" options={publisherOptions} />
           <BookSortSelect basePath="/admin/books" />

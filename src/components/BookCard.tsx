@@ -62,7 +62,7 @@ export function BookCard({
   }
 
   return (
-    <div className="flex gap-3 rounded-xl border border-[#F5D9D3] bg-[#FCEBE6] p-3 shadow-sm">
+    <div className="flex gap-3 rounded-xl border bg-white p-3 shadow-sm">
       <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
         {book.image ? (
           <Image
@@ -81,7 +81,7 @@ export function BookCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-1">
-          <p className="line-clamp-2 text-[15px] font-semibold leading-snug">{book.title}</p>
+          <p className="line-clamp-2 text-base font-semibold leading-snug">{book.title}</p>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -116,21 +116,21 @@ export function BookCard({
           {book.formats.map((f) => (
             <FormatBadge key={f} value={f} />
           ))}
-          <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 text-[11px] font-medium text-purple-700">
+          <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 text-xs font-medium text-purple-700">
             Utama
           </span>
         </div>
 
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[15px] font-semibold">{formatIDR(book.price)}</span>
+          <span className="text-base font-semibold">{formatIDR(book.price)}</span>
           <div className="flex items-center gap-1.5">
             <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${stockChipClass(book.stock)}`}
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-medium ${stockChipClass(book.stock)}`}
             >
               Stok {book.stock}
             </span>
             <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-medium ${
                 book.status === "PRE_ORDER"
                   ? "border-amber-200 bg-yellow-100 text-amber-800"
                   : "border-emerald-200 bg-emerald-100 text-emerald-700"

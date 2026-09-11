@@ -93,8 +93,8 @@ function SectionHeader({
         <Icon className="h-4 w-4" />
       </span>
       <div>
-        <h3 className="text-base font-semibold leading-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground">{subtitle}</p>
+        <h3 className="text-[17px] font-semibold leading-tight">{title}</h3>
+        <p className="text-[15px] text-muted-foreground">{subtitle}</p>
       </div>
     </div>
   );
@@ -276,14 +276,14 @@ export function BookForm({
   const cardCls = "rounded-xl border bg-white p-4 shadow-sm";
   const pillCls = (active: boolean) =>
     cn(
-      "flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[15px] transition-colors",
+      "flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-base transition-colors",
       active ? "border-[#D97A7A] bg-[#FED6D6]/60 text-black" : "bg-white hover:bg-[#FDF1F1]"
     );
 
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-4 [&_input]:text-[15px] [&_label]:text-[15px] [&_textarea]:text-[15px]"
+      className="space-y-4 [&_input]:text-base [&_label]:text-base [&_textarea]:text-base"
     >
       {rows.map((r, i) => (
         <div key={r.id ?? i} className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -291,7 +291,7 @@ export function BookForm({
           <div className="space-y-4">
             {rows.length > 1 && (
               <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-2 shadow-sm">
-                <span className="text-[15px] font-semibold">Buku {i + 1}</span>
+                <span className="text-base font-semibold">Buku {i + 1}</span>
                 <Button
                   type="button"
                   variant="ghost"
@@ -385,7 +385,7 @@ export function BookForm({
                   maxLength={500}
                   className="placeholder:text-[#b5b5b5]"
                 />
-                <p className="text-right text-xs text-muted-foreground">
+                <p className="text-right text-[13px] text-muted-foreground">
                   {r.info.length}/500
                 </p>
               </div>
@@ -396,7 +396,7 @@ export function BookForm({
                     Harga <RequiredMark />
                   </Label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[15px] text-black/60">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-black/60">
                       Rp
                     </span>
                     <Input
@@ -470,7 +470,7 @@ export function BookForm({
                               value={br.batchId}
                               onValueChange={(v) => upBatchPrice(i, bi, { batchId: v })}
                             >
-                              <SelectTrigger className="w-full bg-white text-[15px]">
+                              <SelectTrigger className="w-full bg-white text-base">
                                 <SelectValue placeholder="Pilih batch" />
                               </SelectTrigger>
                               <SelectContent>
@@ -483,7 +483,7 @@ export function BookForm({
                             </Select>
                           </div>
                           <div className="relative min-w-[140px] flex-[1]">
-                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[15px] text-black/60">
+                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-black/60">
                               Rp
                             </span>
                             <Input
@@ -507,7 +507,7 @@ export function BookForm({
                           </Button>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 pl-1">
-                          <span className="text-sm text-muted-foreground">Format:</span>
+                          <span className="text-[15px] text-muted-foreground">Format:</span>
                           {FORMATS.map((f) => (
                             <label
                               key={f.value}
@@ -532,7 +532,7 @@ export function BookForm({
                     >
                       <Plus className="h-4 w-4" /> Tambah Harga Batch
                     </Button>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-[15px] text-muted-foreground">
                       Disimpan otomatis saat buku disimpan. Klik &lsquo;Tambah Harga Batch&rsquo;
                       untuk menambahkan harga batch baru.
                     </p>
@@ -545,7 +545,7 @@ export function BookForm({
           {/* Side column */}
           <aside className="space-y-4">
             <section className={cardCls}>
-              <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+              <h3 className="mb-3 flex items-center gap-2 text-[17px] font-semibold">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
                   <Eye className="h-3.5 w-3.5" />
                 </span>
@@ -564,8 +564,8 @@ export function BookForm({
               ) : (
                 <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#E3B4B4] bg-[#FDF1F1] px-4 text-center">
                   <ImageIcon className="h-8 w-8 text-[#D97A7A]/70" />
-                  <p className="text-[15px] font-medium text-[#C96A6A]">Belum ada gambar</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base font-medium text-[#C96A6A]">Belum ada gambar</p>
+                  <p className="text-[15px] text-muted-foreground">
                     Upload gambar untuk melihat preview
                   </p>
                 </div>
@@ -573,13 +573,13 @@ export function BookForm({
             </section>
 
             <section className={cardCls}>
-              <h3 className="mb-2 flex items-center gap-2 text-base font-semibold">
+              <h3 className="mb-2 flex items-center gap-2 text-[17px] font-semibold">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
                   <Lightbulb className="h-3.5 w-3.5" />
                 </span>
                 Tips
               </h3>
-              <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+              <ul className="list-disc space-y-1.5 pl-5 text-[15px] text-muted-foreground">
                 <li>Gunakan gambar dengan resolusi tinggi dan jelas.</li>
                 <li>Isi informasi buku dengan lengkap.</li>
                 <li>Pastikan harga dan stok sudah sesuai.</li>
@@ -604,7 +604,7 @@ export function BookForm({
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          className="flex-1 border border-[#F0CBCB] bg-white text-black transition-colors hover:bg-[#FDF1F1]"
+          className="flex-1 border border-[#F0CBCB] bg-white text-[15px] text-black transition-colors hover:bg-[#FDF1F1]"
         >
           <X className="h-4 w-4" />
           Batal
@@ -614,7 +614,7 @@ export function BookForm({
             type="button"
             variant="outline"
             onClick={addRow}
-            className="flex-1 border border-transparent bg-[#FBE3E3] text-[#C96A6A] transition-colors hover:bg-[#F6D5D5] hover:text-[#C96A6A]"
+            className="flex-1 border border-transparent bg-[#FBE3E3] text-[15px] text-[#C96A6A] transition-colors hover:bg-[#F6D5D5] hover:text-[#C96A6A]"
           >
             <Plus className="h-4 w-4" />
             Tambah
@@ -623,7 +623,7 @@ export function BookForm({
         <Button
           type="submit"
           disabled={pending}
-          className="flex-1 bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
+          className="flex-1 bg-[#D97A7A] text-[15px] text-white transition-colors hover:bg-[#c96666]"
         >
           <Check className="h-4 w-4" />
           {pending ? "Menyimpan..." : initial?.id ? "Ubah Buku" : "Buat Buku"}

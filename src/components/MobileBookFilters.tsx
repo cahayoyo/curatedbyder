@@ -40,7 +40,11 @@ export function MobileBookFilters({
     <div className="space-y-2 lg:hidden">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <SearchInput basePath={basePath} placeholder="Cari judul buku..." />
+          <SearchInput
+            basePath={basePath}
+            placeholder="Cari judul buku..."
+            inputClassName="bg-white text-[15px]"
+          />
         </div>
         <Button
           type="button"
@@ -58,7 +62,7 @@ export function MobileBookFilters({
         <div className="space-y-3 rounded-xl border bg-white p-3 shadow-sm">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Publisher</p>
+              <p className="text-[13px] text-muted-foreground">Publisher</p>
               <ParamSelect
                 basePath={basePath}
                 param="publisher"
@@ -68,7 +72,7 @@ export function MobileBookFilters({
               />
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Format</p>
+              <p className="text-[13px] text-muted-foreground">Format</p>
               <ParamSelect
                 basePath={basePath}
                 param="format"
@@ -78,7 +82,7 @@ export function MobileBookFilters({
               />
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="text-[13px] text-muted-foreground">Status</p>
               <ParamSelect
                 basePath={basePath}
                 param="status"
@@ -88,7 +92,7 @@ export function MobileBookFilters({
               />
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Urutkan</p>
+              <p className="text-[13px] text-muted-foreground">Urutkan</p>
               <BookSortSelect basePath={basePath} triggerClassName="h-10 w-full text-[15px]" />
             </div>
           </div>

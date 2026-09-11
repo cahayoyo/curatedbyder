@@ -9,11 +9,13 @@ export function SearchInput({
   basePath,
   placeholder,
   placeholderClassName = "",
+  inputClassName = "",
   paramKey = "q",
 }: {
   basePath: string;
   placeholder: string;
   placeholderClassName?: string;
+  inputClassName?: string;
   paramKey?: string;
 }) {
   const router = useRouter();
@@ -62,7 +64,7 @@ export function SearchInput({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`pl-10 pr-9 placeholder:text-xs placeholder:text-black/30 ${placeholderClassName}`}
+        className={`pl-10 pr-9 placeholder:text-xs placeholder:text-black/30 ${placeholderClassName} ${inputClassName}`}
       />
       {value && (
         <button

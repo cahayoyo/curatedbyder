@@ -43,7 +43,7 @@ export function PublisherSelect({
         aria-label="Filter publisher"
         disabled={isPending}
         className={cn(
-          "h-9 w-full bg-white text-xs text-black sm:w-44",
+          "h-9 w-full bg-white text-[15px] text-black sm:w-44",
           isPending && "opacity-70"
         )}
       >
