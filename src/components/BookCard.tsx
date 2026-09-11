@@ -150,18 +150,19 @@ export function BookCard({
                 className="flex flex-wrap items-center justify-between gap-2"
               >
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  {v.label !== "Utama" && (
+                    <span className="inline-flex items-center rounded-full border border-[#F0CBCB] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#C96A6A]">
+                      {v.label}
+                    </span>
+                  )}
                   {v.formats.length > 0 ? (
                     v.formats.map((f) => <FormatBadge key={f} value={f} />)
                   ) : (
-                    <span
-                      className={
-                        v.label === "Utama"
-                          ? "inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-xs font-medium text-purple-700"
-                          : "inline-flex items-center rounded-full border border-[#F0CBCB] bg-[#FDF1F1] px-2 py-0.5 text-xs font-medium text-[#C96A6A]"
-                      }
-                    >
-                      {v.label}
-                    </span>
+                    v.label === "Utama" && (
+                      <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-xs font-medium text-purple-700">
+                        {v.label}
+                      </span>
+                    )
                   )}
                   <span className="whitespace-nowrap text-[15px] font-semibold">
                     {formatIDR(v.price)}
