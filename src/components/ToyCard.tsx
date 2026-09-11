@@ -64,7 +64,7 @@ export function ToyCard({
   }
 
   return (
-    <div className="rounded-xl border bg-white p-3 shadow-sm">
+    <div className="rounded-xl border bg-[#FDF1F1] p-3 shadow-sm">
       <div className="flex gap-3">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-black/5">
           {toy.image ? (
