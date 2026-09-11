@@ -1,5 +1,6 @@
-import { PrismaClient, type Format } from "@prisma/client";
-const p = new PrismaClient();
+import { type Format } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prismaClient";
+const p = createPrismaClient();
 
 const PAIRS: {
   keepId: string;

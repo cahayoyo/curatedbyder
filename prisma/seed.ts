@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prismaClient";
 import bcrypt from "bcryptjs";
 
-const db = new PrismaClient();
+const db = createPrismaClient();
 
 async function main() {
   const raw = process.env.ADMIN_SEED;

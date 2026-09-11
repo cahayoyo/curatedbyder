@@ -1,8 +1,8 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prismaClient";
 
 // Seed data contoh untuk local/dev DB — idempotent (aman dijalankan berulang).
-const db = new PrismaClient();
+const db = createPrismaClient();
 
 const BATCH_NAME = "SAMPLE-2026-08";
 
