@@ -73,7 +73,13 @@ export function StageTimeline({ items }: { items: TimelineItem[] }) {
   );
 }
 
-export function StageTimelineVertical({ items }: { items: TimelineItem[] }) {
+export function StageTimelineVertical({
+  items,
+  currentExtra,
+}: {
+  items: TimelineItem[];
+  currentExtra?: ReactNode;
+}) {
   const done = currentStageIndex(items);
   const isDelivered = done === STATUS_TYPE.length - 1;
   const segment = (j: number) =>
@@ -86,35 +92,45 @@ export function StageTimelineVertical({ items }: { items: TimelineItem[] }) {
         const isCurrent = i === done && !isDelivered;
         const stamp = aggregateStamp(items, i);
         const parts = stamp ? stageDateParts(stamp) : null;
+        const isLast = i === STATUS_TYPE.length - 1;
         return (
-          <div key={sv} className="relative flex gap-3 pb-4 last:pb-0">
-            {i > 0 && (
-              <>
-                <span aria-hidden className={`absolute left-[13px] -top-4 h-2 w-0.5 ${segment(i - 1)}`} />
-                <span aria-hidden className={`absolute left-[13px] -top-2 h-2 w-0.5 ${segment(i)}`} />
-              </>
-            )}
-            <span
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                isCurrent
-                  ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
-                  : reached
-                    ? "bg-emerald-500 text-white"
-                    : "border border-black/10 bg-white text-black/30"
-              }`}
-            >
-              {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
-            </span>
-            <div className="min-w-0 pb-0.5">
-              <p className={`text-xs font-semibold ${reached ? "text-black/80" : "text-black/40"}`}>
-                {STATUS_LABEL[sv] ?? sv}
-              </p>
-              {parts && (
-                <p className="text-[11px] text-black/50">
-                  {parts.date}, {parts.time}
+          <div key={sv}>
+            <div className="flex gap-3">
+              <div className="flex w-7 shrink-0 flex-col items-center">
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    isCurrent
+                      ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                      : reached
+                        ? "bg-emerald-500 text-white"
+                        : "border border-black/10 bg-white text-black/30"
+                  }`}
+                >
+                  {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+                </span>
+                {!isLast && <span className={`w-0.5 flex-1 ${segment(i)}`} />}
+              </div>
+              <div className={`min-w-0 flex-1 ${isLast ? "" : "pb-4"}`}>
+                <p className={`text-xs font-semibold ${reached ? "text-black/80" : "text-black/40"}`}>
+                  {STATUS_LABEL[sv] ?? sv}
                 </p>
-              )}
+                {parts && (
+                  <p className="text-[11px] text-black/50">
+                    {parts.date}, {parts.time}
+                  </p>
+                )}
+              </div>
             </div>
+
+            {isCurrent && currentExtra && (
+              <div className="flex gap-3">
+                <div className="flex w-7 shrink-0 flex-col items-center">
+                  <span className={`w-0.5 flex-1 ${segment(done)}`} />
+                  <span className="w-0.5 flex-1 bg-black/10" />
+                </div>
+                <div className="min-w-0 flex-1 pb-4">{currentExtra}</div>
+              </div>
+            )}
           </div>
         );
       })}

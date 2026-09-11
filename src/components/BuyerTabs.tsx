@@ -488,7 +488,13 @@ function PaymentCard({ order }: { order: OrderDTO }) {
   );
 }
 
-export function CopyResi({ value }: { value: string | null }) {
+export function CopyResi({
+  value,
+  label = "Copy nomor resi",
+}: {
+  value: string | null;
+  label?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -510,7 +516,7 @@ export function CopyResi({ value }: { value: string | null }) {
       <button
         type="button"
         onClick={copy}
-        aria-label="Copy nomor resi"
+        aria-label={label}
         className="text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
       >
         {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -558,7 +564,11 @@ export function TrackCard({
           <div className="flex min-w-0 flex-1 gap-2">
             <div className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-2">
-                <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
+                {variant === "detail" ? (
+                  <CopyResi value={order.invoiceNumber} label="Copy nomor invoice" />
+                ) : (
+                  <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
+                )}
               </span>
 
               <div className="mt-2 space-y-1.5">
@@ -619,13 +629,7 @@ export function TrackCard({
           </div>
         )}
 
-        <div
-          className={
-            variant === "list"
-              ? "hidden shrink-0 flex-col items-start gap-4 md:flex md:items-end"
-              : "flex shrink-0 flex-col items-start gap-4"
-          }
-        >
+        <div className="hidden shrink-0 flex-col items-start gap-4 md:flex md:items-end">
           <BadgeGroup payment={order.paymentStatus} />
 
           {variant === "detail" ? (
@@ -650,6 +654,12 @@ export function TrackCard({
           )}
         </div>
       </div>
+
+      {variant === "detail" && (
+        <div className="mt-2 flex justify-end md:hidden">
+          <BadgeGroup payment={order.paymentStatus} />
+        </div>
+      )}
 
       {variant === "list" ? (
         <>
@@ -703,7 +713,7 @@ export function TrackCard({
           </div>
         </>
       ) : (
-        <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3">
+        <div className="mt-3 hidden border-t border-[#F0CBCB]/60 pt-3 md:block">
           <StageTimeline items={order.items} />
         </div>
       )}

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertCircle, ChevronRight, MapPin, Phone, Truck } from "lucide-react";
+import { AlertCircle, ArrowLeft, ChevronRight, MapPin, Phone, Truck } from "lucide-react";
 import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { BuyerShell } from "@/components/BuyerShell";
 import { CopyResi, TrackCard } from "@/components/BuyerTabs";
-import { StageStatusBanner } from "@/components/TrackingTimeline";
+import { StageStatusBanner, StageTimelineVertical } from "@/components/TrackingTimeline";
 import { earliestEta } from "@/lib/tracking";
 import { etaLabel } from "@/lib/orderOptions";
 import { ADMIN_WA, waLink } from "@/lib/wa";
@@ -36,15 +36,22 @@ export default async function TrackingDetailPage({
     <BuyerShell>
       <div className="space-y-4">
         <div>
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <p className="hidden items-center gap-1 text-xs text-muted-foreground md:flex">
             <Link href="/dashboard/orders" className="transition-colors hover:text-[#D97A7A]">
               Pesanan
             </Link>
             <ChevronRight className="h-3 w-3" />
             <span className="font-medium text-[#B04A4A]">Lacak Pesanan</span>
           </p>
-          <h2 className="mt-1 flex items-center gap-2 text-2xl font-bold">
-            <Truck className="h-6 w-6 text-[#D97A7A]" />
+          <h2 className="flex items-center gap-2 text-2xl font-bold md:mt-1">
+            <Link
+              href="/dashboard/orders"
+              aria-label="Kembali ke pesanan"
+              className="md:hidden"
+            >
+              <ArrowLeft className="h-5 w-5 text-[#B04A4A]" />
+            </Link>
+            <Truck className="hidden h-6 w-6 text-[#D97A7A] md:block" />
             Lacak Pesanan
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -54,7 +61,16 @@ export default async function TrackingDetailPage({
 
         <TrackCard order={dto} variant="detail" />
 
-        <StageStatusBanner items={dto.items} />
+        <div className="md:hidden">
+          <StageTimelineVertical
+            items={dto.items}
+            currentExtra={<StageStatusBanner items={dto.items} />}
+          />
+        </div>
+
+        <div className="hidden md:block">
+          <StageStatusBanner items={dto.items} />
+        </div>
 
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm">
           <h3 className="text-sm font-bold">Detail Pengiriman</h3>
