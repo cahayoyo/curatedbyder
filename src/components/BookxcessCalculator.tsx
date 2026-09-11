@@ -5,18 +5,15 @@ import { Calculator, Check, Copy, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatIDR } from "@/lib/format";
-
-const FIXED_COST = 5 * 4400;
-const SERVICE_FEE = 15000;
-const MYR_TO_IDR = 4200;
-const SHIPPING_PER_KG = 25000;
+import type { StoreSettings } from "@/lib/store-settings";
 
 function toNumber(value: string) {
   const n = Number.parseFloat(value.replace(",", "."));
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-export function BookxcessCalculator() {
+export function BookxcessCalculator({ settings }: { settings: StoreSettings }) {
+  const { fixedCost, serviceFee, myrToIdr, shippingPerKg } = settings;
   const [priceMyr, setPriceMyr] = useState("");
   const [weightKg, setWeightKg] = useState("");
   const [copied, setCopied] = useState(false);
@@ -24,10 +21,10 @@ export function BookxcessCalculator() {
   const hasInput = priceMyr.trim() !== "" || weightKg.trim() !== "";
 
   const total = hasInput
-    ? FIXED_COST +
-      SERVICE_FEE +
-      toNumber(priceMyr) * MYR_TO_IDR +
-      toNumber(weightKg) * SHIPPING_PER_KG
+    ? fixedCost +
+      serviceFee +
+      toNumber(priceMyr) * myrToIdr +
+      toNumber(weightKg) * shippingPerKg
     : 0;
 
   function sanitize(value: string) {
