@@ -322,7 +322,7 @@ export default async function AdminOverviewPage({
 
   return (
     <RangeProvider>
-      <div className="space-y-6">
+      <div className="space-y-6 px-2 md:px-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
