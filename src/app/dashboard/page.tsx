@@ -316,7 +316,7 @@ export default async function DashboardPage() {
                 <s.icon className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-black/60">{s.label}</p>
+                <p className="text-sm leading-snug text-black/60">{s.label}</p>
                 <p className="text-2xl font-bold leading-tight">{s.value}</p>
                 <p className="truncate text-xs text-black/50">{s.caption}</p>
               </div>
