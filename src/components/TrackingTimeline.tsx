@@ -109,7 +109,7 @@ export function StageTimelineVertical({
                 </span>
                 {!isLast && <span className={`w-0.5 flex-1 ${segment(i)}`} />}
               </div>
-              <div className={`min-w-0 flex-1 ${isLast ? "" : "pb-4"}`}>
+              <div className={`min-w-0 flex-1 ${isLast ? "" : "min-h-[52px] pb-4"}`}>
                 <p className={`text-xs font-semibold ${reached ? "text-black/80" : "text-black/40"}`}>
                   {STATUS_LABEL[sv] ?? sv}
                 </p>
