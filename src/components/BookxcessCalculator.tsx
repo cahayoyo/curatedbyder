@@ -9,7 +9,7 @@ import { formatIDR } from "@/lib/format";
 const FIXED_COST = 5 * 4400;
 const SERVICE_FEE = 15000;
 const MYR_TO_IDR = 4200;
-const SHIPPING_PER_10KG = 25000;
+const SHIPPING_PER_KG = 25000;
 
 function toNumber(value: string) {
   const n = Number.parseFloat(value.replace(",", "."));
@@ -27,7 +27,7 @@ export function BookxcessCalculator() {
     ? FIXED_COST +
       SERVICE_FEE +
       toNumber(priceMyr) * MYR_TO_IDR +
-      (toNumber(weightKg) / 10) * SHIPPING_PER_10KG
+      toNumber(weightKg) * SHIPPING_PER_KG
     : 0;
 
   function sanitize(value: string) {
