@@ -409,25 +409,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="flex items-center gap-2 font-semibold">
-            <BookOpen className="h-4 w-4 text-[#D97A7A]" />
-            Katalog Buku &amp; Mainan
-          </h4>
-          <Link
-            href="/dashboard/catalog"
-            className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-          >
-            Lihat Semua
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        {catalogItems.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Katalog segera hadir.</p>
-        ) : (
-          <CatalogCarousel items={catalogItems} buyerName={session.user.name ?? "Pembaca"} />
-        )}
+        <CatalogCarousel items={catalogItems} buyerName={session.user.name ?? "Pembaca"} />
       </div>
 
       {(unpaidOrder || shippedOrder) && (
