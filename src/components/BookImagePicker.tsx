@@ -103,19 +103,19 @@ export function BookImagePicker({
           ) : (
             <div className="flex flex-col items-center gap-1.5 px-4 text-center">
               <ImageIcon className="h-8 w-8 text-[#D97A7A]" />
-              <p className="text-sm font-medium text-[#C96A6A]">
+              <p className="text-[15px] font-medium text-[#C96A6A]">
                 {isUploading ? `Mengunggah ${progress}%` : "Klik untuk upload gambar"}
               </p>
-              <p className="text-xs text-muted-foreground">atau drag &amp; drop di sini</p>
+              <p className="text-sm text-muted-foreground">atau drag &amp; drop di sini</p>
             </div>
           )}
           {isUploading && image && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-medium text-white">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-[15px] font-medium text-white">
               Mengunggah {progress}%
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (maks. 4MB)</p>
+        <p className="text-sm text-muted-foreground">PNG, JPG, WEBP (maks. 4MB)</p>
 
         <input
           ref={inputRef}

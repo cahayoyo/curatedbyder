@@ -26,7 +26,7 @@ export default async function NewBookPage() {
         </Link>
         <div>
           <h2 className="text-2xl font-bold">Tambah Buku</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[15px] text-muted-foreground">
             Tambahkan buku baru ke koleksi CuratedByDer.
           </p>
         </div>
