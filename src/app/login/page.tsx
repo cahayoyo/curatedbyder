@@ -69,12 +69,14 @@ export default function LoginPage() {
           <BookxcessCalculator />
         </div>
 
-        <div className="relative z-10 mt-8 grid w-full max-w-sm grid-cols-3 gap-2 sm:max-w-2xl sm:gap-4">
+        <div className="relative z-10 mt-8 grid w-full max-w-sm grid-cols-1 gap-3 text-left sm:max-w-2xl sm:grid-cols-3 sm:gap-4">
           {FEATURES.map((f) => (
-            <div key={f.title} className="flex items-center justify-center gap-2 text-left sm:gap-3">
+            <div key={f.title} className="flex items-center gap-3 sm:justify-center">
               <f.icon className="h-5 w-5 shrink-0 text-gray-700 sm:h-6 sm:w-6" />
               <div>
-                <p className="text-xs font-semibold text-gray-900 sm:text-sm">{f.title}</p>
+                <p className="whitespace-nowrap text-xs font-semibold text-gray-900 sm:text-sm">
+                  {f.title}
+                </p>
                 <p className="text-[10px] text-gray-600 sm:text-xs">{f.sub}</p>
               </div>
             </div>
