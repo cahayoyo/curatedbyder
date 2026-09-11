@@ -84,12 +84,12 @@ export function BuyerFilter({
         type="button"
         onClick={toggleOpen}
         disabled={pending}
-        className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+        className="h-9 w-full gap-1.5 rounded-lg border border-[#F0CBCB] bg-white px-3 text-xs font-semibold text-[#B85C5C] shadow-sm transition-colors hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
       >
         {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <SlidersHorizontal className="h-3.5 w-3.5" />}
         Filter
         {activeCount > 0 && (
-          <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FED6D6] px-1 text-[10px] font-bold text-black">
+          <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FED6D6] px-1 text-[10px] font-bold text-[#B04A4A]">
             {activeCount}
           </span>
         )}
