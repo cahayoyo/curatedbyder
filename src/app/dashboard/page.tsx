@@ -309,16 +309,18 @@ export default async function DashboardPage() {
               aria-hidden="true"
               className={`pointer-events-none absolute bottom-1 right-4 h-16 w-16 ${s.watermarkCls}`}
             />
-            <div className="relative flex items-center gap-3">
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
-              >
-                <s.icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="min-h-9 text-[13px] leading-snug text-black/60">{s.label}</p>
-                <p className="text-2xl font-bold leading-tight">{s.value}</p>
-                <p className="truncate text-xs text-black/50">{s.caption}</p>
+            <div className="relative">
+              <p className="text-[13px] leading-snug text-black/60">{s.label}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
+                >
+                  <s.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold leading-tight">{s.value}</p>
+                  <p className="truncate text-xs text-black/50">{s.caption}</p>
+                </div>
               </div>
             </div>
           </div>
