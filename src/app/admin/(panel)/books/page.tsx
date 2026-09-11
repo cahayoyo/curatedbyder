@@ -258,12 +258,12 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
       </div>
 
       {/* Desktop: table layout */}
-      <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-[#FBE6E6] [&_td]:border-r-0 [&_th]:border-r-0 md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-[#FDF1F1] [&_td]:border-r-0 [&_th]:border-r-0 md:block">
         <Table className="border-collapse text-[15px]">
           <TableHeader>
             <TableRow
               className="hover:bg-transparent"
-              style={{ backgroundColor: "#FBE6E6" }}
+              style={{ backgroundColor: "#F3CFCF" }}
             >
               <TableHead className="w-12 text-center font-bold">#</TableHead>
               <TableHead className="font-bold">
