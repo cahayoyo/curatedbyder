@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Sparkles } from "lucide-react";
+import { Calculator, Check, Copy, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatIDR } from "@/lib/format";
@@ -9,7 +9,7 @@ import { formatIDR } from "@/lib/format";
 const FIXED_COST = 5 * 4400;
 const SERVICE_FEE = 15000;
 const MYR_TO_IDR = 4200;
-const SHIPPING_PER_10KG = 25000;
+const SHIPPING_PER_KG = 25000;
 
 function toNumber(value: string) {
   const n = Number.parseFloat(value.replace(",", "."));
@@ -19,6 +19,7 @@ function toNumber(value: string) {
 export function BookxcessCalculator() {
   const [priceMyr, setPriceMyr] = useState("");
   const [weightKg, setWeightKg] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const hasInput = priceMyr.trim() !== "" || weightKg.trim() !== "";
 
@@ -26,11 +27,21 @@ export function BookxcessCalculator() {
     ? FIXED_COST +
       SERVICE_FEE +
       toNumber(priceMyr) * MYR_TO_IDR +
-      (toNumber(weightKg) / 10) * SHIPPING_PER_10KG
+      toNumber(weightKg) * SHIPPING_PER_KG
     : 0;
 
   function sanitize(value: string) {
     return value.replace(/[^\d.,]/g, "");
+  }
+
+  async function copyTotal() {
+    try {
+      await navigator.clipboard.writeText(formatIDR(total));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ponytail: clipboard permission denied — no-op, user can select manually
+    }
   }
 
   return (
@@ -65,21 +76,21 @@ export function BookxcessCalculator() {
       />
 
       <div className="relative">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
-            <Calculator className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-base font-bold leading-tight text-gray-900 sm:text-lg">
-              Estimasi Perhitungan Buku Web Bookxcess
-            </h2>
+        <div className="mb-4">
+          <h2 className="text-base font-bold leading-tight text-gray-900 sm:text-lg">
+            Estimasi Perhitungan Buku Web Bookxcess
+          </h2>
+          <div className="mt-2 flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBE6E6] text-[#C96A6A]">
+              <Calculator className="h-5 w-5" />
+            </span>
             <p className="text-xs text-gray-500">
-              Masukkan harga dan berat buku, estimasi muncul otomatis.
+              Masukkan harga dan berat buku untuk mengetahui estimasi harga.
             </p>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="calc-myr" className="text-xs font-semibold text-gray-700">
               Harga Buku (MYR)
@@ -119,7 +130,15 @@ export function BookxcessCalculator() {
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3 text-center">
+        <div className="relative mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3 text-center">
+          <button
+            type="button"
+            onClick={copyTotal}
+            aria-label="Salin estimasi total"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-[#B85C5C]/70 transition-colors hover:bg-white/70 hover:text-[#B85C5C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8B4B4]"
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </button>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#B85C5C]/80">
             Estimasi Total Bayar
           </p>
