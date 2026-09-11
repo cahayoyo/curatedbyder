@@ -488,16 +488,6 @@ function PaymentCard({ order }: { order: OrderDTO }) {
   );
 }
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function CopyResi({ value }: { value: string | null }) {
   const [copied, setCopied] = useState(false);
 
@@ -568,9 +558,6 @@ export function TrackCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <span className="flex min-w-0 items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
-                  <Truck className="h-3.5 w-3.5 text-[#D97A7A]" />
-                </span>
                 <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
               </span>
               {variant === "list" && (
@@ -601,8 +588,6 @@ export function TrackCard({
                 </div>
               ))}
             </div>
-
-            <p className="mt-2 text-[11px] text-muted-foreground">{formatDateTime(order.soldAt)}</p>
           </div>
         </div>
 
