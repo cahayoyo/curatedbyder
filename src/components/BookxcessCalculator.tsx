@@ -37,7 +37,7 @@ export function BookxcessCalculator() {
           <Calculator className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="font-serif text-base font-bold leading-tight text-gray-900 sm:text-lg">
+          <h2 className="text-base font-bold leading-tight text-gray-900 sm:text-lg">
             Estimasi Perhitungan Buku Web Bookxcess
           </h2>
           <p className="text-xs text-gray-500">
