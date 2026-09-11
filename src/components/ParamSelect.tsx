@@ -18,6 +18,7 @@ export function ParamSelect({
   placeholder,
   options,
   icon,
+  iconOnly = false,
   triggerClassName,
 }: {
   basePath: string;
@@ -25,6 +26,7 @@ export function ParamSelect({
   placeholder: string;
   options: { value: string; label: string }[];
   icon?: React.ReactNode;
+  iconOnly?: boolean;
   triggerClassName?: string;
 }) {
   const router = useRouter();
@@ -48,16 +50,22 @@ export function ParamSelect({
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger
+        aria-label={iconOnly ? placeholder : undefined}
         disabled={isPending}
         className={cn(
           "h-10 w-full bg-white text-[15px] text-black",
+          iconOnly && "w-10 shrink-0 justify-center px-0 [&>svg]:hidden",
           isPending && "opacity-70",
           triggerClassName
         )}
       >
         <div className="flex min-w-0 items-center gap-1.5">
-          {icon ? <span className="shrink-0 text-muted-foreground">{icon}</span> : null}
-          <span className="truncate">{label}</span>
+          {icon ? (
+            <span className={cn("shrink-0", iconOnly ? "text-black" : "text-muted-foreground")}>
+              {icon}
+            </span>
+          ) : null}
+          <span className={cn("truncate", iconOnly && "sr-only")}>{label}</span>
         </div>
       </SelectTrigger>
       <SelectContent>

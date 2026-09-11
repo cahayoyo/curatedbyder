@@ -11,7 +11,9 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const OPTIONS = [
+export type SortOption = { value: string; label: string; sort: string; dir: string };
+
+export const BOOK_SORT_OPTIONS: SortOption[] = [
   { value: "default", label: "Terbaru", sort: "", dir: "" },
   { value: "title-asc", label: "Judul A - Z", sort: "title", dir: "asc" },
   { value: "title-desc", label: "Judul Z - A", sort: "title", dir: "desc" },
@@ -19,14 +21,16 @@ const OPTIONS = [
   { value: "price-desc", label: "Harga Tertinggi", sort: "price", dir: "desc" },
   { value: "stock-asc", label: "Stok Terendah", sort: "stock", dir: "asc" },
   { value: "stock-desc", label: "Stok Tertinggi", sort: "stock", dir: "desc" },
-] as const;
+];
 
 export function BookSortSelect({
   basePath,
   triggerClassName,
+  options = BOOK_SORT_OPTIONS,
 }: {
   basePath: string;
   triggerClassName?: string;
+  options?: SortOption[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,13 +39,13 @@ export function BookSortSelect({
   const currentSort = searchParams.get("sort") ?? "";
   const currentDir = searchParams.get("dir") ?? "";
   const value =
-    OPTIONS.find(
+    options.find(
       (o) => o.sort === currentSort && (o.sort === "" || o.dir === currentDir)
     )?.value ?? "default";
-  const label = OPTIONS.find((o) => o.value === value)?.label ?? "Terbaru";
+  const label = options.find((o) => o.value === value)?.label ?? "Terbaru";
 
   function onChange(v: string) {
-    const opt = OPTIONS.find((o) => o.value === v);
+    const opt = options.find((o) => o.value === v);
     if (!opt) return;
     const params = new URLSearchParams(searchParams.toString());
     if (opt.sort) {
@@ -73,7 +77,7 @@ export function BookSortSelect({
         </div>
       </SelectTrigger>
       <SelectContent>
-        {OPTIONS.map((o) => (
+        {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}
           </SelectItem>

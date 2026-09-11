@@ -11,12 +11,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  ToyBrick,
+  Banknote,
+  CircleCheckBig,
+  Clock,
+  ImageIcon,
+  Package,
+  PackageCheck,
   Pencil,
   Plus,
-  ImageIcon,
-  PackageCheck,
-  Clock,
+  Settings2,
+  ToyBrick,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -236,18 +240,39 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
         <Table className="border-collapse text-[15px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent" style={{ backgroundColor: "#F3CFCF" }}>
-              <TableHead className="w-12 text-center font-bold">#</TableHead>
-              <TableHead className="font-bold">
-                <SortButton label="Mainan" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+              <TableHead className="w-12 text-center font-bold">
+                No
               </TableHead>
               <TableHead className="font-bold">
-                <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+                <span className="flex items-center gap-1">
+                  <ToyBrick className="h-3.5 w-3.5" />
+                  <SortButton label="Mainan" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+                </span>
               </TableHead>
               <TableHead className="font-bold">
-                <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+                <span className="flex items-center gap-1">
+                  <Banknote className="h-3.5 w-3.5" />
+                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+                </span>
               </TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-center font-bold">Aksi</TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Package className="h-3.5 w-3.5" />
+                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/toys" query={sortQuery} />
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <CircleCheckBig className="h-3.5 w-3.5" />
+                  Status
+                </span>
+              </TableHead>
+              <TableHead className="text-center font-bold">
+                <span className="inline-flex items-center gap-1">
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Aksi
+                </span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -358,6 +383,7 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                               </NavActionButton>
                               <ConfirmDeleteButton
                                 size="icon"
+                                triggerClassName="border-[#D97A7A]/40 bg-white text-[#D97A7A] hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
                                 title="Konfirmasi Hapus"
                                 description={`Apakah anda benar ingin menghapus mainan "${b.title}"?`}
                                 successMessage={`${b.title} berhasil dihapus!`}

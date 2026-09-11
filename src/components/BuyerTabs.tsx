@@ -159,10 +159,10 @@ function OrderCard({ order }: { order: OrderDTO }) {
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" style={{ backgroundColor: "#FED6D6" }}>
+            <DropdownMenuContent align="end" className="border-[#F0CBCB] bg-white">
               <DropdownMenuItem
                 onSelect={() => setDetailOpen(true)}
-                className="cursor-pointer text-black/80 hover:bg-[#D97A7A] hover:text-white focus:bg-[#D97A7A] focus:text-white"
+                className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
               >
                 <Eye className="h-4 w-4" />
                 Lihat
