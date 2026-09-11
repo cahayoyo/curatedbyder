@@ -445,7 +445,6 @@ export default async function AdminBooksPage({
 
   return (
     <div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -488,7 +487,6 @@ export default async function AdminBooksPage({
         <Suspense fallback={<ListLoader />}>
           <BooksList searchParams={sp} />
         </Suspense>
-      </div>
     </div>
   );
 }
