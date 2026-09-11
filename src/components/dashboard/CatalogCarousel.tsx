@@ -49,12 +49,13 @@ export function CatalogCarousel({
   );
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const pinned = useRef<number | null>(null);
 
   const visible = isDesktop ? items : items.filter((i) => i.kind === tab);
 
   const metrics = useCallback(() => {
     const el = trackRef.current;
-    if (!el) return;
+    if (!el || pinned.current !== null) return;
     const cards = (Array.from(el.children) as HTMLElement[]).filter(
       (c) => c.getAttribute("aria-hidden") !== "true"
     );
@@ -84,6 +85,7 @@ export function CatalogCarousel({
 
   function selectTab(k: CatalogItem["kind"]) {
     setTab(k);
+    pinned.current = null;
     setActiveIdx(0);
     trackRef.current?.scrollTo({ left: 0 });
     requestAnimationFrame(metrics);
@@ -96,6 +98,8 @@ export function CatalogCarousel({
   }
 
   function goToDot(i: number) {
+    pinned.current = i;
+    setActiveIdx(i);
     const card = trackRef.current?.children[i] as HTMLElement | undefined;
     card?.scrollIntoView({
       behavior: "smooth",
@@ -122,6 +126,7 @@ export function CatalogCarousel({
     const dx = e.clientX - d.startX;
     if (!d.moved && Math.abs(dx) > 4) {
       d.moved = true;
+      pinned.current = null;
       el.style.scrollSnapType = "none";
     }
     if (d.moved) el.scrollLeft = d.startLeft - dx;
@@ -258,12 +263,18 @@ export function CatalogCarousel({
               <div
                 ref={trackRef}
                 onScroll={metrics}
+                onWheel={() => {
+                  pinned.current = null;
+                }}
+                onTouchStart={() => {
+                  pinned.current = null;
+                }}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerEnd}
                 onPointerLeave={onPointerEnd}
                 onClickCapture={onClickCapture}
-                className={`relative mt-3 flex cursor-grab scroll-smooth snap-x snap-mandatory gap-3 overflow-x-auto pb-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+                className={`relative mt-3 flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto pb-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
                   isDesktop ? "pt-3" : "px-[21%] py-2"
                 }`}
               >
@@ -364,9 +375,6 @@ export function CatalogCarousel({
                       </div>
                     </div>
                   )
-                )}
-                {isDesktop && (
-                  <div aria-hidden="true" className="w-[calc(100%_-_240px)] shrink-0" />
                 )}
               </div>
 
