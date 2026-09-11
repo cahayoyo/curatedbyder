@@ -26,7 +26,7 @@ const kindCls: Record<CatalogItem["kind"], string> = {
 };
 
 const priceCls =
-  "rounded-full bg-[#FBE6E6] px-3 py-1 text-sm font-bold text-[#C96A6A]";
+  "rounded-full bg-[#FBE6E6] px-3.5 py-1.5 text-[15px] font-bold text-[#B85C5C]";
 
 function subscribeDesktop(cb: () => void) {
   const mq = window.matchMedia("(min-width: 768px)");
@@ -266,13 +266,11 @@ export function CatalogCarousel({
                       key={`${item.kind}-${item.id}`}
                       type="button"
                       onClick={() => order(item)}
-                      className={`flex w-[58%] max-w-[200px] shrink-0 snap-center flex-col rounded-xl border border-[#F0CBCB]/60 p-2 text-left transition-all duration-300 ${
-                        i === activeIdx
-                          ? "scale-100 bg-white shadow-md"
-                          : "scale-[0.94] bg-white/80 opacity-80"
+                      className={`flex w-[58%] max-w-[200px] shrink-0 snap-center flex-col rounded-2xl border border-[#F6D5D5] bg-gradient-to-br from-white to-[#FDF2F2] p-2.5 text-left transition-all duration-300 ${
+                        i === activeIdx ? "scale-100 shadow-md" : "scale-[0.94] opacity-80"
                       }`}
                     >
-                      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border bg-black/5">
+                      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-black/5 shadow-md">
                         {item.image ? (
                           <Image
                             src={item.image}
@@ -297,7 +295,7 @@ export function CatalogCarousel({
                           ))}
                         </span>
                       </div>
-                      <p className="mt-2 line-clamp-2 text-center text-sm font-semibold leading-snug">
+                      <p className="mt-2 line-clamp-2 text-center text-[15px] font-bold leading-snug">
                         {item.title}
                       </p>
                       <div className="mt-2 flex justify-center">
