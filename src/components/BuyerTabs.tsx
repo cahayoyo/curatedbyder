@@ -663,7 +663,7 @@ export function TrackCard({ order }: { order: OrderDTO }) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-1.5 text-xs text-black/70">
+        <div className="flex flex-col gap-1.5 text-xs text-black/70 md:flex-1">
           <p className="flex items-center gap-1.5">
             <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">No. Resi:</span>
