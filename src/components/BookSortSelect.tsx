@@ -60,10 +60,10 @@ export function BookSortSelect({ basePath }: { basePath: string }) {
           isPending && "opacity-70"
         )}
       >
-        <span className="flex min-w-0 items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate">{label}</span>
-        </span>
+        </div>
       </SelectTrigger>
       <SelectContent>
         {OPTIONS.map((o) => (

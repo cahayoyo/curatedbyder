@@ -173,7 +173,7 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
           <c.icon
             aria-hidden
             className={cn(
-              "pointer-events-none absolute -right-1 top-1/2 h-14 w-14 -translate-y-1/2 opacity-50",
+              "pointer-events-none absolute right-6 top-1/2 h-14 w-14 -translate-y-1/2 opacity-50",
               c.watermark
             )}
           />
