@@ -219,28 +219,40 @@ export default async function DashboardPage() {
       value: activeCount,
       caption: "Sedang diproses",
       icon: ShoppingCart,
-      iconCls: "border-red-200 bg-red-50 text-[#D97A7A]",
+      cardCls: "border-[#F0CBCB] bg-gradient-to-br from-white via-[#FBE9E9] to-[#F6D5D5]",
+      iconCls: "bg-[#F6C9C9] text-[#B85C5C]",
+      watermarkCls: "text-[#D97A7A]/15",
+      chevronCls: "text-[#D97A7A]/60",
     },
     {
       label: "Menunggu Sisa Tagihan",
       value: unpaidCount,
       caption: "Segera selesaikan",
       icon: Wallet,
-      iconCls: "border-orange-200 bg-orange-50 text-orange-500",
+      cardCls: "border-amber-200 bg-gradient-to-br from-white via-amber-50 to-amber-100",
+      iconCls: "bg-amber-200 text-amber-600",
+      watermarkCls: "text-amber-500/15",
+      chevronCls: "text-amber-500/60",
     },
     {
       label: "Dalam Pengiriman",
       value: shippingCount,
       caption: "Menuju alamatmu",
       icon: Truck,
-      iconCls: "border-sky-200 bg-sky-50 text-sky-500",
+      cardCls: "border-sky-200 bg-gradient-to-br from-white via-sky-50 to-sky-100",
+      iconCls: "bg-sky-200 text-sky-600",
+      watermarkCls: "text-sky-500/15",
+      chevronCls: "text-sky-500/60",
     },
     {
       label: "Selesai",
       value: doneCount,
       caption: "Pesanan telah diterima",
       icon: CheckCircle2,
-      iconCls: "border-emerald-200 bg-emerald-50 text-emerald-500",
+      cardCls: "border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-emerald-100",
+      iconCls: "bg-emerald-200 text-emerald-600",
+      watermarkCls: "text-emerald-500/15",
+      chevronCls: "text-emerald-500/60",
     },
   ];
 
@@ -288,17 +300,24 @@ export default async function DashboardPage() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="flex items-center gap-3 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-3 shadow-sm"
+            className={`relative overflow-hidden rounded-xl border p-3 shadow-sm ${s.cardCls}`}
           >
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${s.iconCls}`}
-            >
-              <s.icon className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm text-black/60">{s.label}</p>
-              <p className="text-2xl font-bold leading-tight">{s.value}</p>
-              <p className="truncate text-xs text-black/50">{s.caption}</p>
+            <s.icon
+              aria-hidden="true"
+              className={`pointer-events-none absolute -bottom-3 -right-2 h-16 w-16 ${s.watermarkCls}`}
+            />
+            <div className="relative flex items-center gap-3">
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconCls}`}
+              >
+                <s.icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-black/60">{s.label}</p>
+                <p className="text-2xl font-bold leading-tight">{s.value}</p>
+                <p className="truncate text-xs text-black/50">{s.caption}</p>
+              </div>
+              <ChevronRight className={`h-4 w-4 shrink-0 ${s.chevronCls}`} />
             </div>
           </div>
         ))}
