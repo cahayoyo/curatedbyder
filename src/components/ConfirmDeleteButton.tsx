@@ -14,6 +14,7 @@ import {
 import { Trash2, Loader2 } from "lucide-react";
 import type { ActionResult } from "@/lib/actionResult";
 import { useSuccessModal } from "@/components/SuccessModal";
+import { cn } from "@/lib/utils";
 
 export function ConfirmDeleteDialog({
   open,
@@ -91,6 +92,7 @@ export function ConfirmDeleteButton({
   label = "Hapus",
   triggerLabel,
   size = "sm",
+  triggerClassName,
   pendingLabel = "Menghapus...",
   successMessage = "Berhasil dihapus",
   onConfirm,
@@ -100,6 +102,7 @@ export function ConfirmDeleteButton({
   label?: string;
   triggerLabel?: string;
   size?: "sm" | "icon";
+  triggerClassName?: string;
   pendingLabel?: string;
   successMessage?: string;
   onConfirm: () => Promise<void | ActionResult> | void;
@@ -130,11 +133,12 @@ export function ConfirmDeleteButton({
         variant="ghost"
         size={size}
         onClick={() => setOpen(true)}
-        className={
+        className={cn(
           size === "icon"
             ? "h-8 w-8 border border-input bg-transparent text-destructive transition-colors hover:bg-red-500 hover:text-white"
-            : "h-9 border border-input bg-transparent px-3 text-xs text-destructive transition-colors hover:bg-red-500 hover:text-white"
-        }
+            : "h-9 border border-input bg-transparent px-3 text-xs text-destructive transition-colors hover:bg-red-500 hover:text-white",
+          triggerClassName
+        )}
       >
         <Trash2 className="h-3.5 w-3.5" />
         {size === "icon" ? null : (triggerLabel ?? label)}

@@ -11,12 +11,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
+  Banknote,
   BookOpen,
+  Building2,
+  CircleCheckBig,
   Clock,
   ImageIcon,
+  Package,
   PackageCheck,
   Pencil,
   Plus,
+  Settings2,
+  Tag,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -279,52 +285,81 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
               className="hover:bg-transparent"
               style={{ backgroundColor: "#F3CFCF" }}
             >
-              <TableHead className="w-12 text-center font-bold">#</TableHead>
-              <TableHead className="font-bold">
-                <SortButton
-                  label="Buku"
-                  column="title"
-                  currentSort={sortValid}
-                  currentDir={dir}
-                  basePath="/admin/books"
-                  query={sortQuery}
-                />
+              <TableHead className="w-12 text-center font-bold">
+                No
               </TableHead>
               <TableHead className="font-bold">
-                <SortButton
-                  label="Publisher"
-                  column="publisher"
-                  currentSort={sortValid}
-                  currentDir={dir}
-                  basePath="/admin/books"
-                  query={sortQuery}
-                />
-              </TableHead>
-              <TableHead className="font-bold">Format</TableHead>
-              <TableHead className="font-bold">
-                <SortButton
-                  label="Harga"
-                  column="price"
-                  type="num"
-                  currentSort={sortValid}
-                  currentDir={dir}
-                  basePath="/admin/books"
-                  query={sortQuery}
-                />
+                <span className="flex items-center gap-1">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <SortButton
+                    label="Buku"
+                    column="title"
+                    currentSort={sortValid}
+                    currentDir={dir}
+                    basePath="/admin/books"
+                    query={sortQuery}
+                  />
+                </span>
               </TableHead>
               <TableHead className="font-bold">
-                <SortButton
-                  label="Stok"
-                  column="stock"
-                  type="num"
-                  currentSort={sortValid}
-                  currentDir={dir}
-                  basePath="/admin/books"
-                  query={sortQuery}
-                />
+                <span className="flex items-center gap-1">
+                  <Building2 className="h-3.5 w-3.5" />
+                  <SortButton
+                    label="Publisher"
+                    column="publisher"
+                    currentSort={sortValid}
+                    currentDir={dir}
+                    basePath="/admin/books"
+                    query={sortQuery}
+                  />
+                </span>
               </TableHead>
-              <TableHead className="font-bold">Status</TableHead>
-              <TableHead className="text-center font-bold">Aksi</TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Tag className="h-3.5 w-3.5" />
+                  Format
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Banknote className="h-3.5 w-3.5" />
+                  <SortButton
+                    label="Harga"
+                    column="price"
+                    type="num"
+                    currentSort={sortValid}
+                    currentDir={dir}
+                    basePath="/admin/books"
+                    query={sortQuery}
+                  />
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <Package className="h-3.5 w-3.5" />
+                  <SortButton
+                    label="Stok"
+                    column="stock"
+                    type="num"
+                    currentSort={sortValid}
+                    currentDir={dir}
+                    basePath="/admin/books"
+                    query={sortQuery}
+                  />
+                </span>
+              </TableHead>
+              <TableHead className="font-bold">
+                <span className="flex items-center gap-1">
+                  <CircleCheckBig className="h-3.5 w-3.5" />
+                  Status
+                </span>
+              </TableHead>
+              <TableHead className="text-center font-bold">
+                <span className="inline-flex items-center gap-1">
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Aksi
+                </span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -455,6 +490,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                               </NavActionButton>
                               <ConfirmDeleteButton
                                 size="icon"
+                                triggerClassName="border-[#D97A7A]/40 bg-white text-[#D97A7A] hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
                                 title="Konfirmasi Hapus"
                                 description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
                                 successMessage={`${b.title} berhasil dihapus!`}
@@ -531,7 +567,7 @@ export default async function AdminBooksPage({
 
   return (
     <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 rounded-xl border border-[#F3CFCF] bg-gradient-to-br from-[#FDF0F0] to-[#F9DEDE] p-4 shadow-sm md:border-0 md:bg-none md:p-0 md:shadow-none">
         <div>
           <h2 className="flex items-center gap-2 text-2xl font-bold">
             <BookOpen className="h-6 w-6 text-[#D97A7A]" />

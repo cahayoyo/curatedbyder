@@ -50,11 +50,11 @@ export function MobileBookFilters({
           type="button"
           variant="outline"
           onClick={() => setOpen((o) => !o)}
-          className="h-10 shrink-0 gap-1.5 border-[#F0CBCB] bg-white px-3 text-[15px] font-medium text-black hover:bg-[#FDF1F1]"
+          className="h-10 shrink-0 gap-1.5 border-[#F0CBCB] bg-[#FDF1F1] px-3 text-[15px] font-medium text-[#C96A6A] hover:bg-[#F9DEDE] hover:text-[#C96A6A]"
         >
-          <SlidersHorizontal className="h-4 w-4 text-[#C96A6A]" />
+          <SlidersHorizontal className="h-4 w-4" />
           Filter
-          {open ? <X className="h-3.5 w-3.5 text-muted-foreground" /> : null}
+          {open ? <X className="h-3.5 w-3.5" /> : null}
         </Button>
       </div>
 
