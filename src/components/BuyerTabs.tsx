@@ -732,7 +732,7 @@ export function BuyerTabs({
   }
 
   const tabTriggerCls =
-    "flex-1 gap-1.5 rounded-none border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors data-[state=active]:border-[#D97A7A] data-[state=active]:bg-transparent data-[state=active]:text-[#B04A4A] data-[state=active]:shadow-none";
+    "flex-1 gap-1.5 rounded-none border-b-2 border-transparent border-r border-r-[#F0CBCB] px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors last:border-r-0 data-[state=active]:border-[#D97A7A] data-[state=active]:bg-transparent data-[state=active]:text-[#B04A4A] data-[state=active]:shadow-none";
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
