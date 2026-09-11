@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Sparkles } from "lucide-react";
+import { Calculator, Check, Copy, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatIDR } from "@/lib/format";
@@ -19,6 +19,7 @@ function toNumber(value: string) {
 export function BookxcessCalculator() {
   const [priceMyr, setPriceMyr] = useState("");
   const [weightKg, setWeightKg] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const hasInput = priceMyr.trim() !== "" || weightKg.trim() !== "";
 
@@ -31,6 +32,16 @@ export function BookxcessCalculator() {
 
   function sanitize(value: string) {
     return value.replace(/[^\d.,]/g, "");
+  }
+
+  async function copyTotal() {
+    try {
+      await navigator.clipboard.writeText(formatIDR(total));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ponytail: clipboard permission denied — no-op, user can select manually
+    }
   }
 
   return (
@@ -119,7 +130,15 @@ export function BookxcessCalculator() {
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3 text-center">
+        <div className="relative mt-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] px-4 py-3 text-center">
+          <button
+            type="button"
+            onClick={copyTotal}
+            aria-label="Salin estimasi total"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-[#B85C5C]/70 transition-colors hover:bg-white/70 hover:text-[#B85C5C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8B4B4]"
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </button>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#B85C5C]/80">
             Estimasi Total Bayar
           </p>
