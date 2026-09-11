@@ -13,9 +13,11 @@ import { cn } from "@/lib/utils";
 export function BookFilter({
   basePath,
   className,
+  triggerClassName,
 }: {
   basePath: string;
   className?: string;
+  triggerClassName?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -86,7 +88,10 @@ export function BookFilter({
       <Button
         type="button"
         onClick={toggleOpen}
-        className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+        className={cn(
+          "h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white",
+          triggerClassName
+        )}
       >
         <SlidersHorizontal className="h-3.5 w-3.5" />
         Filter

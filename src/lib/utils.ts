@@ -10,5 +10,5 @@ export function stockBadgeClass(stock: number) {
     ? "border-red-300 bg-red-500 text-white"
     : stock <= 10
       ? "border-amber-300 bg-yellow-300 text-yellow-900"
-      : "border-transparent bg-primary text-primary-foreground"
+      : "border-emerald-300 bg-emerald-500 text-white"
 }

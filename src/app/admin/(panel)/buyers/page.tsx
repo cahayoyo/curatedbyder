@@ -183,8 +183,7 @@ export default async function AdminBuyersPage({
   const totalBuyers = await db.user.count({ where: { role: "USER" } });
 
   return (
-<div className="space-y-4">
-      <div className="mx-auto max-w-5xl space-y-4">
+    <div className="space-y-4 px-2 md:px-6">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-bold">
             <Users className="h-6 w-6" />
@@ -219,7 +218,6 @@ export default async function AdminBuyersPage({
         <Suspense fallback={<ListLoader />}>
           <BuyersList searchParams={sp} />
         </Suspense>
-      </div>
     </div>
   );
 }
