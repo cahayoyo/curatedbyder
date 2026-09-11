@@ -304,7 +304,7 @@ export default async function DashboardPage() {
           >
             <s.icon
               aria-hidden="true"
-              className={`pointer-events-none absolute -bottom-3 -right-2 h-16 w-16 ${s.watermarkCls}`}
+              className={`pointer-events-none absolute bottom-1 right-4 h-16 w-16 ${s.watermarkCls}`}
             />
             <div className="relative flex items-center gap-3">
               <span
