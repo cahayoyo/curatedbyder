@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-const p = new PrismaClient();
+import { createPrismaClient } from "../src/lib/prismaClient";
+const p = createPrismaClient();
 (async () => {
   const fixed = [];
   const items = await p.order.findMany({

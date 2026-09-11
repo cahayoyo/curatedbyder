@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-const p = new PrismaClient();
+import { createPrismaClient } from "../src/lib/prismaClient";
+const p = createPrismaClient();
 (async () => {
   const items = await p.orderItem.findMany({
     where: { book: { title: { startsWith: "Grow : Secrets of DNA" } } },

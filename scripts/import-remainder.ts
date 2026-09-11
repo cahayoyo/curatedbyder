@@ -1,11 +1,11 @@
 import "dotenv/config";
 import * as XLSX from "xlsx";
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../src/lib/prismaClient";
 
 const FILE = "src/assets/temp/order2026.xlsx";
 const SHEET = "REMAINDER";
 
-const db = new PrismaClient();
+const db = createPrismaClient();
 
 const ETA_MAP: Record<string, string> = {
   JANUARY: "JAN",

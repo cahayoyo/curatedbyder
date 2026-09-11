@@ -7,6 +7,15 @@ const nextConfig = {
   // only after root-causing. reactCompiler also disabled pending investigation.
   cacheComponents: false,
   reactCompiler: false,
+  // Prisma runs engine-free (engineType "client" + Neon adapter); nft still
+  // traces unused edge engine/compiler wasm variants into every function.
+  outputFileTracingExcludes: {
+    "/*": [
+      "node_modules/@prisma/client/runtime/query_engine_bg.*",
+      "node_modules/@prisma/client/runtime/query_compiler_bg.*",
+      "node_modules/.prisma/client/query_engine*",
+    ],
+  },
   async rewrites() {
     return [
       // Reverse proxy for PostHog (issue #214): browser requests go to our own
