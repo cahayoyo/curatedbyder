@@ -469,7 +469,7 @@ export default async function AdminBooksPage({
         </Suspense>
 
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-          <div className="min-w-0 flex-1 md:max-w-4xl">
+          <div className="min-w-0 flex-1">
             <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
           </div>
           <div className="flex flex-wrap items-center gap-2">
