@@ -198,7 +198,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-2 md:px-6">
       <div>
         <h2 className="flex items-center gap-2 text-2xl font-bold">
           <Home className="h-6 w-6 text-[#D97A7A]" />

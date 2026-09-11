@@ -73,7 +73,7 @@ export default async function DashboardPage({
 
   return (
     <BuyerShell>
-      <div className="space-y-4">
+      <div className="space-y-4 px-2 md:px-6">
         <div>
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Link href="/dashboard/orders" className="transition-colors hover:text-[#D97A7A]">
