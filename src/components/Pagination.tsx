@@ -8,12 +8,14 @@ export function Pagination({
   pageSize,
   basePath,
   query,
+  variant = "default",
 }: {
   total: number;
   page: number;
   pageSize: number;
   basePath: string;
   query: Record<string, string | undefined>;
+  variant?: "default" | "rose";
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const current = Math.min(page, totalPages);
@@ -40,7 +42,9 @@ export function Pagination({
   if (totalPages <= 1) return null;
 
   const btn =
-    "inline-flex h-9 items-center justify-center gap-1 rounded-md border border-input px-3 text-sm font-medium transition-colors hover:bg-[#FED6D6] hover:text-black";
+    variant === "rose"
+      ? "inline-flex h-9 w-9 items-center justify-center rounded-md border border-input text-sm font-medium transition-colors hover:bg-[#FED6D6] hover:text-black"
+      : "inline-flex h-9 items-center justify-center gap-1 rounded-md border border-input px-3 text-sm font-medium transition-colors hover:bg-[#FED6D6] hover:text-black";
 
   return (
     <div className="flex items-center justify-center gap-2">
@@ -62,7 +66,10 @@ export function Pagination({
             href={href(p)}
             className={cn(
               btn,
-              p === current && "bg-[#FED6D6] text-black hover:bg-[#FED6D6]"
+              p === current &&
+                (variant === "rose"
+                  ? "border-[#D97A7A] bg-[#D97A7A] text-white hover:bg-[#D97A7A] hover:text-white"
+                  : "bg-[#FED6D6] text-black hover:bg-[#FED6D6]")
             )}
           >
             {p}

@@ -1,5 +1,6 @@
+import Image from "next/image";
+import { Suspense } from "react";
 import { db } from "@/lib/db";
-import { Fragment, Suspense } from "react";
 import {
   Table,
   TableBody,
@@ -10,22 +11,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  BookPlus,
-  Pencil,
   BookOpen,
-  Package,
-  ListOrdered,
-  Banknote,
-  Boxes,
-  Hand,
-  Tag,
-  Building2,
-  Info,
-  ImageIcon,
-  CircleCheckBig,
-  PackageCheck,
   Clock,
-  ShoppingCart,
+  ImageIcon,
+  PackageCheck,
+  Pencil,
+  Plus,
 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { NavActionButton } from "@/components/NavActionButton";
@@ -33,17 +24,28 @@ import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BookFilter } from "@/components/BookFilter";
 import { SortButton } from "@/components/SortButton";
+import { BookSortSelect } from "@/components/BookSortSelect";
+import { PublisherSelect } from "@/components/PublisherSelect";
 import { formatIDR } from "@/lib/format";
 import { deleteBook } from "@/server/actions/books";
 import { Pagination } from "@/components/Pagination";
-import { BookThumbnail } from "@/components/BookThumbnail";
 import { BookCard } from "@/components/BookCard";
 import { FormatBadge } from "@/components/FormatBadge";
 import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 
-type BookSearchParams = { q?: string; bookQ?: string; page?: string; per?: string; status?: string; min?: string; max?: string; sort?: string; dir?: string };
+type BookSearchParams = {
+  q?: string;
+  publisher?: string;
+  page?: string;
+  per?: string;
+  status?: string;
+  min?: string;
+  max?: string;
+  sort?: string;
+  dir?: string;
+};
 
 function parseFilters(searchParams: BookSearchParams) {
   const q = (searchParams?.q ?? "").trim().toLowerCase();
@@ -68,6 +70,8 @@ function parseFilters(searchParams: BookSearchParams) {
     .map((s) => s.trim())
     .filter((s) => s === "READY_STOCK" || s === "PRE_ORDER");
 
+  const publisher = (searchParams?.publisher ?? "").trim();
+
   const minRaw = Number(searchParams?.min);
   const maxRaw = Number(searchParams?.max);
   const min = Number.isFinite(minRaw) && minRaw >= 0 ? Math.floor(minRaw) : null;
@@ -78,6 +82,7 @@ function parseFilters(searchParams: BookSearchParams) {
   const where: {
     OR?: { title?: { contains: string; mode: "insensitive" }; publisher?: { contains: string; mode: "insensitive" } }[];
     status?: { in: ("READY_STOCK" | "PRE_ORDER")[] };
+    publisher?: string;
     price?: { gte?: number; lte?: number };
   } = {};
 
@@ -90,13 +95,16 @@ function parseFilters(searchParams: BookSearchParams) {
   if (statuses.length > 0) {
     where.status = { in: statuses as ("READY_STOCK" | "PRE_ORDER")[] };
   }
+  if (publisher) {
+    where.publisher = publisher;
+  }
   if (min != null || max != null) {
     where.price = {};
     if (min != null) where.price.gte = min;
     if (max != null) where.price.lte = max;
   }
 
-  return { q, qRaw, sortValid, dir, orderBy, min, max, statuses, where, page };
+  return { q, qRaw, publisher, sortValid, dir, orderBy, min, max, statuses, where, page };
 }
 
 async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) {
@@ -111,91 +119,72 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
   const preOrderCount =
     statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
 
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-      <div className="col-span-2 rounded-lg border p-4 sm:col-span-1">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Package className="h-4 w-4" />
-          Total Buku
-        </p>
-        <p className="text-2xl font-bold">{totalFiltered}</p>
-      </div>
-      <div className="rounded-lg border p-4">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <PackageCheck className="h-4 w-4" />
-          Total Buku Ready Stok
-        </p>
-        <p className="text-2xl font-bold">{readyCount}</p>
-      </div>
-      <div className="rounded-lg border p-4">
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          Total Buku Pre Order
-        </p>
-        <p className="text-2xl font-bold">{preOrderCount}</p>
-      </div>
-    </div>
-  );
-}
-
-async function BookOrderCount({ searchParams }: { searchParams: BookSearchParams }) {
-  const bookQ = (searchParams?.bookQ ?? "").trim();
-
-  const books = bookQ
-    ? await db.book.findMany({
-        where: { title: { contains: bookQ, mode: "insensitive" } },
-        orderBy: { title: "asc" },
-        take: 5,
-      })
-    : [];
-
-  const orderCounts = new Map<string, number>();
-  if (books.length > 0) {
-    const items = await db.orderItem.findMany({
-      where: { bookId: { in: books.map((b) => b.id) } },
-      select: { bookId: true, orderId: true },
-    });
-    const seen = new Map<string, Set<string>>();
-    for (const item of items) {
-      if (!item.bookId) continue;
-      const set = seen.get(item.bookId) ?? new Set<string>();
-      set.add(item.orderId);
-      seen.set(item.bookId, set);
-    }
-    for (const b of books) orderCounts.set(b.id, seen.get(b.id)?.size ?? 0);
-  }
+  const cards = [
+    {
+      label: "Total Buku",
+      value: totalFiltered,
+      icon: BookOpen,
+      card: "border-[#F3CFCF] from-[#FDF0F0] to-[#F9DEDE]",
+      circle: "bg-[#F6CFCF] text-[#C96A6A]",
+      watermark: "text-[#E9B5B5]",
+    },
+    {
+      label: "Total Buku Ready Stok",
+      value: readyCount,
+      icon: PackageCheck,
+      card: "border-[#CDE6D2] from-[#EEF7EF] to-[#DFF0E2]",
+      circle: "bg-[#CFE8D5] text-[#3F8A54]",
+      watermark: "text-[#BFDCC6]",
+    },
+    {
+      label: "Total Buku Pre Order",
+      value: preOrderCount,
+      icon: Clock,
+      card: "border-[#F0DDB4] from-[#FDF6E7] to-[#F9EBCB]",
+      circle: "bg-[#F6E3B8] text-[#B98A1F]",
+      watermark: "text-[#EED9A8]",
+    },
+  ];
 
   return (
-    <div>
-      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-        <ShoppingCart className="h-4 w-4" />
-        Total Pesanan Buku
-      </p>
-      <div className="w-full md:w-1/2">
-        <SearchInput basePath="/admin/books" paramKey="bookQ" placeholder="Masukkan judul buku..." />
-      </div>
-      {bookQ && (
-        <div className="mt-3 rounded-lg border p-4">
-          {books.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Buku tidak ditemukan</p>
-          ) : (
-            <ul className="space-y-1 text-sm">
-              {books.map((b) => (
-                <li key={b.id} className="flex justify-between">
-                  <span>{b.title}</span>
-                  <span className="font-medium">{orderCounts.get(b.id) ?? 0} pesanan</span>
-                </li>
-              ))}
-            </ul>
+    <div className="grid gap-4 sm:grid-cols-3">
+      {cards.map((c) => (
+        <div
+          key={c.label}
+          className={cn(
+            "relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 shadow-sm",
+            c.card
           )}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                c.circle
+              )}
+            >
+              <c.icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm text-black/60">{c.label}</p>
+              <p className="text-3xl font-bold leading-tight">{c.value}</p>
+            </div>
+          </div>
+          <c.icon
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute -right-1 top-1/2 h-14 w-14 -translate-y-1/2 opacity-50",
+              c.watermark
+            )}
+          />
         </div>
-      )}
+      ))}
     </div>
   );
 }
 
 async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
-  const { qRaw, sortValid, dir, orderBy, min, max, where, page } = parseFilters(searchParams);
+  const { qRaw, publisher, sortValid, dir, orderBy, min, max, where, page } = parseFilters(searchParams);
   const per = parsePerPage(searchParams?.per);
 
   const [totalFiltered, books] = await Promise.all([
@@ -205,11 +194,20 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
       orderBy,
       skip: (page - 1) * per,
       take: per,
-      include: {
-        batchPrices: { include: { batch: { select: { name: true } } } },
-      },
     }),
   ]);
+
+  const from = totalFiltered === 0 ? 0 : (page - 1) * per + 1;
+  const to = Math.min(page * per, totalFiltered);
+
+  const sortQuery = {
+    q: qRaw,
+    publisher: publisher,
+    status: searchParams?.status ?? "",
+    min: min != null ? String(min) : "",
+    max: max != null ? String(max) : "",
+    per: searchParams?.per ?? "",
+  };
 
   return (
     <>
@@ -240,188 +238,158 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
       </div>
 
       {/* Desktop: table layout */}
-      <div className="hidden overflow-x-auto rounded-lg border md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 md:block">
         <Table className="border-collapse">
           <TableHeader>
-            <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
+            <TableRow
+              className="border-b border-[#F0CBCB] hover:bg-transparent"
+              style={{ backgroundColor: "#F6EFEF" }}
+            >
+              <TableHead className="w-12 text-center font-bold">#</TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <ListOrdered className="h-3.5 w-3.5" />
-                  <SortButton label="Judul" column="title" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  Gambar
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Building2 className="h-3.5 w-3.5" />
-                  <SortButton label="Publisher" column="publisher" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
-                </span>
+                <SortButton
+                  label="Buku"
+                  column="title"
+                  currentSort={sortValid}
+                  currentDir={dir}
+                  basePath="/admin/books"
+                  query={sortQuery}
+                />
               </TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Info className="h-3.5 w-3.5" />
-                  Informasi
-                </span>
+                <SortButton
+                  label="Publisher"
+                  column="publisher"
+                  currentSort={sortValid}
+                  currentDir={dir}
+                  basePath="/admin/books"
+                  query={sortQuery}
+                />
+              </TableHead>
+              <TableHead className="font-bold">Format</TableHead>
+              <TableHead className="font-bold">
+                <SortButton
+                  label="Harga"
+                  column="price"
+                  type="num"
+                  currentSort={sortValid}
+                  currentDir={dir}
+                  basePath="/admin/books"
+                  query={sortQuery}
+                />
               </TableHead>
               <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Tag className="h-3.5 w-3.5" />
-                  Format
-                </span>
+                <SortButton
+                  label="Stok"
+                  column="stock"
+                  type="num"
+                  currentSort={sortValid}
+                  currentDir={dir}
+                  basePath="/admin/books"
+                  query={sortQuery}
+                />
               </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Banknote className="h-3.5 w-3.5" />
-                  <SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, status: searchParams?.status ?? "", min: min != null ? String(min) : "", max: max != null ? String(max) : "", per: searchParams?.per ?? "" }} />
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <Boxes className="h-3.5 w-3.5" />
-                  <SortButton label="Stok" column="stock" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/books" query={{ q: qRaw, min: min != null ? String(min) : "", max: max != null ? String(max) : "", status: searchParams?.status ?? "", per: searchParams?.per ?? "" }} />
-                </span>
-              </TableHead>
-              <TableHead className="font-bold">
-                <span className="flex items-center gap-1">
-                  <CircleCheckBig className="h-3.5 w-3.5" />
-                  Status
-                </span>
-              </TableHead>
-              <TableHead className="text-center font-bold">
-                <span className="inline-flex items-center gap-1">
-                  <Hand className="h-3.5 w-3.5" />
-                  Aksi
-                </span>
-              </TableHead>
+              <TableHead className="font-bold">Status</TableHead>
+              <TableHead className="text-center font-bold">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {books.map((b) => {
-              const variants: {
-                key: string;
-                label: string;
-                formats: string[];
-                price: number;
-              }[] = [
-                {
-                  key: `${b.id}-main`,
-                  label: "Utama",
-                  formats: (b.formats ?? []) as string[],
-                  price: b.price,
-                },
-                ...b.batchPrices.map((bp) => ({
-                  key: bp.id,
-                  label: bp.batch.name,
-                  formats: (bp.formats ?? []) as string[],
-                  price: bp.price,
-                })),
-              ];
-              return (
-                <Fragment key={b.id}>
-                  {variants.map((v, vi) => (
-                    <TableRow
-                      key={v.key}
-                      className={`border-b border-input last:border-0 ${vi > 0 ? "border-t-2 border-t-black/30" : ""}`}
-                    >
-                      {vi === 0 && (
-                        <>
-                          <TableCell className="font-medium" rowSpan={variants.length}>
-                            {b.title}
-                          </TableCell>
-                          <TableCell rowSpan={variants.length}>
-                            {b.image ? (
-                              <BookThumbnail src={b.image} alt={b.title} />
-                            ) : (
-                              <div className="flex h-32 w-28 items-center justify-center rounded border-2 border-dashed border-[#D97A7A]/50 bg-[#FED6D6]/20 text-xs font-medium text-[#D97A7A]/70">
-                                <span className="flex flex-col items-center gap-1">
-                                  <ImageIcon className="h-7 w-7" />
-                                  empty
-                                </span>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell rowSpan={variants.length}>{b.publisher || "—"}</TableCell>
-                          <TableCell className="max-w-[200px]" rowSpan={variants.length}>
-                            <span className="line-clamp-2 text-sm">{b.info || "—"}</span>
-                          </TableCell>
-                        </>
-                      )}
-                      <TableCell>
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="flex flex-wrap gap-1">
-                            {v.formats.length > 0 ? (
-                              v.formats.map((f) => <FormatBadge key={f} value={f} />)
-                            ) : (
-                              <span>—</span>
-                            )}
-                          </span>
-                          {variants.length > 1 && (
-                            <span className="text-[10px] font-medium text-muted-foreground">
-                              {v.label}
-                            </span>
-                          )}
+            {books.map((b, i) => (
+              <TableRow key={b.id} className="border-b border-[#F0CBCB]/60 last:border-0">
+                <TableCell className="text-center text-sm text-black/60">
+                  {(page - 1) * per + i + 1}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded border bg-black/5">
+                      {b.image ? (
+                        <Image
+                          src={b.image}
+                          alt={b.title}
+                          fill
+                          sizes="48px"
+                          className="object-cover object-center"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <ImageIcon className="h-5 w-5 text-black/30" />
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {formatIDR(v.price)}
-                      </TableCell>
-                      {vi === 0 && (
-                        <>
-                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                stockBadgeClass(b.stock),
-                                "h-6 w-9 justify-center px-0 text-xs"
-                              )}
-                            >
-                              {b.stock}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="border-l border-input" rowSpan={variants.length}>
-                            <Badge
-                              variant="outline"
-                              className={
-                                b.status === "PRE_ORDER"
-                                  ? "border-amber-300 bg-yellow-300 text-yellow-900"
-                                  : "border-emerald-300 bg-emerald-100 text-emerald-800"
-                              }
-                            >
-                              {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="border-l border-input text-center" rowSpan={variants.length}>
-                            <div className="flex justify-center gap-2">
-                              <NavActionButton
-                                href={`/admin/books/${b.id}/edit`}
-                                icon={<Pencil className="h-3.5 w-3.5" />}
-                                className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
-                              >
-                                Ubah
-                              </NavActionButton>
-                              <ConfirmDeleteButton
-                                title="Konfirmasi Hapus"
-                                description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
-                                successMessage={`${b.title} berhasil dihapus!`}
-                                onConfirm={deleteBook.bind(null, b.id)}
-                              />
-                            </div>
-                          </TableCell>
-                        </>
                       )}
-                    </TableRow>
-                  ))}
-                </Fragment>
-              );
-            })}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="line-clamp-1 font-semibold">{b.title}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs italic text-muted-foreground">
+                        {b.info || "—"}
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {b.publisher || "—"}
+                </TableCell>
+                <TableCell>
+                  {b.formats.length > 0 ? (
+                    <span className="flex flex-wrap gap-1">
+                      {(b.formats as string[]).map((f) => (
+                        <FormatBadge key={f} value={f} />
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatIDR(b.price)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      stockBadgeClass(b.stock),
+                      "h-6 min-w-9 justify-center px-2 text-xs"
+                    )}
+                  >
+                    {b.stock}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={
+                      b.status === "PRE_ORDER"
+                        ? "border-amber-300 bg-yellow-300 text-yellow-900"
+                        : "border-emerald-300 bg-emerald-100 text-emerald-800"
+                    }
+                  >
+                    {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center gap-2">
+                    <NavActionButton
+                      href={`/admin/books/${b.id}/edit`}
+                      icon={<Pencil className="h-3.5 w-3.5" />}
+                      className="h-8 w-8 rounded-md border border-[#D97A7A]/40 bg-white p-0 text-[#D97A7A] shadow-sm hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
+                    >
+                      <span className="sr-only">Ubah</span>
+                    </NavActionButton>
+                    <ConfirmDeleteButton
+                      size="icon"
+                      title="Konfirmasi Hapus"
+                      description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
+                      successMessage={`${b.title} berhasil dihapus!`}
+                      onConfirm={deleteBook.bind(null, b.id)}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
             {books.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="py-8 text-center text-muted-foreground"
+                >
                   Belum ada buku.
                 </TableCell>
               </TableRow>
@@ -430,14 +398,21 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
         </Table>
       </div>
 
-      <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-black/60">
+          {totalFiltered === 0
+            ? "Tidak ada buku."
+            : `Menampilkan ${from} - ${to} dari ${totalFiltered} buku.`}
+        </p>
         <Pagination
+          variant="rose"
           total={totalFiltered}
           page={page}
           pageSize={per}
           basePath="/admin/books"
           query={{
             q: qRaw,
+            publisher,
             status: searchParams?.status ?? "",
             min: min != null ? String(min) : "",
             max: max != null ? String(max) : "",
@@ -457,18 +432,34 @@ export default async function AdminBooksPage({
   searchParams: Promise<BookSearchParams>;
 }) {
   const sp = scalarize(await searchParams, ["status"]) as BookSearchParams;
+
+  const publisherRows = await db.book.findMany({
+    where: { publisher: { not: null } },
+    select: { publisher: true },
+    distinct: ["publisher"],
+    orderBy: { publisher: "asc" },
+  });
+  const publisherOptions = publisherRows
+    .map((r) => r.publisher)
+    .filter((p): p is string => Boolean(p));
+
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-5xl space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-bold">
-            <BookOpen className="h-6 w-6" />
-            Daftar Buku
-          </h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-2xl font-bold">
+              <BookOpen className="h-6 w-6 text-[#D97A7A]" />
+              Daftar Buku
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Kelola koleksi buku di CuratedByDer. Tambah, ubah, atau hapus buku dengan mudah.
+            </p>
+          </div>
           <NavActionButton
             href="/admin/books/new"
-            icon={<BookPlus className="h-4 w-4" />}
-            className="border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white"
+            icon={<Plus className="h-4 w-4" />}
+            className="shrink-0 bg-[#D97A7A] text-white shadow-sm hover:bg-[#c9686b] hover:text-white"
           >
             Tambah Buku
           </NavActionButton>
@@ -478,18 +469,20 @@ export default async function AdminBooksPage({
           <BooksStats searchParams={sp} />
         </Suspense>
 
-        <Suspense fallback={null}>
-          <BookOrderCount searchParams={sp} />
-        </Suspense>
-
-        <div className="flex flex-col gap-2 md:flex-row md:items-start">
-          <div className="flex w-full items-center gap-2 md:w-[80%]">
-            <div className="w-full">
-              <SearchInput basePath="/admin/books" placeholder="Cari judul / publisher..." />
-            </div>
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput basePath="/admin/books" placeholder="Masukkan judul buku..." />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <BookFilter
+              basePath="/admin/books"
+              className="w-full sm:w-auto"
+              triggerClassName="bg-white text-black hover:bg-[#FED6D6] hover:text-black"
+            />
+            <PublisherSelect basePath="/admin/books" options={publisherOptions} />
+            <BookSortSelect basePath="/admin/books" />
             <PageSizeSelect basePath="/admin/books" />
           </div>
-          <BookFilter basePath="/admin/books" className="w-full md:order-first md:w-[20%]" />
         </div>
 
         <Suspense fallback={<ListLoader />}>
