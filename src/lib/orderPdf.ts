@@ -176,7 +176,7 @@ export function buildOrderPdf(order: OrderPdfDTO) {
       [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
       [{ content: "", colSpan: 8 }],
       [{ content: "Ongkos Kirim", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
-      [{ content: "Pembayaran I", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
+      [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
       ...(order.payments ?? []).map((p, i) => [
         { content: pembayaranLabel(i), colSpan: 7, styles: { halign: "right" as const } },
         formatIDR(p.amount),

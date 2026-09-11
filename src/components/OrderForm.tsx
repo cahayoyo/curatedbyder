@@ -382,7 +382,7 @@ export function OrderForm({
     const amount = Number(dpAmountDraft || dp || 0);
     if (!Number.isInteger(amount) || amount < 0) return error("Jumlah pembayaran tidak valid");
     if (amount > total - paidSum) {
-      return error(`Pembayaran I melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
+      return error(`DP melebihi batas (${formatIDR(Math.max(0, total - paidSum))})`);
     }
     startTransition(async () => {
       try {
@@ -394,7 +394,7 @@ export function OrderForm({
           error(res.error);
           return;
         }
-        success("Pembayaran I berhasil diubah!");
+        success("DP berhasil diubah!");
         capture("order_dp_updated", { amount, has_proof: Boolean(dpProofDraft) });
         setDp(dpAmountDraft);
         setDpProofUrl(dpProofDraft);
@@ -780,7 +780,7 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            DP (30% Dari Total Tagihan)
+            DP (Min. 30% dari Total Order)
           </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
@@ -788,11 +788,12 @@ export function OrderForm({
             </span>
             <Input
               inputMode="numeric"
-              readOnly
-              disabled
+              readOnly={!isEdit}
+              disabled={!isEdit}
               className="pl-10 placeholder:text-black/30 bg-black/5"
               value={isEdit ? (dp ? formatRp(dp) : "") : effectiveDp ? formatRp(String(effectiveDp)) : ""}
-              placeholder="Auto 30%"
+              onChange={(e) => setDp(e.target.value.replace(/\D/g, ""))}
+              placeholder="Masukkan jumlah..."
             />
           </div>
         </div>
@@ -848,21 +849,20 @@ export function OrderForm({
             <div className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-input bg-white/50 p-2.5">
               <div className="flex min-h-9 flex-wrap items-center gap-2">
                 <span className="shrink-0 rounded border border-[#D97A7A]/40 bg-[#FED6D6]/50 px-2 py-0.5 text-xs font-semibold text-[#D97A7A]">
-                  Pembayaran I
+                  DP
                 </span>
                 <span className="text-sm font-semibold">{formatIDR(effectiveDp)}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">DP</span>
                 {dpProofUrl && (
                   <a
                     href={dpProofUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="shrink-0"
-                    aria-label="Lihat bukti pembayaran I"
+                    aria-label="Lihat bukti DP"
                   >
                     <Image
                       src={dpProofUrl}
-                      alt="Bukti pembayaran I"
+                      alt="Bukti DP"
                       width={36}
                       height={36}
                       className="h-9 w-9 rounded border border-input object-cover"
@@ -876,7 +876,7 @@ export function OrderForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="Edit pembayaran I"
+                    aria-label="Edit DP"
                     onClick={() => {
                       setDpAmountDraft(dp ?? "");
                       setDpProofDraft(dpProofUrl);
@@ -959,10 +959,9 @@ export function OrderForm({
                   </span>
                   <Input
                     inputMode="numeric"
-                    readOnly
-                    disabled
-                    className="pl-10 bg-black/5"
+                    className="pl-10 placeholder:text-black/30"
                     value={dpAmountDraft ? formatRp(dpAmountDraft) : ""}
+                    onChange={(e) => setDpAmountDraft(e.target.value.replace(/\D/g, ""))}
                     placeholder="Masukkan jumlah..."
                   />
                 </div>
@@ -971,7 +970,7 @@ export function OrderForm({
                 <Label>Foto Bukti (opsional)</Label>
                 <BookImagePicker
                   image={dpProofDraft}
-                  alt="Bukti pembayaran I"
+                  alt="Bukti DP"
                   endpoint="paymentProof"
                   onChange={setDpProofDraft}
                 />
@@ -984,7 +983,7 @@ export function OrderForm({
                   className="flex-1 border border-input bg-[#D97A7A] text-white transition-colors hover:bg-[#c96666]"
                 >
                   <Save className="h-4 w-4" />
-                  {pending ? "Menyimpan..." : "Simpan Pembayaran I"}
+                  {pending ? "Menyimpan..." : "Simpan DP"}
                 </Button>
                 <Button
                   type="button"
@@ -1108,7 +1107,7 @@ export function OrderForm({
             subtotal={productTotal}
             shippingCost={shippingCostNum}
             dp={effectiveDp}
-            dpLabel="DP (30% Dari Total Tagihan)"
+            dpLabel="DP (Min. 30% dari Total Order)"
             total={total}
           />
         </div>
