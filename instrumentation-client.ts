@@ -8,8 +8,8 @@ const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
 if (!posthogKey) {
-  // PostHog is intentionally disabled on local dev and staging previews
-  // (the key is only set in production). Warn instead of throwing so the
+  // PostHog is intentionally disabled outside production (the key is only
+  // set in the production Vercel scope). Warn instead of throwing so the
   // app still runs without it.
   if (process.env.NODE_ENV !== "production") {
     console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_KEY not set — analytics disabled.");
