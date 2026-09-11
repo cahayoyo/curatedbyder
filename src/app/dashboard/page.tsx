@@ -4,7 +4,6 @@ import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
-  FileText,
   Heart,
   Home,
   ReceiptText,
@@ -21,7 +20,7 @@ import {
   STATUS_LABEL,
 } from "@/lib/orderOptions";
 import { dateLabel } from "@/lib/format";
-import { OrderDTO, TrackCard } from "@/components/BuyerTabs";
+import { OrderDTO } from "@/components/BuyerTabs";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { CatalogCarousel } from "@/components/dashboard/CatalogCarousel";
 import { OrderDetailButton } from "@/components/dashboard/DashboardActions";
@@ -99,7 +98,7 @@ export default async function DashboardPage() {
   const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const [activeCount, unpaidCount, shippingCount, doneCount, recent, shipped, catalogBooks, catalogToys] =
+  const [activeCount, unpaidCount, shippingCount, doneCount, recent, catalogBooks, catalogToys] =
     await Promise.all([
       db.order.count({
         where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
@@ -117,11 +116,6 @@ export default async function DashboardPage() {
         take: 3,
         include: buyerOrderInclude,
       }),
-      db.order.findFirst({
-        where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
-        orderBy: { soldAt: "desc" },
-        include: buyerOrderInclude,
-      }),
       db.book.findMany({
         where: { image: { not: null }, showOnDashboard: true },
         orderBy: { createdAt: "desc" },
@@ -137,7 +131,6 @@ export default async function DashboardPage() {
     ]);
 
   const recentOrders = recent.map(toBuyerOrderDTO);
-  const shippedOrder = shipped ? toBuyerOrderDTO(shipped) : null;
 
   const catalogItems = [
     ...catalogBooks.map((b) => ({
@@ -352,32 +345,6 @@ export default async function DashboardPage() {
       <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
         <CatalogCarousel items={catalogItems} buyerName={session.user.name ?? "Pembaca"} />
       </div>
-
-      {shippedOrder && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-2">
-              <h4 className="flex items-center gap-2 font-semibold">
-                <Truck className="h-4 w-4 text-[#D97A7A]" />
-                Status Pengiriman
-              </h4>
-              <Link href="/dashboard/orders?tab=shipment" aria-label="Lihat pengiriman">
-                <ChevronRight className="h-4 w-4 text-[#D97A7A]" />
-              </Link>
-            </div>
-            <div className="mt-3">
-              <TrackCard order={shippedOrder} />
-            </div>
-            <Link
-              href="/dashboard/orders?tab=shipment"
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#D97A7A]/40 py-2 text-xs font-semibold text-[#D97A7A] hover:bg-[#D97A7A]/5"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Lihat Detail Pengiriman
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
