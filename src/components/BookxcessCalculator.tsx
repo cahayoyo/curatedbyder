@@ -90,7 +90,7 @@ export function BookxcessCalculator() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="calc-myr" className="text-xs font-semibold text-gray-700">
               Harga Buku (MYR)
