@@ -30,7 +30,7 @@ import {
   STATUSES,
 } from "@/lib/orderOptions";
 import { formatIDR, dateLabel } from "@/lib/format";
-import { waLink } from "@/lib/wa";
+import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
 import {
   Boxes,
@@ -83,8 +83,6 @@ export type OrderDTO = {
   buyerContact: string | null;
   items: OrderItemDTO[];
 };
-
-const ADMIN_WA = "6281381346059";
 
 function BadgeGroup({ payment }: { payment: string }) {
   return (
