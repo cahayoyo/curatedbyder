@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
@@ -27,13 +28,12 @@ import {
   PAYMENT_BADGE,
   STATUS_BADGE,
   FORMAT_BADGE,
-  ETA_TYPE,
   etaLabel,
-  STATUSES,
 } from "@/lib/orderOptions";
 import { formatIDR, dateLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
+import { earliestEta, StageTimeline } from "@/components/TrackingTimeline";
 import {
   ArrowRight,
   Boxes,
@@ -258,15 +258,6 @@ function OrderCard({ order }: { order: OrderDTO }) {
     </div>
   );
 }
-
-const TRACK_STATUSES = [
-  "ORDER_PLACED",
-  "SHIPPING_TO_INDONESIA",
-  "ARRIVED_IN_INDONESIA",
-  "ARRIVED_AT_WAREHOUSE",
-  "SHIPPED_TO_CUSTOMER",
-  "ORDER_DELIVERED",
-];
 
 function buildAdminWaText(order: OrderDTO): string {
   return `Halo Admin CuratedByDer,
@@ -503,15 +494,7 @@ function formatDateTime(iso: string) {
   });
 }
 
-function stageParts(iso: string) {
-  const d = new Date(iso);
-  return {
-    date: d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
-    time: d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
-  };
-}
-
-function CopyResi({ value }: { value: string | null }) {
+export function CopyResi({ value }: { value: string | null }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -542,72 +525,16 @@ function CopyResi({ value }: { value: string | null }) {
   );
 }
 
-function StageTimeline({ items }: { items: OrderItemDTO[] }) {
-  const current = STATUSES.find((s) => items.some((it) => it.status === s.value))?.value ?? "ORDER_PLACED";
-  const done = TRACK_STATUSES.indexOf(current);
-
-  return (
-    <div className="overflow-x-auto pb-1">
-      <div className="grid min-w-[760px] grid-cols-6 items-start">
-        {TRACK_STATUSES.map((sv, i) => {
-          const reached = i <= done;
-          const isCurrent = i === done;
-          const stamp = items.reduce<string | null>((acc, it) => {
-            const d = it.stages[i];
-            if (!d) return acc;
-            return !acc || new Date(d) > new Date(acc) ? d : acc;
-          }, null);
-          const parts = stamp ? stageParts(stamp) : null;
-          return (
-            <div key={sv} className="relative flex flex-col items-center gap-1 px-0.5 text-center">
-              {i < TRACK_STATUSES.length - 1 && (
-                <span
-                  aria-hidden
-                  className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-full ${
-                    i < done ? "bg-emerald-400" : "bg-black/10"
-                  }`}
-                />
-              )}
-              <span
-                className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full ${
-                  isCurrent
-                    ? "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
-                    : reached
-                      ? "bg-emerald-500 text-white"
-                      : "border border-black/10 bg-white text-black/30"
-                }`}
-              >
-                {reached && !isCurrent ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
-              </span>
-              <span
-                className={`text-[11px] font-medium leading-tight ${reached ? "text-black/80" : "text-black/40"}`}
-              >
-                {STATUS_LABEL[sv] ?? sv}
-              </span>
-              {parts ? (
-                <>
-                  <span className="text-[10px] leading-tight text-black/50">{parts.date}</span>
-                  <span className="text-[10px] leading-tight text-black/40">{parts.time}</span>
-                </>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export function TrackCard({ order }: { order: OrderDTO }) {
+export function TrackCard({
+  order,
+  variant = "list",
+}: {
+  order: OrderDTO;
+  variant?: "list" | "detail";
+}) {
   const [detailOpen, setDetailOpen] = useState(false);
   const cover = order.items.find((it) => it.image)?.image ?? null;
-  const earliestEta = [...order.items]
-    .map((it) => it.eta)
-    .sort(
-      (a, b) =>
-        ETA_TYPE.indexOf(a as (typeof ETA_TYPE)[number]) -
-        ETA_TYPE.indexOf(b as (typeof ETA_TYPE)[number])
-    )[0];
+  const eta = earliestEta(order.items);
 
   return (
     <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm sm:p-4">
@@ -663,30 +590,44 @@ export function TrackCard({ order }: { order: OrderDTO }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 text-xs text-black/70 md:flex-1">
-          <p className="flex items-center gap-1.5">
-            <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">No. Resi:</span>
-            <CopyResi value={order.trackingNumber} />
-          </p>
-          <p className="flex items-center gap-1.5">
-            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Estimasi Tiba:</span>
-            <span className="font-semibold">{etaLabel(earliestEta)}</span>
-          </p>
-        </div>
+        {variant === "list" && (
+          <div className="flex flex-col gap-1.5 text-xs text-black/70 md:flex-1">
+            <p className="flex items-center gap-1.5">
+              <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-muted-foreground">No. Resi:</span>
+              <CopyResi value={order.trackingNumber} />
+            </p>
+            <p className="flex items-center gap-1.5">
+              <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-muted-foreground">Estimasi Tiba:</span>
+              <span className="font-semibold">{etaLabel(eta)}</span>
+            </p>
+          </div>
+        )}
 
         <div className="flex shrink-0 flex-col items-start gap-4 md:items-end">
           <BadgeGroup payment={order.paymentStatus} />
 
-          <Button
-            type="button"
-            onClick={() => setDetailOpen(true)}
-            className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white/70 px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
-          >
-            Lihat Detail Pengiriman
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
+          {variant === "detail" ? (
+            <Button
+              type="button"
+              onClick={() => setDetailOpen(true)}
+              className="h-auto gap-1 rounded-none bg-transparent p-0 text-xs font-semibold text-[#C96A6A] shadow-none hover:bg-transparent hover:text-[#B04A4A]"
+            >
+              Lihat Invoice
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          ) : (
+            <Button
+              asChild
+              className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white/70 px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+            >
+              <Link href={`/dashboard/orders/tracking/${order.id}`}>
+                Lihat Detail Pengiriman
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 

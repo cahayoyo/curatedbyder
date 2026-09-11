@@ -4,6 +4,7 @@ import { Prisma, PaymentStatus, OrderStatus } from "@prisma/client";
 import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
+import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { BuyerFilter } from "@/components/BuyerFilter";
@@ -164,59 +165,13 @@ async function OrdersSection({
 
   const orders = await db.order.findMany({
     where,
-    include: {
-      buyer: { select: { name: true, phone: true, contact: true } },
-      items: {
-        orderBy: { id: "asc" },
-        include: {
-          batch: { select: { name: true } },
-          book: { select: { title: true, formats: true, image: true } },
-          toy: { select: { title: true, image: true } },
-        },
-      },
-    },
+    include: buyerOrderInclude,
     orderBy: { soldAt: "desc" },
     skip: (page - 1) * per,
     take: per,
   });
 
-  const dto: OrderDTO[] = orders.map((s) => ({
-    id: s.id,
-    invoiceNumber: s.invoiceNumber,
-    paymentStatus: s.paymentStatus,
-    total: s.total,
-    soldAt: s.soldAt.toISOString(),
-    dp: s.dp,
-    remaining: s.remaining ?? Math.max(0, s.total - (s.dp ?? 0)),
-    shippingCost: s.shippingCost,
-    trackingNumber: s.trackingNumber,
-    buyerName: s.buyer.name,
-    buyerPhone: s.buyer.phone,
-    buyerContact: s.buyer.contact,
-    items: s.items.map((i) => ({
-      quantity: i.quantity,
-      unitPrice: i.unitPrice,
-      subtotal: i.quantity * i.unitPrice,
-      status: i.status,
-      batchId: i.batchId,
-      batchName: i.batch?.name ?? null,
-      eta: i.eta,
-      kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
-      image: i.book?.image ?? i.toy?.image ?? null,
-      stages: [
-        i.placedAt,
-        i.shippingToIndonesiaAt,
-        i.arrivedInIndonesiaAt,
-        i.arrivedAtWarehouseAt,
-        i.shippedToCustomerAt,
-        i.deliveredAt,
-      ].map((d) => d?.toISOString() ?? null),
-      book: {
-        title: i.book?.title ?? i.toy?.title ?? "—",
-        formats: i.book?.formats ?? [],
-      },
-    })),
-  }));
+  const dto: OrderDTO[] = orders.map(toBuyerOrderDTO);
 
   const paginationQuery = {
     q: searchParams?.q ?? "",

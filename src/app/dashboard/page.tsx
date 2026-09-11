@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
 import {
   ArrowRight,
   BookOpen,
@@ -23,61 +22,9 @@ import {
 } from "@/lib/orderOptions";
 import { dateLabel } from "@/lib/format";
 import { OrderDTO, TrackCard } from "@/components/BuyerTabs";
+import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { CatalogCarousel } from "@/components/dashboard/CatalogCarousel";
 import { OrderDetailButton } from "@/components/dashboard/DashboardActions";
-
-const orderInclude = {
-  buyer: { select: { name: true, phone: true, contact: true } },
-  items: {
-    include: {
-      batch: { select: { name: true } },
-      book: { select: { title: true, formats: true, image: true } },
-      toy: { select: { title: true, image: true } },
-    },
-  },
-} satisfies Prisma.OrderInclude;
-
-type OrderWithItems = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
-
-function toDTO(s: OrderWithItems): OrderDTO {
-  return {
-    id: s.id,
-    invoiceNumber: s.invoiceNumber,
-    paymentStatus: s.paymentStatus,
-    total: s.total,
-    soldAt: s.soldAt.toISOString(),
-    dp: s.dp,
-    remaining: s.remaining ?? Math.max(0, s.total - (s.dp ?? 0)),
-    shippingCost: s.shippingCost,
-    trackingNumber: s.trackingNumber,
-    buyerName: s.buyer.name,
-    buyerPhone: s.buyer.phone,
-    buyerContact: s.buyer.contact,
-    items: s.items.map((i) => ({
-      quantity: i.quantity,
-      unitPrice: i.unitPrice,
-      subtotal: i.subtotal,
-      status: i.status,
-      batchId: i.batchId,
-      batchName: i.batch?.name ?? null,
-      eta: i.eta,
-      kind: i.book ? "BUKU" : i.toy ? "MAINAN" : "LAINNYA",
-      image: i.book?.image ?? i.toy?.image ?? null,
-      stages: [
-        i.placedAt,
-        i.shippingToIndonesiaAt,
-        i.arrivedInIndonesiaAt,
-        i.arrivedAtWarehouseAt,
-        i.shippedToCustomerAt,
-        i.deliveredAt,
-      ].map((d) => d?.toISOString() ?? null),
-      book: {
-        title: i.book?.title ?? i.toy?.title ?? "—",
-        formats: i.book?.formats ?? [],
-      },
-    })),
-  };
-}
 
 function HeroDecor() {
   return (
@@ -168,12 +115,12 @@ export default async function DashboardPage() {
         where: { buyerId: userId },
         orderBy: { soldAt: "desc" },
         take: 3,
-        include: orderInclude,
+        include: buyerOrderInclude,
       }),
       db.order.findFirst({
         where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
         orderBy: { soldAt: "desc" },
-        include: orderInclude,
+        include: buyerOrderInclude,
       }),
       db.book.findMany({
         where: { image: { not: null }, showOnDashboard: true },
@@ -189,8 +136,8 @@ export default async function DashboardPage() {
       }),
     ]);
 
-  const recentOrders = recent.map(toDTO);
-  const shippedOrder = shipped ? toDTO(shipped) : null;
+  const recentOrders = recent.map(toBuyerOrderDTO);
+  const shippedOrder = shipped ? toBuyerOrderDTO(shipped) : null;
 
   const catalogItems = [
     ...catalogBooks.map((b) => ({
