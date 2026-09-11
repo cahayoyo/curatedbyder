@@ -7,7 +7,6 @@ import {
   aggregateStamp,
   currentStageIndex,
   stageDateParts,
-  stampLabel,
   type TimelineItem,
 } from "@/lib/tracking";
 
@@ -174,7 +173,6 @@ export function StageStatusBanner({
 }) {
   const idx = currentStageIndex(items);
   const info = STAGE_INFO[STATUS_TYPE[idx]];
-  const stamp = aggregateStamp(items, idx);
   if (!info) return null;
 
   return (
@@ -188,10 +186,7 @@ export function StageStatusBanner({
           <p className="mt-0.5 text-xs text-black/60">{info.description}</p>
         </div>
       </div>
-      <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
-        {!action && stamp && <p className="text-xs text-black/50 sm:text-right">{stampLabel(stamp)}</p>}
-        {action}
-      </div>
+      {action && <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">{action}</div>}
     </div>
   );
 }
