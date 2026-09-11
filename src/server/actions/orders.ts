@@ -252,6 +252,7 @@ export async function createOrder(
             quantity: i.quantity,
             unitPrice: price,
             subtotal: price * i.quantity,
+            placedAt: new Date(),
           };
         }
         const toy = toyMap.get(i.toyId as string);
@@ -269,6 +270,7 @@ export async function createOrder(
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
+          placedAt: new Date(),
         };
       });
 
@@ -357,7 +359,22 @@ export async function updateOrder(
     const [existing, books, toys, batchPrices] = await Promise.all([
       tx.order.findUnique({
         where: { id },
-        include: { items: { select: { bookId: true, toyId: true, quantity: true, status: true } } },
+        include: {
+          items: {
+            select: {
+              bookId: true,
+              toyId: true,
+              quantity: true,
+              status: true,
+              placedAt: true,
+              shippingToIndonesiaAt: true,
+              arrivedInIndonesiaAt: true,
+              arrivedAtWarehouseAt: true,
+              shippedToCustomerAt: true,
+              deliveredAt: true,
+            },
+          },
+        },
       }),
       tx.book.findMany({
         where: { id: { in: bookIds } },
@@ -381,6 +398,27 @@ export async function updateOrder(
     const oldStatusMap = new Map(
       existing.items.map((it) => [it.bookId ?? it.toyId ?? "", it.status])
     );
+    const oldStampMap = new Map(
+      existing.items.map((it) => [
+        it.bookId ?? it.toyId ?? "",
+        {
+          placedAt: it.placedAt,
+          shippingToIndonesiaAt: it.shippingToIndonesiaAt,
+          arrivedInIndonesiaAt: it.arrivedInIndonesiaAt,
+          arrivedAtWarehouseAt: it.arrivedAtWarehouseAt,
+          shippedToCustomerAt: it.shippedToCustomerAt,
+          deliveredAt: it.deliveredAt,
+        },
+      ])
+    );
+    const emptyStamps = {
+      placedAt: null,
+      shippingToIndonesiaAt: null,
+      arrivedInIndonesiaAt: null,
+      arrivedAtWarehouseAt: null,
+      shippedToCustomerAt: null,
+      deliveredAt: null,
+    };
     const bookMap = new Map(books.map((b) => [b.id, b]));
     const toyMap = new Map(toys.map((t) => [t.id, t]));
     const batchPriceMap = new Map(
@@ -401,6 +439,12 @@ export async function updateOrder(
       unitPrice: number;
       subtotal: number;
       status: (typeof STATUS_TYPE)[number];
+      placedAt: Date | null;
+      shippingToIndonesiaAt: Date | null;
+      arrivedInIndonesiaAt: Date | null;
+      arrivedAtWarehouseAt: Date | null;
+      shippedToCustomerAt: Date | null;
+      deliveredAt: Date | null;
     }[] = [];
     const stockChanges: { bookId?: string; toyId?: string; amount: number }[] = [];
 
@@ -428,6 +472,7 @@ export async function updateOrder(
           unitPrice: price,
           subtotal: price * i.quantity,
           status: oldStatusMap.get(key) ?? "ORDER_PLACED",
+          ...(oldStampMap.get(key) ?? emptyStamps),
         });
         if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
       } else {
@@ -447,6 +492,7 @@ export async function updateOrder(
           unitPrice: price,
           subtotal: price * i.quantity,
           status: oldStatusMap.get(key) ?? "ORDER_PLACED",
+          ...(oldStampMap.get(key) ?? emptyStamps),
         });
         if (diff !== 0) stockChanges.push({ toyId: i.toyId as string, amount: -diff });
       }
@@ -509,13 +555,40 @@ export async function updateOrder(
   return { ok: true };
 }
 
+const STAGE_FIELDS = [
+  "placedAt",
+  "shippingToIndonesiaAt",
+  "arrivedInIndonesiaAt",
+  "arrivedAtWarehouseAt",
+  "shippedToCustomerAt",
+  "deliveredAt",
+] as const;
+
+const stageSelect = {
+  placedAt: true,
+  shippingToIndonesiaAt: true,
+  arrivedInIndonesiaAt: true,
+  arrivedAtWarehouseAt: true,
+  shippedToCustomerAt: true,
+  deliveredAt: true,
+} satisfies Prisma.OrderItemSelect;
+
 export async function updateOrderItemStatus(itemId: string, status: string) {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
   const valid = z.enum(STATUS_TYPE).parse(status);
   try {
-    await db.orderItem.update({ where: { id: itemId }, data: { status: valid } });
+    const item = await db.orderItem.findUnique({ where: { id: itemId }, select: stageSelect });
+    if (!item) throw new UserInputError("Item pesanan tidak ditemukan");
+
+    const stageIndex = STATUS_TYPE.indexOf(valid);
+    const stampField = STAGE_FIELDS[stageIndex];
+    const data: Prisma.OrderItemUncheckedUpdateInput = { status: valid };
+    data[stampField] = item[stampField] ?? new Date();
+    for (const field of STAGE_FIELDS.slice(stageIndex + 1)) data[field] = null;
+
+    await db.orderItem.update({ where: { id: itemId }, data });
   } catch (e) {
     emitLog(`Order item ${itemId} status update failed`, { actor, item_id: itemId, status: valid, error: String(e) }, SeverityNumber.ERROR);
     throw e;

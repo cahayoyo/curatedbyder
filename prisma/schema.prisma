@@ -194,6 +194,13 @@ model OrderItem {
   subtotal  Int
   status    OrderStatus @default(ORDER_PLACED)
 
+  placedAt              DateTime?
+  shippingToIndonesiaAt DateTime?
+  arrivedInIndonesiaAt  DateTime?
+  arrivedAtWarehouseAt  DateTime?
+  shippedToCustomerAt   DateTime?
+  deliveredAt           DateTime?
+
   @@index([batchId])
   @@index([eta])
 }
