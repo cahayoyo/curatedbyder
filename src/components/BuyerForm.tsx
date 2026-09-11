@@ -176,7 +176,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="order-3 space-y-1.5 sm:order-none">
                 <Label>Username</Label>
                 <div className="relative">
                   <AtSign className={fieldIconCls} />
@@ -195,7 +195,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                 </p>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="order-2 space-y-1.5 sm:order-none">
                 <Label>
                   Nomor Telepon <RequiredMark />
                 </Label>
@@ -212,7 +212,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="order-4 space-y-1.5 sm:order-none">
                 <Label>Alamat</Label>
                 <div className="relative">
                   <MapPin className={fieldIconTopCls} />
