@@ -3,6 +3,7 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { after } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const postHogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -27,11 +28,18 @@ export const loggerProvider = new LoggerProvider({
 
 // Create the provider outside register() so route handlers / server actions
 // can import it and forceFlush() before the serverless function freezes.
-export function register() {
+export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("../sentry.server.config");
     logs.setGlobalLoggerProvider(loggerProvider);
   }
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("../sentry.edge.config");
+  }
 }
+
+// Capture errors from Server Components, server actions, and middleware.
+export const onRequestError = Sentry.captureRequestError;
 
 export type LogAttributes = Record<string, string | number | boolean | null | undefined>;
 
