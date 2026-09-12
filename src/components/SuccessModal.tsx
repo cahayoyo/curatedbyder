@@ -13,12 +13,25 @@ import { cn } from "@/lib/utils";
 
 type FeedbackVariant = "success" | "error";
 
-type FeedbackOptions = { title?: string; hint?: string };
+type FeedbackOptions = { title?: string; hint?: string; emphasis?: string };
 
 type SuccessModalContextValue = {
   success: (message: string) => void;
   error: (message: string, options?: FeedbackOptions) => void;
 };
+
+function renderMessage(message: string, emphasis?: string) {
+  if (!emphasis) return message;
+  const at = message.indexOf(emphasis);
+  if (at < 0) return message;
+  return (
+    <>
+      {message.slice(0, at)}
+      <strong className="font-bold">{emphasis}</strong>
+      {message.slice(at + emphasis.length)}
+    </>
+  );
+}
 
 const SuccessModalContext = createContext<SuccessModalContextValue | null>(null);
 
@@ -28,6 +41,7 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
   const [hint, setHint] = useState("");
+  const [emphasis, setEmphasis] = useState("");
   const [variant, setVariant] = useState<FeedbackVariant>("success");
   const [open, setOpen] = useState(false);
   const [deplete, setDeplete] = useState(false);
@@ -53,6 +67,7 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
       setMessage(msg);
       setTitle(options?.title ?? "");
       setHint(options?.hint ?? "");
+      setEmphasis(options?.emphasis ?? "");
       setVariant(v);
       setOpen(true);
       setDeplete(false);
@@ -131,11 +146,12 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
             ) : null}
             <p
               className={cn(
-                "break-words text-base font-semibold text-black",
+                "break-words text-base text-black",
+                variant === "error" ? "font-normal" : "font-semibold",
                 title ? "mt-1" : "mt-3",
               )}
             >
-              {message}
+              {renderMessage(message, emphasis)}
             </p>
             {hint ? (
               <p className="mt-1 break-words text-sm text-[#6B7280]">{hint}</p>
