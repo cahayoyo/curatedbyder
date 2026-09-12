@@ -9,9 +9,29 @@ import { emitLog } from "@/instrumentation";
 // the same bcrypt cost (avoids a timing signal / user enumeration).
 const DUMMY_HASH = "$2b$10$5RZZ8efkdtyundG7kMhD0O4K6ex0MadIpluxxoi5ypwMkcOq8.m9y";
 
+// Cookie security is configured explicitly rather than inferred from the
+// NEXTAUTH_URL scheme, so production always issues __Secure-/Secure cookies.
+const useSecureCookies = process.env.NODE_ENV === "production";
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
+  useSecureCookies,
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
+    callbackUrl: {
+      name: `${cookiePrefix}next-auth.callback-url`,
+      options: { sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
+    csrfToken: {
+      name: `${cookiePrefix}next-auth.csrf-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
