@@ -3,19 +3,11 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone } from "lucide-react";
 import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { WhatsAppConfirmButton } from "@/components/WhatsAppConfirmButton";
 
 export type CatalogItem = {
   id: string;
@@ -62,7 +54,6 @@ export function CatalogCarousel({
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const [maxDot, setMaxDot] = useState(0);
-  const [confirmItem, setConfirmItem] = useState<CatalogItem | null>(null);
   const pinned = useRef<number | null>(null);
 
   const visible = isDesktop ? items : items.filter((i) => i.kind === tab);
@@ -197,13 +188,14 @@ export function CatalogCarousel({
     }
   }
 
-  function order(item: CatalogItem) {
+  function orderHref(item: CatalogItem) {
     const kind = item.kind === "BUKU" ? "Buku" : "Mainan";
-    const link = waLink(
-      ADMIN_WA,
-      `Halo Admin CuratedByDer, saya ${buyerName} ingin memesan *${item.title}* (${kind}) — ${formatIDR(item.price)}. Apakah stoknya tersedia?`
+    return (
+      waLink(
+        ADMIN_WA,
+        `Halo Admin CuratedByDer, saya ${buyerName} ingin memesan *${item.title}* (${kind}) — ${formatIDR(item.price)}. Apakah stoknya tersedia?`
+      ) ?? ""
     );
-    if (link) window.open(link, "_blank");
   }
 
   const dotCount = Math.min(maxDot, Math.max(0, visible.length - 1)) + 1;
@@ -346,14 +338,18 @@ export function CatalogCarousel({
                         <span className="rounded-full bg-[#FBE6E6] px-3.5 py-1.5 text-[15px] font-bold text-[#B85C5C]">
                           {formatIDR(item.price)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmItem(item)}
-                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
-                        >
-                          <Phone className="h-4 w-4" />
-                        </button>
+                        <WhatsAppConfirmButton
+                          href={orderHref(item)}
+                          message={
+                            <>
+                              Anda akan diarahkan ke chat WhatsApp admin untuk memesan{" "}
+                              <span className="font-semibold text-black">{item.title}</span>.
+                              Lanjutkan?
+                            </>
+                          }
+                          triggerClassName="flex h-9 w-9 items-center justify-center rounded-lg bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
+                          trigger={<Phone className="h-4 w-4" />}
+                        />
                       </div>
                     </div>
                   ) : (
@@ -383,14 +379,18 @@ export function CatalogCarousel({
                         >
                           {item.kind === "BUKU" ? "Buku" : "Mainan"}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmItem(item)}
-                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
-                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
-                        >
-                          <Phone className="h-3.5 w-3.5" />
-                        </button>
+                        <WhatsAppConfirmButton
+                          href={orderHref(item)}
+                          message={
+                            <>
+                              Anda akan diarahkan ke chat WhatsApp admin untuk memesan{" "}
+                              <span className="font-semibold text-black">{item.title}</span>.
+                              Lanjutkan?
+                            </>
+                          }
+                          triggerClassName="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
+                          trigger={<Phone className="h-3.5 w-3.5" />}
+                        />
                       </div>
                       <p className="mt-2 line-clamp-2 text-center text-[15px] font-bold leading-snug">
                         {item.title}
@@ -424,55 +424,6 @@ export function CatalogCarousel({
           )}
         </>
       )}
-
-      <Dialog
-        open={confirmItem !== null}
-        onOpenChange={(o) => {
-          if (!o) setConfirmItem(null);
-        }}
-      >
-        <DialogContent className="w-[90%] max-w-md gap-5 rounded-2xl border-none bg-[#FDF7F3] p-6 shadow-xl sm:rounded-2xl [&>button.absolute]:bg-[#EDEBE8] [&>button.absolute]:text-[#4B5563] [&>button.absolute]:hover:bg-[#E2DFDB]">
-          <DialogHeader className="space-y-3 text-center sm:text-center">
-            <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-              <span className="absolute inset-0 rounded-full bg-[#D9F2E1]" />
-              <MessageCircle className="relative h-9 w-9 text-[#1EBE5A]" />
-            </div>
-            <DialogTitle className="text-center text-xl font-bold text-black">
-              Hubungi Admin via WhatsApp?
-            </DialogTitle>
-            <DialogDescription className="text-center text-sm text-[#6B7280]">
-              {confirmItem ? (
-                <>
-                  Anda akan diarahkan ke chat WhatsApp admin untuk memesan{" "}
-                  <span className="font-semibold text-black">{confirmItem.title}</span>. Lanjutkan?
-                </>
-              ) : null}
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="flex-row gap-3 sm:space-x-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setConfirmItem(null)}
-              className="h-11 flex-1 rounded-xl border border-[#D9D2CC] bg-white text-sm font-semibold text-black transition-colors hover:bg-black/[0.03] hover:text-black"
-            >
-              Batal
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                if (confirmItem) order(confirmItem);
-                setConfirmItem(null);
-              }}
-              className="h-11 flex-1 rounded-xl bg-[#25D366] text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Lanjutkan ke WA
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
