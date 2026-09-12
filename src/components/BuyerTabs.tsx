@@ -157,20 +157,16 @@ function ItemTags({ item }: { item: OrderItemDTO }) {
 }
 
 function OrderCard({ order }: { order: OrderDTO }) {
-  const [detailOpen, setDetailOpen] = useState(false);
   const cover = order.items.find((it) => it.image)?.image ?? null;
   const itemCount = order.items.reduce((n, it) => n + it.quantity, 0);
   const firstTitle = order.items[0]?.book.title ?? "—";
   const extraItems = order.items.length - 1;
+  const href = `/dashboard/orders/invoice/${order.id}`;
 
   return (
     <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:p-4">
-      {/* Mobile: condensed row that opens the detail */}
-      <button
-        type="button"
-        onClick={() => setDetailOpen(true)}
-        className="flex w-full flex-col gap-2.5 text-left md:hidden"
-      >
+      {/* Mobile: condensed row that opens the invoice detail */}
+      <Link href={href} className="flex w-full flex-col gap-2.5 text-left md:hidden">
         <span className="flex items-start justify-between gap-2">
           <span className="min-w-0">
             <span className="block font-mono text-xs font-bold break-all text-black">
@@ -195,7 +191,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </span>
-      </button>
+      </Link>
 
       {/* Desktop: invoice row */}
       <div className="hidden md:flex md:items-center md:gap-4">
@@ -236,18 +232,15 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <div className="flex shrink-0 flex-col items-end gap-3">
           <BadgeGroup payment={order.paymentStatus} />
           <span className="text-base font-bold">{formatIDR(order.total)}</span>
-          <Button
-            type="button"
-            onClick={() => setDetailOpen(true)}
-            className="h-8 gap-1.5 rounded-lg border-0 bg-[#FBE6E6] px-3 text-xs font-semibold text-[#C0474A] shadow-none hover:bg-[#F6D5D5] hover:text-[#C0474A]"
+          <Link
+            href={href}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#FBE6E6] px-3 text-xs font-semibold text-[#C0474A] transition-colors hover:bg-[#F6D5D5]"
           >
             Lihat Detail
             <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
+          </Link>
         </div>
       </div>
-
-      <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }
@@ -521,7 +514,6 @@ export function TrackCard({
   order: OrderDTO;
   variant?: "list" | "detail";
 }) {
-  const [detailOpen, setDetailOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const cover = order.items.find((it) => it.image)?.image ?? null;
   const eta = earliestEta(order.items);
@@ -638,14 +630,13 @@ export function TrackCard({
           <BadgeGroup payment={order.paymentStatus} />
 
           {variant === "detail" ? (
-            <Button
-              type="button"
-              onClick={() => setDetailOpen(true)}
-              className="h-auto gap-1 rounded-none bg-transparent p-0 text-xs font-semibold text-[#C96A6A] shadow-none hover:bg-transparent hover:text-[#B04A4A]"
+            <Link
+              href={`/dashboard/orders/invoice/${order.id}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
             >
               Lihat Invoice
               <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            </Link>
           ) : (
             <Button
               asChild
@@ -707,8 +698,6 @@ export function TrackCard({
           <StageTimeline items={order.items} />
         </div>
       )}
-
-      <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }
