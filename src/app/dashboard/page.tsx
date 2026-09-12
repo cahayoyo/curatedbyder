@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   BookOpen,
   CheckCircle2,
   ChevronRight,
@@ -23,7 +22,6 @@ import { dateLabel } from "@/lib/format";
 import { OrderDTO } from "@/components/BuyerTabs";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { CatalogCarousel } from "@/components/dashboard/CatalogCarousel";
-import { OrderDetailButton } from "@/components/dashboard/DashboardActions";
 
 function HeroDecor() {
   return (
@@ -267,10 +265,10 @@ export default async function DashboardPage() {
           </h4>
           <Link
             href="/dashboard/orders"
-            className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+            className="flex shrink-0 items-center gap-1 rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#D97A7A] transition-colors hover:bg-[#F6D5D5]"
           >
             Lihat Semua
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
@@ -286,7 +284,6 @@ export default async function DashboardPage() {
                   <th className="py-2 font-medium">Produk</th>
                   <th className="py-2 font-medium">Tanggal</th>
                   <th className="py-2 font-medium">Status</th>
-                  <th className="py-2 text-right font-medium">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,14 +297,6 @@ export default async function DashboardPage() {
                     <td className="whitespace-nowrap text-xs">{dateLabel(o.soldAt)}</td>
                     <td>
                       <StatusBadge order={o} />
-                    </td>
-                    <td className="text-right">
-                      <OrderDetailButton
-                        order={o}
-                        className="whitespace-nowrap text-xs font-semibold text-[#D97A7A] hover:underline"
-                      >
-                        Lihat Detail
-                      </OrderDetailButton>
                     </td>
                   </tr>
                 ))}
@@ -328,13 +317,6 @@ export default async function DashboardPage() {
                     </div>
                     <StatusBadge order={o} />
                   </div>
-                  <OrderDetailButton
-                    order={o}
-                    className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A]"
-                  >
-                    Lihat Detail
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </OrderDetailButton>
                 </div>
               ))}
             </div>
