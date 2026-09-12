@@ -491,8 +491,9 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                               <ConfirmDeleteButton
                                 size="icon"
                                 triggerClassName="border-[#D97A7A]/40 bg-white text-[#D97A7A] hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
-                                title="Konfirmasi Hapus"
+                                title="Hapus Buku?"
                                 description={`Apakah anda benar ingin menghapus buku "${b.title}"?`}
+                                warningText={`Data buku yang dihapus tidak akan bisa dikembalikan.`}
                                 successMessage={`${b.title} berhasil dihapus!`}
                                 onConfirm={deleteBook.bind(null, b.id)}
                               />

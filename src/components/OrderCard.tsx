@@ -274,8 +274,9 @@ export function OrderCard({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Konfirmasi Hapus"
+        title="Hapus Order?"
         description={`Apakah anda benar ingin menghapus order "${order.invoiceNumber}"? Stok produk akan dikembalikan.`}
+        warningText={`Data order yang dihapus tidak akan bisa dikembalikan.`}
         onConfirm={handleDelete}
       />
     </div>

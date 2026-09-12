@@ -178,8 +178,9 @@ export function ToyCard({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Konfirmasi Hapus"
+        title="Hapus Mainan?"
         description={`Apakah anda benar ingin menghapus mainan "${toy.title}"?`}
+        warningText={`Data mainan yang dihapus tidak akan bisa dikembalikan.`}
         onConfirm={handleDelete}
       />
     </div>
