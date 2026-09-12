@@ -60,15 +60,13 @@ if (!postHogSourceMapsEnabled && process.env.NODE_ENV !== "production") {
   );
 }
 
-export default withSentryConfig(withPostHogConfig(nextConfig, {
-  personalApiKey: postHogApiKey,
-  projectId: postHogProjectId,
-  host: process.env.POSTHOG_HOST,
-  sourcemaps: {
-    enabled: postHogSourceMapsEnabled,
-    deleteAfterUpload: true,
-  },
-}), {
+// withPostHogConfig MUST be the outermost wrapper. Both wrappers register a
+// `compiler.runAfterProductionCompile` hook; Sentry chains the existing hook, so
+// when PostHog is inner it runs first and deletes every source map after
+// uploading, leaving Sentry's later upload with no maps (minified stack traces).
+// As the outer wrapper PostHog runs last: Sentry uploads first (maps present),
+// then PostHog uploads and cleans up.
+export default withPostHogConfig(withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
@@ -84,6 +82,12 @@ export default withSentryConfig(withPostHogConfig(nextConfig, {
 
   // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
+
+  // PostHog (outermost) deletes the maps after both SDKs have uploaded, so keep
+  // Sentry's own deletion off to avoid removing them before PostHog uploads.
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: false,
+  },
 
   // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // This can increase your server load as well as your hosting bill.
@@ -103,5 +107,13 @@ export default withSentryConfig(withPostHogConfig(nextConfig, {
       // Automatically tree-shake Sentry logger statements to reduce bundle size
       removeDebugLogging: true,
     },
+  },
+}), {
+  personalApiKey: postHogApiKey,
+  projectId: postHogProjectId,
+  host: process.env.POSTHOG_HOST,
+  sourcemaps: {
+    enabled: postHogSourceMapsEnabled,
+    deleteAfterUpload: true,
   },
 });
