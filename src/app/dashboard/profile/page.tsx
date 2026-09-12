@@ -69,12 +69,12 @@ export default async function ProfilePage() {
         <span className="font-medium text-black">Informasi Profil</span>
       </nav>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className={cn(cardCls, "flex items-center justify-between gap-4")}>
         <div className="flex items-start gap-3">
           <Link
             href="/dashboard"
             aria-label="Kembali"
-            className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F0CBCB] bg-white text-[#C96A6A] transition-colors hover:bg-[#FED6D6] md:hidden"
+            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F0CBCB] bg-white text-[#C96A6A] transition-colors hover:bg-[#FED6D6] md:hidden"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
