@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -17,6 +18,7 @@ const softBorders = {
 } as CSSProperties;
 
 export default async function EditOrderPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireRole("SUPER_ADMIN");
   const { id } = await params;
   const [order, buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.order.findUnique({

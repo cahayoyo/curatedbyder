@@ -1,9 +1,11 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { getBatches } from "@/server/queries/catalog";
 import { BookForm } from "@/components/BookForm";
 
 export default async function NewBookPage() {
+  await requireRole("SUPER_ADMIN");
   const batches = await getBatches();
 
   return (

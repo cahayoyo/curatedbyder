@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { getBatches } from "@/server/queries/catalog";
 import { Fragment, Suspense } from "react";
@@ -587,6 +588,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<OrderSearchParams>;
 }) {
+  await requireRole("SUPER_ADMIN");
   const sp = scalarize(await searchParams, ["paymentStatus"]) as OrderSearchParams;
   const batches = await getBatches();
 

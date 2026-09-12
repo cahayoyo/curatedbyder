@@ -1,9 +1,11 @@
+import { requireRole } from "@/lib/session";
 import { Settings } from "lucide-react";
 import { db } from "@/lib/db";
 import { getStoreSettings } from "@/lib/store-settings";
 import { CatalogVisibilityList, StoreSettingsForm } from "@/components/StoreSettingsForm";
 
 export default async function AdminSettingsPage() {
+  await requireRole("SUPER_ADMIN");
   const [settings, books, toys] = await Promise.all([
     getStoreSettings(),
     db.book.findMany({

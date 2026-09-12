@@ -1,9 +1,11 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { getBatches } from "@/server/queries/catalog";
 import { ToyForm } from "@/components/ToyForm";
 
 export default async function NewToyPage() {
+  await requireRole("SUPER_ADMIN");
   const batches = await getBatches();
 
   return (

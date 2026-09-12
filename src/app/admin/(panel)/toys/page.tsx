@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { Fragment, Suspense } from "react";
@@ -442,6 +443,7 @@ export default async function AdminToysPage({
 }: {
   searchParams: Promise<ToySearchParams>;
 }) {
+  await requireRole("SUPER_ADMIN");
   const sp = scalarize(await searchParams, ["status"]) as ToySearchParams;
   return (
     <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">

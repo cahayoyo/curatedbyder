@@ -3,7 +3,7 @@ import Image from "next/image";
 import { connection } from "next/server";
 import { formatIDR } from "@/lib/format";
 import { getOverviewStats, type Delta } from "@/server/queries/overview";
-import { requireAdmin } from "@/lib/session";
+import { requireAdmin, requireRole } from "@/lib/session";
 import { RangePicker, RangeProvider } from "./range-provider";
 import { StatValue } from "./stat-value";
 import { FinancialDonut } from "./financial-donut";
@@ -309,6 +309,7 @@ export default async function AdminOverviewPage({
 }: {
   searchParams: Promise<{ r?: string | string[] }>;
 }) {
+  await requireRole("SUPER_ADMIN");
   await connection();
   const params = await searchParams;
   const r = Number(typeof params.r === "string" ? params.r : undefined);
