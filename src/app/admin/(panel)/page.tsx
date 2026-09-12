@@ -155,7 +155,7 @@ function MiniBars() {
   const heights = ["h-4", "h-7", "h-5", "h-9", "h-11", "h-6"];
   return (
     <div
-      className="ml-auto hidden shrink-0 items-end gap-1.5 pr-1 md:flex"
+      className="ml-auto hidden shrink-0 items-end gap-1.5 pr-1 xl:flex"
       aria-hidden
     >
       {heights.map((h, i) => (
@@ -245,7 +245,7 @@ function StatCard({
             )}
           />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 md:flex-1">
           <p
             className={cn(
               "truncate text-sm text-muted-foreground",
@@ -256,10 +256,11 @@ function StatCard({
           </p>
           <StatValue
             value={value}
-            className={
+            className={cn(
               valueClassName ??
-              "text-2xl font-bold text-gray-900 md:text-3xl"
-            }
+                "text-2xl font-bold text-gray-900 md:text-3xl",
+              "truncate"
+            )}
           />
           <DeltaLine delta={delta} />
         </div>
@@ -321,11 +322,13 @@ export default async function AdminOverviewPage({
     year: "numeric",
   }).format(new Date());
 
+  const financialBase = stats.totalDp + stats.totalRemaining;
+
   return (
     <RangeProvider>
       <div className="space-y-6 px-2 md:px-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
           <LayoutDashboard className="mt-1.5 h-7 w-7 shrink-0 text-[#C96A6A]" />
           <div>
@@ -395,17 +398,17 @@ export default async function AdminOverviewPage({
           title="Financial"
           href="/admin/orders"
         />
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3fr_2fr]">
-          <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-center lg:gap-14">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-center lg:gap-14">
             <FinancialDonut
               revenue={stats.revenue}
               dp={stats.totalDp}
               remaining={stats.totalRemaining}
             />
-            <div className="min-w-0 w-full flex-1 lg:w-[420px] lg:flex-none lg:self-start">
+            <div className="w-full min-w-0 flex-1 lg:max-w-[420px] lg:self-start">
               <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
               <p className="text-sm text-muted-foreground">
-                Proporsi revenue, DP, dan sisa tagihan.
+                Proporsi DP dan sisa tagihan.
               </p>
               <ul className="mt-8 grid w-full grid-cols-[minmax(0,1fr)_max-content] gap-x-6 gap-y-6">
                 {(
@@ -436,7 +439,7 @@ export default async function AdminOverviewPage({
                         />
                         {row.pct && (
                           <StatValue
-                            value={`${stats.revenue ? Math.round((row.value / stats.revenue) * 100) : 0}%`}
+                            value={`${financialBase ? Math.round((row.value / financialBase) * 100) : 0}%`}
                             className="text-sm text-muted-foreground"
                           />
                         )}
@@ -447,7 +450,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-2">
+          <div className="grid min-w-0 grid-cols-2 gap-2 md:grid-cols-1 md:gap-2">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"

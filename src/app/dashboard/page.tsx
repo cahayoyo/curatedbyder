@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
-  ChevronRight,
   Heart,
   Home,
   ReceiptText,
@@ -23,7 +22,6 @@ import { dateLabel } from "@/lib/format";
 import { OrderDTO } from "@/components/BuyerTabs";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { CatalogCarousel } from "@/components/dashboard/CatalogCarousel";
-import { OrderDetailButton } from "@/components/dashboard/DashboardActions";
 
 function HeroDecor() {
   return (
@@ -267,7 +265,7 @@ export default async function DashboardPage() {
           </h4>
           <Link
             href="/dashboard/orders"
-            className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-[#E58A8A] bg-white px-3 py-1.5 text-xs font-semibold text-[#D97A7A] transition-colors hover:bg-[#FBE6E6]"
           >
             Lihat Semua
             <ArrowRight className="h-3.5 w-3.5" />
@@ -278,21 +276,20 @@ export default async function DashboardPage() {
           <p className="mt-3 text-sm text-muted-foreground">Belum ada pesanan.</p>
         ) : (
           <>
-            <table className="mt-3 hidden w-full text-sm md:table">
+            <table className="mt-3 hidden w-full border-separate border-spacing-0 text-sm md:table">
               <thead>
-                <tr className="border-b border-[#F0CBCB] text-left text-xs text-black/60">
-                  <th className="py-2 font-medium">#</th>
-                  <th className="py-2 font-medium">Invoice</th>
-                  <th className="py-2 font-medium">Produk</th>
-                  <th className="py-2 font-medium">Tanggal</th>
-                  <th className="py-2 font-medium">Status</th>
-                  <th className="py-2 text-right font-medium">Aksi</th>
+                <tr className="bg-[#F2C9C9] text-left text-xs text-[#6E3B3B] [&>th]:font-semibold">
+                  <th className="rounded-l-lg border-b border-[#F0CBCB] py-2 pl-3 font-medium">#</th>
+                  <th className="border-b border-[#F0CBCB] py-2 font-medium">Invoice</th>
+                  <th className="border-b border-[#F0CBCB] py-2 font-medium">Produk</th>
+                  <th className="border-b border-[#F0CBCB] py-2 font-medium">Tanggal</th>
+                  <th className="rounded-r-lg border-b border-[#F0CBCB] py-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.map((o, i) => (
-                  <tr key={o.id} className="border-b border-[#F0CBCB] last:border-0">
-                    <td className="py-2.5">{i + 1}</td>
+                  <tr key={o.id} className="[&>td]:border-b [&>td]:border-[#F0CBCB] [&:last-child>td]:border-0">
+                    <td className="py-2.5 pl-3">{i + 1}</td>
                     <td className="font-mono text-xs font-semibold break-all">
                       {o.invoiceNumber}
                     </td>
@@ -300,14 +297,6 @@ export default async function DashboardPage() {
                     <td className="whitespace-nowrap text-xs">{dateLabel(o.soldAt)}</td>
                     <td>
                       <StatusBadge order={o} />
-                    </td>
-                    <td className="text-right">
-                      <OrderDetailButton
-                        order={o}
-                        className="whitespace-nowrap text-xs font-semibold text-[#D97A7A] hover:underline"
-                      >
-                        Lihat Detail
-                      </OrderDetailButton>
                     </td>
                   </tr>
                 ))}
@@ -328,13 +317,6 @@ export default async function DashboardPage() {
                     </div>
                     <StatusBadge order={o} />
                   </div>
-                  <OrderDetailButton
-                    order={o}
-                    className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-[#D97A7A]/40 py-1.5 text-xs font-semibold text-[#D97A7A]"
-                  >
-                    Lihat Detail
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </OrderDetailButton>
                 </div>
               ))}
             </div>

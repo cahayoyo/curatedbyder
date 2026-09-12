@@ -7,6 +7,7 @@ import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone } fro
 import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
+import { WhatsAppConfirmButton } from "@/components/WhatsAppConfirmButton";
 
 export type CatalogItem = {
   id: string;
@@ -19,6 +20,9 @@ export type CatalogItem = {
 
 const arrowCls =
   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F0CBCB] bg-white text-[#C96A6A] shadow-sm transition-colors hover:bg-[#FBE6E6]";
+
+const lihatSemuaCls =
+  "flex shrink-0 items-center gap-1.5 rounded-lg border border-[#E58A8A] bg-white px-3 py-1.5 text-xs font-semibold text-[#D97A7A] transition-colors hover:bg-[#FBE6E6]";
 
 const kindCls: Record<CatalogItem["kind"], string> = {
   BUKU: "border-[#F0CBCB] bg-[#FBE6E6] text-[#C96A6A]",
@@ -184,13 +188,14 @@ export function CatalogCarousel({
     }
   }
 
-  function order(item: CatalogItem) {
+  function orderHref(item: CatalogItem) {
     const kind = item.kind === "BUKU" ? "Buku" : "Mainan";
-    const link = waLink(
-      ADMIN_WA,
-      `Halo Admin CuratedByDer, saya ${buyerName} ingin memesan *${item.title}* (${kind}) — ${formatIDR(item.price)}. Apakah stoknya tersedia?`
+    return (
+      waLink(
+        ADMIN_WA,
+        `Halo Admin CuratedByDer, saya ${buyerName} ingin memesan *${item.title}* (${kind}) — ${formatIDR(item.price)}. Apakah stoknya tersedia?`
+      ) ?? ""
     );
-    if (link) window.open(link, "_blank");
   }
 
   const dotCount = Math.min(maxDot, Math.max(0, visible.length - 1)) + 1;
@@ -227,17 +232,14 @@ export function CatalogCarousel({
           <>
             <Link
               href="/dashboard/catalog"
-              className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline md:hidden"
+              className={`${lihatSemuaCls} md:hidden`}
             >
               Lihat Semua
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <div className="hidden items-center gap-3 md:flex">
               {arrows}
-              <Link
-                href="/dashboard/catalog"
-                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-              >
+              <Link href="/dashboard/catalog" className={lihatSemuaCls}>
                 Lihat Semua
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -336,14 +338,18 @@ export function CatalogCarousel({
                         <span className="rounded-full bg-[#FBE6E6] px-3.5 py-1.5 text-[15px] font-bold text-[#B85C5C]">
                           {formatIDR(item.price)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => order(item)}
-                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
-                        >
-                          <Phone className="h-4 w-4" />
-                        </button>
+                        <WhatsAppConfirmButton
+                          href={orderHref(item)}
+                          message={
+                            <>
+                              Anda akan diarahkan ke chat WhatsApp admin untuk memesan{" "}
+                              <span className="font-semibold text-black">{item.title}</span>.
+                              Lanjutkan?
+                            </>
+                          }
+                          triggerClassName="flex h-9 w-9 items-center justify-center rounded-lg bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
+                          trigger={<Phone className="h-4 w-4" />}
+                        />
                       </div>
                     </div>
                   ) : (
@@ -373,14 +379,18 @@ export function CatalogCarousel({
                         >
                           {item.kind === "BUKU" ? "Buku" : "Mainan"}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => order(item)}
-                          aria-label={`Hubungi admin via WhatsApp tentang ${item.title}`}
-                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
-                        >
-                          <Phone className="h-3.5 w-3.5" />
-                        </button>
+                        <WhatsAppConfirmButton
+                          href={orderHref(item)}
+                          message={
+                            <>
+                              Anda akan diarahkan ke chat WhatsApp admin untuk memesan{" "}
+                              <span className="font-semibold text-black">{item.title}</span>.
+                              Lanjutkan?
+                            </>
+                          }
+                          triggerClassName="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#1EBE5A]"
+                          trigger={<Phone className="h-3.5 w-3.5" />}
+                        />
                       </div>
                       <p className="mt-2 line-clamp-2 text-center text-[15px] font-bold leading-snug">
                         {item.title}

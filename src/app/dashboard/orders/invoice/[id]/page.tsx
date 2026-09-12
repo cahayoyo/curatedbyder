@@ -5,7 +5,7 @@ import {
   ArrowLeft,
   CalendarClock,
   ChevronRight,
-  FileText,
+  Download,
   ImageIcon,
   Info,
   ListOrdered,
@@ -23,7 +23,6 @@ import { BuyerShell } from "@/components/BuyerShell";
 import { CopyResi } from "@/components/BuyerTabs";
 import { FORMAT_BADGE, PAYMENT_BADGE, PAYMENT_LABEL } from "@/lib/orderOptions";
 import { dateShortLabel, formatIDR, timeShortLabel } from "@/lib/format";
-import { ADMIN_WA, waLink } from "@/lib/wa";
 
 function Cover({ image, alt, className }: { image: string | null; alt: string; className: string }) {
   return (
@@ -132,10 +131,6 @@ export default async function InvoiceDetailPage({
   const cover = dto.items.find((it) => it.image)?.image ?? null;
   const subtotal = dto.items.reduce((n, it) => n + it.subtotal, 0);
   const ongkir = dto.shippingCost ?? 0;
-  const waHref = waLink(
-    ADMIN_WA,
-    `Halo Admin CuratedByDer,\n\nSaya ${dto.buyerName} ingin konfirmasi pembayaran invoice ${dto.invoiceNumber}.\n\nTerimakasih`
-  );
 
   return (
     <BuyerShell>
@@ -308,28 +303,13 @@ export default async function InvoiceDetailPage({
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button
-              type="button"
-              disabled
-              title="Segera hadir"
-              className="order-2 inline-flex h-10 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#D97A7A] bg-white px-4 text-sm font-semibold text-[#B04A4A] sm:order-1"
-            >
-              <FileText className="h-4 w-4" />
-              Lihat Panduan
-            </button>
-            {waHref && (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="order-1 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#D97A7A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#c9686b] sm:order-2"
-              >
-                <Wallet className="h-4 w-4" />
-                Konfirmasi Pembayaran
-              </a>
-            )}
-          </div>
+          <a
+            href={`/api/download/orders/${dto.id}?download=1`}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#D97A7A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#c9686b]"
+          >
+            <Download className="h-4 w-4" />
+            Download Invoice PDF
+          </a>
         </div>
       </div>
     </BuyerShell>
