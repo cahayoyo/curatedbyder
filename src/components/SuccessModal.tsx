@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { CheckCircle2, XCircle, X } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FeedbackVariant = "success" | "error";
@@ -123,14 +123,6 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
             className="relative w-full max-w-sm rounded-2xl bg-[#FDF7F3] p-6 text-center shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Tutup"
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#EDEBE8] text-[#4B5563] transition-colors hover:bg-[#E2DFDB]"
-            >
-              <X className="h-4 w-4" />
-            </button>
             {variant === "error" ? (
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
                 <span className="absolute inset-0 rounded-full bg-[#F9D2D8]" />
