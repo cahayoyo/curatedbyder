@@ -155,7 +155,7 @@ function MiniBars() {
   const heights = ["h-4", "h-7", "h-5", "h-9", "h-11", "h-6"];
   return (
     <div
-      className="ml-auto hidden shrink-0 items-end gap-1.5 pr-1 md:flex"
+      className="ml-auto hidden shrink-0 items-end gap-1.5 pr-1 xl:flex"
       aria-hidden
     >
       {heights.map((h, i) => (
@@ -326,7 +326,7 @@ export default async function AdminOverviewPage({
     <RangeProvider>
       <div className="space-y-6 px-2 md:px-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
           <LayoutDashboard className="mt-1.5 h-7 w-7 shrink-0 text-[#C96A6A]" />
           <div>
@@ -336,7 +336,7 @@ export default async function AdminOverviewPage({
             </p>
           </div>
         </div>
-        <div className="flex flex-nowrap items-stretch justify-between gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-stretch justify-between gap-2 sm:gap-3">
           <div className="flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#FBE6E6] px-4 py-3 sm:gap-3 sm:px-5">
             <CalendarDays className="h-5 w-5 shrink-0 text-[#C96A6A] sm:h-6 sm:w-6" />
             <div>
