@@ -7,6 +7,7 @@ import { capture } from "@/lib/posthog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MAX_PHONE } from "@/lib/limits";
 import { ArrowRight, Camera, Phone, ShoppingBag, UserRound } from "lucide-react";
 
 const PLATFORMS = [
@@ -89,11 +90,16 @@ export function HomeLogin() {
                 id="login-phone"
                 name="phone"
                 type="tel"
+                inputMode="numeric"
+                maxLength={MAX_PHONE}
                 required
                 autoComplete="tel"
                 placeholder="Contoh: 08128312345"
                 className="rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
-                onChange={onFieldChange}
+                onChange={(e) => {
+                  e.target.value = e.target.value.replace(/\D/g, "");
+                  onFieldChange();
+                }}
               />
             </div>
           </div>
