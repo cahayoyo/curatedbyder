@@ -83,7 +83,7 @@ function InfoLine({ icon, children }: { icon: React.ReactNode; children: React.R
 
 function PayRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between py-2">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
     </div>
@@ -152,7 +152,7 @@ export default async function InvoiceDetailPage({
         </div>
 
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
             <div className="flex min-w-0 items-start gap-3">
               <Cover image={cover} alt={dto.items[0]?.book.title ?? "Item pesanan"} className="h-[110px] w-[80px]" />
               <div className="min-w-0 flex-1 space-y-2 text-sm">
@@ -215,10 +215,10 @@ export default async function InvoiceDetailPage({
               <tr className="bg-[#FBE6E6] text-left text-xs text-black/70">
                 <th className="w-10 rounded-l-lg px-2 py-2 font-medium">#</th>
                 <th className="px-2 py-2 font-medium">Produk</th>
-                <th className="px-2 py-2 font-medium">Format</th>
-                <th className="px-2 py-2 text-right font-medium">Harga</th>
-                <th className="px-2 py-2 text-right font-medium">Jumlah</th>
-                <th className="rounded-r-lg px-2 py-2 text-right font-medium">Subtotal</th>
+                <th className="px-2 py-2 text-center font-medium">Format</th>
+                <th className="px-2 py-2 text-center font-medium">Harga</th>
+                <th className="px-2 py-2 text-center font-medium">Jumlah</th>
+                <th className="rounded-r-lg px-2 py-2 text-left font-medium">Subtotal</th>
               </tr>
             </thead>
             <tbody>
@@ -232,11 +232,13 @@ export default async function InvoiceDetailPage({
                     </div>
                   </td>
                   <td className="px-2 py-3">
-                    <FormatTags kind={it.kind} formats={it.book.formats} />
+                    <div className="flex justify-center">
+                      <FormatTags kind={it.kind} formats={it.book.formats} />
+                    </div>
                   </td>
-                  <td className="px-2 py-3 text-right">{formatIDR(it.unitPrice)}</td>
-                  <td className="px-2 py-3 text-right">{it.quantity}</td>
-                  <td className="px-2 py-3 text-right font-semibold">{formatIDR(it.subtotal)}</td>
+                  <td className="px-2 py-3 text-center">{formatIDR(it.unitPrice)}</td>
+                  <td className="px-2 py-3 text-center">{it.quantity}</td>
+                  <td className="px-2 py-3 text-left font-semibold">{formatIDR(it.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -266,7 +268,7 @@ export default async function InvoiceDetailPage({
             <Wallet className="h-4 w-4 text-[#D97A7A]" />
             Rincian Pembayaran
           </h3>
-          <div className="mt-3 space-y-2 text-sm">
+          <div className="mt-3 divide-y divide-[#F0CBCB]/60 text-sm">
             <PayRow label="Subtotal Produk" value={formatIDR(subtotal)} />
             <PayRow label="Ongkir" value={formatIDR(ongkir)} />
           </div>
