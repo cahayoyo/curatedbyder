@@ -1,4 +1,21 @@
+// Sentry + PostHog client instrumentation share this ONE file: Next.js resolves
+// `src/instrumentation-client` before the root `instrumentation-client`, so a
+// second root file would be silently ignored (that shadowing disabled PostHog).
+import * as Sentry from "@sentry/nextjs";
 import posthog from "posthog-js";
+
+// Production-only: NEXT_PUBLIC_SENTRY_DSN is set in the Vercel Production scope.
+// Local/staging leave it empty, so `enabled: false` makes the SDK a no-op that
+// sends nothing to Sentry.
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+
+Sentry.init({
+  dsn: sentryDsn,
+  enabled: Boolean(sentryDsn),
+  tracesSampleRate: 0.1,
+});
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 // PostHog client SDK re-enabled (issue #215) via the reverse proxy
 // (/ingest/* → us.i.posthog.com, issue #214) so Brave/uBlock don't
