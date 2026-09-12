@@ -35,7 +35,7 @@ export function OrderTabNav({
     "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-black/45 transition-colors data-[active=true]:bg-[#F8CFCF] data-[active=true]:font-semibold data-[active=true]:text-[#B04A4A] data-[active=true]:shadow-sm";
 
   return (
-    <div className="flex w-full gap-1 overflow-hidden rounded-xl bg-[#FDF1F1] p-1">
+    <div className="flex w-full gap-1 overflow-hidden rounded-xl bg-white p-1">
       {TABS.map((t) => {
         const Icon = t.icon;
         return (
