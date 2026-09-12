@@ -99,7 +99,9 @@ export async function deleteBuyer(id: string): Promise<ActionResult> {
   if (sold > 0) {
     return {
       ok: false,
-      error: `${buyer?.name ?? "Pembeli"} sudah pernah transaksi dan tidak bisa dihapus`,
+      error: `${buyer?.name ?? "Pembeli"} sudah pernah transaksi dan tidak bisa dihapus.`,
+      title: "Tidak Dapat Dihapus",
+      hint: "Data yang sudah terhubung dengan transaksi harus tetap tersimpan.",
     };
   }
 

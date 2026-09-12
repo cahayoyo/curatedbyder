@@ -138,7 +138,7 @@ export function ConfirmDeleteButton({
     try {
       const res = await onConfirm();
       if (res && !res.ok) {
-        error(res.error);
+        error(res.error, { title: res.title, hint: res.hint });
         return;
       }
       setOpen(false);
