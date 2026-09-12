@@ -6,13 +6,14 @@ import { db } from "@/lib/db";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { SearchInput } from "@/components/SearchInput";
-import { PageSizeSelect } from "@/components/PageSizeSelect";
+import { SortSelect } from "@/components/SortSelect";
 import { BuyerFilter } from "@/components/BuyerFilter";
 import { BuyerShell, PendingDim } from "@/components/BuyerShell";
+import { OrderTabNav } from "@/components/OrderTabNav";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
-import { BUYER_DEFAULT_PAGE_SIZE, parsePerPage, perQuery, scalarize } from "@/lib/pagination";
-import { ChevronRight, FileText, Truck, Wallet } from "lucide-react";
+import { BUYER_DEFAULT_PAGE_SIZE, scalarize } from "@/lib/pagination";
+import { ArrowLeft, ChevronRight, FileText, Truck, Wallet } from "lucide-react";
 
 type DashboardSearchParams = {
   q?: string;
@@ -20,8 +21,8 @@ type DashboardSearchParams = {
   status?: string;
   paymentStatus?: string;
   tab?: string;
+  sort?: string;
   page?: string;
-  per?: string;
 };
 
 const TAB_KEYS = ["invoice", "payment", "shipment"] as const;
@@ -29,8 +30,8 @@ const TAB_KEYS = ["invoice", "payment", "shipment"] as const;
 const TAB_META = {
   invoice: {
     crumb: "Invoice",
-    title: "Pesanan Saya",
-    subtitle: "Semua invoice dan pesananmu ada di sini.",
+    title: "Invoice",
+    subtitle: "Daftar invoice dari pesanan kamu di CuratedByDer.",
     icon: FileText,
   },
   payment: {
@@ -70,11 +71,30 @@ export default async function DashboardPage({
 
   const meta = tabMeta(sp?.tab);
   const TabIcon = meta.icon;
+  const tab = (TAB_KEYS as readonly string[]).includes(sp?.tab ?? "")
+    ? (sp!.tab as string)
+    : "invoice";
 
   return (
     <BuyerShell>
       <div className="space-y-4 px-2 md:px-6">
-        <div>
+        {/* Mobile: back arrow + generic title */}
+        <div className="flex items-start gap-2 md:hidden">
+          <Link
+            href="/dashboard"
+            aria-label="Kembali ke dashboard"
+            className="mt-0.5 text-[#B85C5C] transition-colors hover:text-[#B04A4A]"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h2 className="text-xl font-bold leading-tight">Pesanan Saya</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">Kelola pesanan dan invoice kamu.</p>
+          </div>
+        </div>
+
+        {/* Desktop: breadcrumb + per-tab title */}
+        <div className="hidden md:block">
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Link href="/dashboard/orders" className="transition-colors hover:text-[#D97A7A]">
               Pesanan
@@ -89,12 +109,14 @@ export default async function DashboardPage({
           <p className="mt-1 text-sm text-muted-foreground">{meta.subtitle}</p>
         </div>
 
+        <OrderTabNav basePath="/dashboard/orders" defaultTab={tab} />
+
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <div className="min-w-0 flex-1">
             <SearchInput
               basePath="/dashboard/orders"
-              placeholder="Cari Invoice / Judul Buku..."
-              inputClassName="bg-white"
+              placeholder="Cari invoice / judul buku / nomor invoice..."
+              inputClassName="border-[#F0CBCB] bg-white"
             />
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -103,10 +125,12 @@ export default async function DashboardPage({
               batches={batches}
               className="flex-1 md:flex-none"
             />
-            <PageSizeSelect
+            <SortSelect
               basePath="/dashboard/orders"
-              defaultPer={BUYER_DEFAULT_PAGE_SIZE}
-              suffix="per halaman"
+              options={[
+                { value: "desc", label: "Terbaru" },
+                { value: "asc", label: "Terlama" },
+              ]}
             />
           </div>
         </div>
@@ -137,7 +161,8 @@ async function OrdersSection({
     .map((s) => s.trim())
     .filter((s) => PAYMENT_STATUSES.some((opt) => opt.value === s));
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
-  const per = parsePerPage(searchParams?.per, BUYER_DEFAULT_PAGE_SIZE);
+  const per = BUYER_DEFAULT_PAGE_SIZE;
+  const sort = searchParams?.sort === "asc" ? "asc" : "desc";
   const tab = (TAB_KEYS as readonly string[]).includes(searchParams?.tab ?? "")
     ? searchParams.tab!
     : "invoice";
@@ -166,7 +191,7 @@ async function OrdersSection({
   const orders = await db.order.findMany({
     where,
     include: buyerOrderInclude,
-    orderBy: { soldAt: "desc" },
+    orderBy: { soldAt: sort },
     skip: (page - 1) * per,
     take: per,
   });
@@ -179,7 +204,7 @@ async function OrdersSection({
     status: searchParams?.status ?? "",
     paymentStatus: searchParams?.paymentStatus ?? "",
     tab: tab === "invoice" ? undefined : tab,
-    per: perQuery(per, BUYER_DEFAULT_PAGE_SIZE),
+    sort: sort === "desc" ? undefined : sort,
   };
 
   return (

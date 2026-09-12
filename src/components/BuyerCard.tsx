@@ -125,8 +125,9 @@ export function BuyerCard({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Konfirmasi Hapus"
+        title="Hapus Pembeli?"
         description={`Apakah anda benar ingin menghapus pembeli "${buyer.name}"?`}
+        warningText={`Data pembeli yang dihapus tidak akan bisa dikembalikan.`}
         onConfirm={handleDelete}
       />
     </div>

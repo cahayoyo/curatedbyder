@@ -304,8 +304,9 @@ async function BuyersList({ searchParams }: { searchParams: BuyerSearchParams })
                       Ubah
                     </NavActionButton>
                     <ConfirmDeleteButton
-                      title="Konfirmasi Hapus"
+                      title="Hapus Pembeli?"
                       description={`Apakah anda benar ingin menghapus pembeli "${b.name}"?`}
+                      warningText={`Data pembeli yang dihapus tidak akan bisa dikembalikan.`}
                       successMessage={`${b.name} berhasil dihapus!`}
                       triggerClassName="border border-[#D97A7A]/40 bg-white text-[#D97A7A] shadow-sm hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
                       onConfirm={deleteBuyer.bind(null, b.id)}

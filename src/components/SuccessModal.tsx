@@ -8,15 +8,30 @@ import {
   useRef,
   useState,
 } from "react";
-import { CheckCircle2, XCircle, X } from "lucide-react";
+import { Check, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FeedbackVariant = "success" | "error";
 
+type FeedbackOptions = { title?: string; hint?: string; emphasis?: string };
+
 type SuccessModalContextValue = {
-  success: (message: string) => void;
-  error: (message: string) => void;
+  success: (message: string, options?: FeedbackOptions) => void;
+  error: (message: string, options?: FeedbackOptions) => void;
 };
+
+function renderMessage(message: string, emphasis?: string) {
+  if (!emphasis) return message;
+  const at = message.indexOf(emphasis);
+  if (at < 0) return message;
+  return (
+    <>
+      {message.slice(0, at)}
+      <strong className="font-bold">{emphasis}</strong>
+      {message.slice(at + emphasis.length)}
+    </>
+  );
+}
 
 const SuccessModalContext = createContext<SuccessModalContextValue | null>(null);
 
@@ -24,6 +39,9 @@ const DURATION = 2000;
 
 export function SuccessModalProvider({ children }: { children: React.ReactNode }) {
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
+  const [hint, setHint] = useState("");
+  const [emphasis, setEmphasis] = useState("");
   const [variant, setVariant] = useState<FeedbackVariant>("success");
   const [open, setOpen] = useState(false);
   const [deplete, setDeplete] = useState(false);
@@ -44,9 +62,12 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
   }, [stopTimer]);
 
   const show = useCallback(
-    (msg: string, v: FeedbackVariant) => {
+    (msg: string, v: FeedbackVariant, options?: FeedbackOptions) => {
       stopTimer();
       setMessage(msg);
+      setTitle(options?.title ?? "");
+      setHint(options?.hint ?? "");
+      setEmphasis(options?.emphasis ?? "");
       setVariant(v);
       setOpen(true);
       setDeplete(false);
@@ -55,8 +76,14 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
     [stopTimer],
   );
 
-  const success = useCallback((msg: string) => show(msg, "success"), [show]);
-  const error = useCallback((msg: string) => show(msg, "error"), [show]);
+  const success = useCallback(
+    (msg: string, options?: FeedbackOptions) => show(msg, "success", options),
+    [show],
+  );
+  const error = useCallback(
+    (msg: string, options?: FeedbackOptions) => show(msg, "error", options),
+    [show],
+  );
 
   useEffect(() => {
     if (seq === 0) return;
@@ -96,28 +123,47 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
           onClick={close}
         >
           <div
-            className="relative w-full max-w-sm rounded-lg border bg-white p-6 text-center shadow-lg"
+            className="relative w-full max-w-sm rounded-2xl bg-[#FDF7F3] p-6 text-center shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Tutup"
-              className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
             {variant === "error" ? (
-              <XCircle className="mx-auto h-12 w-12 text-red-600" />
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-[#F9D2D8]" />
+                <XCircle className="relative h-10 w-10 text-[#E1445A]" />
+              </div>
             ) : (
-              <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-[#D9F2E1]" />
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#2E9E62]">
+                  <Check className="h-6 w-6 text-white" strokeWidth={3} />
+                </span>
+                <span className="absolute -left-0.5 top-4 h-1.5 w-1.5 -rotate-45 rounded-full bg-[#2E9E62]" />
+                <span className="absolute -right-0.5 top-4 h-1.5 w-1.5 rotate-45 rounded-full bg-[#2E9E62]" />
+                <span className="absolute left-1.5 -top-0.5 h-1.5 w-1.5 rotate-12 rounded-full bg-[#2E9E62]" />
+              </div>
             )}
-            <p className="mt-3 break-words text-base font-semibold">{message}</p>
-            <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+            {title ? (
+              <h2 className="mt-3 break-words text-lg font-bold text-black">
+                {title}
+              </h2>
+            ) : null}
+            <p
+              className={cn(
+                "break-words text-base text-black",
+                variant === "error" ? "font-normal" : "font-semibold",
+                title ? "mt-1" : "mt-3",
+              )}
+            >
+              {renderMessage(message, emphasis)}
+            </p>
+            {hint ? (
+              <p className="mt-1 break-words text-sm text-[#6B7280]">{hint}</p>
+            ) : null}
+            <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-[#F9D2D8]">
               <div
                 className={cn(
                   "h-full",
-                  variant === "error" ? "bg-red-600" : "bg-green-600",
+                  variant === "error" ? "bg-[#E1445A]" : "bg-[#2E9E62]",
                 )}
                 style={{
                   width: deplete ? "0%" : "100%",
@@ -125,6 +171,11 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
                 }}
               />
             </div>
+            {variant === "success" ? (
+              <p className="mt-2 text-xs text-[#9CA3AF]">
+                Menutup otomatis dalam beberapa detik…
+              </p>
+            ) : null}
           </div>
         </div>
       )}

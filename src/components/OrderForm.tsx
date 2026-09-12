@@ -937,8 +937,9 @@ export function OrderForm({
                   </Button>
                   <ConfirmDeleteButton
                     size="icon"
-                    title="Hapus pembayaran ini?"
+                    title="Hapus Pembayaran?"
                     description={`${formatIDR(p.amount)} akan dihapus dan sisa tagihan dikembalikan.`}
+                    warningText={`Data pembayaran yang dihapus tidak akan bisa dikembalikan.`}
                     successMessage="Pembayaran berhasil dihapus"
                     onConfirm={() => deleteOrderPayment(p.id)}
                   />

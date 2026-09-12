@@ -187,8 +187,9 @@ export function BookCard({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Konfirmasi Hapus"
+        title="Hapus Buku?"
         description={`Apakah anda benar ingin menghapus buku "${book.title}"?`}
+        warningText={`Data buku yang dihapus tidak akan bisa dikembalikan.`}
         onConfirm={handleDelete}
       />
     </div>
