@@ -245,7 +245,7 @@ function StatCard({
             )}
           />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 md:flex-1">
           <p
             className={cn(
               "truncate text-sm text-muted-foreground",
@@ -256,10 +256,11 @@ function StatCard({
           </p>
           <StatValue
             value={value}
-            className={
+            className={cn(
               valueClassName ??
-              "text-2xl font-bold text-gray-900 md:text-3xl"
-            }
+                "text-2xl font-bold text-gray-900 md:text-3xl",
+              "truncate"
+            )}
           />
           <DeltaLine delta={delta} />
         </div>
@@ -395,14 +396,14 @@ export default async function AdminOverviewPage({
           title="Financial"
           href="/admin/orders"
         />
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[3fr_2fr]">
-          <div className="flex w-full flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-center lg:gap-14">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-4 rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FCF7EC] via-[#FDF2F0] to-[#FBE3E3] p-4 shadow-sm lg:flex-row lg:justify-center lg:gap-14">
             <FinancialDonut
               revenue={stats.revenue}
               dp={stats.totalDp}
               remaining={stats.totalRemaining}
             />
-            <div className="min-w-0 w-full flex-1 lg:w-[420px] lg:flex-none lg:self-start">
+            <div className="w-full min-w-0 flex-1 lg:max-w-[420px] lg:self-start">
               <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
               <p className="text-sm text-muted-foreground">
                 Proporsi revenue, DP, dan sisa tagihan.
@@ -447,7 +448,7 @@ export default async function AdminOverviewPage({
               </ul>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:gap-2">
+          <div className="grid min-w-0 grid-cols-2 gap-2 md:grid-cols-1 md:gap-2">
             <StatCard
               icon={ReceiptText}
               label="Total Revenue"
