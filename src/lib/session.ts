@@ -2,19 +2,16 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 
-async function requireSession() {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
-  return session;
-}
-
+// Mirrors the RoleGate redirects so page-level guards behave like the layouts.
 export async function requireRole(role: "SUPER_ADMIN" | "USER") {
-  const session = await requireSession();
-  if (session.user.role !== role) {
-    if (role === "SUPER_ADMIN") redirect("/admin/login");
-    redirect("/login");
+  const session = await getServerSession(authOptions);
+  const current = session?.user?.role as "SUPER_ADMIN" | "USER" | undefined;
+  if (session && current === role) return session;
+
+  if (role === "SUPER_ADMIN") {
+    redirect(current === "USER" ? "/dashboard" : "/admin/login");
   }
-  return session;
+  redirect("/login");
 }
 
 type SessionLike = {

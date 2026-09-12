@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -6,6 +7,7 @@ import { BookForm } from "@/components/BookForm";
 import { getBatches } from "@/server/queries/catalog";
 
 export default async function EditBookPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireRole("SUPER_ADMIN");
   const { id } = await params;
   const [book, batches] = await Promise.all([
     db.book.findUnique({

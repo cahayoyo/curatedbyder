@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -9,6 +10,7 @@ export default async function EditBuyerPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireRole("SUPER_ADMIN");
   const { id } = await params;
   const buyer = await db.user.findUnique({
     where: { id },

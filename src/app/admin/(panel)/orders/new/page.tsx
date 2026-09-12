@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { CSSProperties } from "react";
@@ -16,6 +17,7 @@ import {
 import { db } from "@/lib/db";
 
 export default async function NewOrderPage() {
+  await requireRole("SUPER_ADMIN");
   const [buyers, books, toys, batches, batchPrices] = await Promise.all([
     db.user.findMany({
       where: { role: "USER" },

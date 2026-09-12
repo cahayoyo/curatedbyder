@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Image from "next/image";
 import { Fragment, Suspense } from "react";
 import { db } from "@/lib/db";
@@ -554,6 +555,7 @@ export default async function AdminBooksPage({
 }: {
   searchParams: Promise<BookSearchParams>;
 }) {
+  await requireRole("SUPER_ADMIN");
   const sp = scalarize(await searchParams, ["status"]) as BookSearchParams;
 
   const publisherRows = await db.book.findMany({

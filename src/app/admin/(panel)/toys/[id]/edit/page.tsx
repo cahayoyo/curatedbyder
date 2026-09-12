@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -6,6 +7,7 @@ import { ToyForm } from "@/components/ToyForm";
 import { getBatches } from "@/server/queries/catalog";
 
 export default async function EditToyPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireRole("SUPER_ADMIN");
   const { id } = await params;
   const [toy, batches] = await Promise.all([
     db.toy.findUnique({

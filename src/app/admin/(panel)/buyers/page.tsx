@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { Suspense } from "react";
 import {
@@ -350,6 +351,7 @@ export default async function AdminBuyersPage({
 }: {
   searchParams: Promise<BuyerSearchParams>;
 }) {
+  await requireRole("SUPER_ADMIN");
   const sp = scalarize(await searchParams) as BuyerSearchParams;
 
   return (
