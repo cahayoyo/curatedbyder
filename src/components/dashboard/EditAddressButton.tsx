@@ -57,12 +57,15 @@ export function EditAddressButton({ contact }: { contact: string | null }) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-[90%] max-w-md gap-5 rounded-2xl border-none bg-[#FDF7F3] p-6 shadow-xl sm:rounded-2xl [&>button.absolute]:bg-[#EDEBE8] [&>button.absolute]:text-[#4B5563] [&>button.absolute]:hover:bg-[#E2DFDB]">
-          <DialogHeader className="space-y-2 text-left sm:text-left">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FDE7E7] text-[#C96A6A]">
-              <MapPin className="h-5 w-5" />
-            </span>
-            <DialogTitle className="text-xl font-bold text-black">Ubah Alamat</DialogTitle>
-            <DialogDescription className="text-sm text-[#6B7280]">
+          <DialogHeader className="space-y-3 text-center sm:text-center">
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+              <span className="absolute inset-0 rounded-full bg-[#F9D2D8]" />
+              <MapPin className="relative h-9 w-9 text-[#C96A6A]" />
+            </div>
+            <DialogTitle className="text-center text-xl font-bold text-black">
+              Ubah Alamat
+            </DialogTitle>
+            <DialogDescription className="text-center text-sm text-[#6B7280]">
               Alamat ini dipakai untuk pengiriman pesanan kamu.
             </DialogDescription>
           </DialogHeader>
