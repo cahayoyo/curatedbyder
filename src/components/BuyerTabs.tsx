@@ -117,9 +117,9 @@ function ProductTag({ kind }: { kind?: string }) {
 
 function ItemCover({ image, alt }: { image: string | null; alt: string }) {
   return (
-    <div className="relative h-[68px] w-[50px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70">
+    <div className="relative h-[68px] w-[50px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70 md:h-[98px] md:w-[70px]">
       {image ? (
-        <Image src={image} alt={alt} fill sizes="50px" className="object-cover object-center" />
+        <Image src={image} alt={alt} fill sizes="(min-width: 768px) 70px, 50px" className="object-cover object-center" />
       ) : (
         <div className="flex h-full items-center justify-center">
           <ImageIcon className="h-4 w-4 text-black/30" />
