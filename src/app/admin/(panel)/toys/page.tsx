@@ -384,8 +384,9 @@ async function ToysList({ searchParams }: { searchParams: ToySearchParams }) {
                               <ConfirmDeleteButton
                                 size="icon"
                                 triggerClassName="border-[#D97A7A]/40 bg-white text-[#D97A7A] hover:bg-[#D97A7A]/10 hover:text-[#D97A7A]"
-                                title="Konfirmasi Hapus"
+                                title="Hapus Mainan?"
                                 description={`Apakah anda benar ingin menghapus mainan "${b.title}"?`}
+                                warningText={`Data mainan yang dihapus tidak akan bisa dikembalikan.`}
                                 successMessage={`${b.title} berhasil dihapus!`}
                                 onConfirm={deleteToy.bind(null, b.id)}
                               />

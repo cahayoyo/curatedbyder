@@ -169,7 +169,12 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
 
   const itemCount = await db.orderItem.count({ where: { batchId: id } });
   if (itemCount > 0) {
-    return { ok: false, error: `Batch "${batch.name}" masih dipakai ${itemCount} item pesanan` };
+    return {
+      ok: false,
+      error: `Batch "${batch.name}" masih dipakai ${itemCount} item pesanan.`,
+      title: "Tidak Dapat Dihapus",
+      hint: "Data yang sudah terhubung dengan transaksi harus tetap tersimpan.",
+    };
   }
 
   try {

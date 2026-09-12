@@ -107,7 +107,12 @@ export async function deleteBook(id: string): Promise<ActionResult> {
   const book = await db.book.findUnique({ where: { id }, select: { title: true } });
   const sold = await db.orderItem.count({ where: { bookId: id } });
   if (sold > 0) {
-    return { ok: false, error: "Buku ini sudah pernah terjual dan tidak bisa dihapus." };
+    return {
+      ok: false,
+      error: "Buku ini sudah pernah terjual dan tidak bisa dihapus.",
+      title: "Tidak Dapat Dihapus",
+      hint: "Data yang sudah terhubung dengan transaksi harus tetap tersimpan.",
+    };
   }
 
   try {

@@ -240,8 +240,9 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <ConfirmDeleteButton
-                          title="Hapus Batch"
+                          title="Hapus Batch?"
                           description={`Apakah anda benar ingin menghapus batch "${b.name}"?`}
+                          warningText={`Data batch yang dihapus tidak akan bisa dikembalikan.`}
                           triggerLabel=""
                           size="icon"
                           successMessage={`${b.name} berhasil dihapus!`}
