@@ -1,8 +1,10 @@
+import { requireRole } from "@/lib/session";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { BuyerForm } from "@/components/BuyerForm";
 
-export default function NewBuyerPage() {
+export default async function NewBuyerPage() {
+  await requireRole("SUPER_ADMIN");
   return (
     <div className="space-y-4 px-2 md:px-6 [--border:0_55%_87%] [--input:0_55%_87%]">
       <nav className="flex items-center gap-1 text-xs text-muted-foreground">

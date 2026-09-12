@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "./db";
 import { emitLog } from "@/instrumentation";
+import { checkLoginRateLimit, getClientIp } from "./rateLimit";
 
 // Compared against when the account is missing so the admin path always pays
 // the same bcrypt cost (avoids a timing signal / user enumeration).
@@ -42,11 +43,30 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         // Admin: email + password (SUPER_ADMIN only). Errors are intentionally
         // generic so the response never reveals whether the email exists.
         if (credentials?.mode === "admin") {
           if (!credentials.email || !credentials.password) return null;
+          const adminIdentifier = credentials.email.trim().toLowerCase();
+          const adminLimit = await checkLoginRateLimit(
+            "admin",
+            getClientIp(req?.headers),
+            adminIdentifier
+          );
+          if (!adminLimit.allowed) {
+            emitLog(
+              "Admin login blocked by rate limit",
+              {
+                actor: adminIdentifier,
+                login_mode: "admin",
+                reason: "rate_limited",
+                retry_after_s: adminLimit.retryAfterSeconds,
+              },
+              SeverityNumber.WARN
+            );
+            throw new Error("Email atau kata sandi salah");
+          }
           const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
@@ -75,6 +95,25 @@ export const authOptions: NextAuthOptions = {
           const username = (credentials.username || "").trim().toLowerCase();
           const phoneInput = (credentials.phone || "").replace(/\D/g, "");
           if (!username || !phoneInput) return null;
+
+          const buyerLimit = await checkLoginRateLimit(
+            "buyer",
+            getClientIp(req?.headers),
+            username
+          );
+          if (!buyerLimit.allowed) {
+            emitLog(
+              `Buyer "${username}" login blocked by rate limit`,
+              {
+                actor: username,
+                login_mode: "buyer",
+                reason: "rate_limited",
+                retry_after_s: buyerLimit.retryAfterSeconds,
+              },
+              SeverityNumber.WARN
+            );
+            throw new Error("Username atau nomor telepon salah");
+          }
 
           const user = await db.user.findFirst({ where: { username, role: "USER" } });
           const storedPhone = (user?.phone || "").replace(/\D/g, "");

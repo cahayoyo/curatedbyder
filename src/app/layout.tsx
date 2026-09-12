@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SuccessModalProvider } from "@/components/SuccessModal";
@@ -16,11 +17,15 @@ export const metadata: Metadata = {
   description: "Bookstore inventory and order tracking.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // CSP nonce (proxy.ts) is per request: every page must render dynamically
+  // so Next.js can stamp the current nonce onto its bootstrap scripts.
+  await connection();
+
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
