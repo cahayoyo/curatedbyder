@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { BuyerShell } from "@/components/BuyerShell";
 import { CopyResi, TrackCard } from "@/components/BuyerTabs";
+import { WhatsAppConfirmButton } from "@/components/WhatsAppConfirmButton";
 import { StageStatusBanner, StageTimelineVertical } from "@/components/TrackingTimeline";
 import { earliestEta } from "@/lib/tracking";
 import { etaLabel } from "@/lib/orderOptions";
@@ -111,15 +112,23 @@ export default async function TrackingDetailPage({
             </div>
           </div>
           {waHref && (
-            <a
+            <WhatsAppConfirmButton
               href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#1ebe57]"
-            >
-              <Phone className="h-3.5 w-3.5" />
-              Hubungi Kami
-            </a>
+              message={
+                <>
+                  Anda akan diarahkan ke chat WhatsApp admin untuk menanyakan status pengiriman
+                  invoice <span className="font-semibold text-black">{dto.invoiceNumber}</span>.
+                  Lanjutkan?
+                </>
+              }
+              triggerClassName="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#1ebe57]"
+              trigger={
+                <>
+                  <Phone className="h-3.5 w-3.5" />
+                  Hubungi Kami
+                </>
+              }
+            />
           )}
         </div>
       </div>

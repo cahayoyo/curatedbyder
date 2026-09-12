@@ -21,14 +21,17 @@ export function FinancialDonut({
   const pending = useRangePending();
   const R = 78;
   const C = 2 * Math.PI * R;
+  // ponytail: 2 slices only (DP + Sisa). Basis is dp+remaining so payments-beyond-DP
+  // don't create a third (grey) slice; center still shows full revenue.
+  const base = dp + remaining;
   let acc = 0;
   const segs = [
     { value: dp, color: FIN_COLORS.dp },
     { value: remaining, color: FIN_COLORS.remaining },
   ]
-    .filter((p) => revenue > 0 && p.value > 0)
+    .filter((p) => base > 0 && p.value > 0)
     .map((p) => {
-      const len = (p.value / revenue) * C;
+      const len = (p.value / base) * C;
       const seg = { ...p, len, start: acc };
       acc += len;
       return seg;
@@ -61,7 +64,7 @@ export function FinancialDonut({
             dominantBaseline="central"
             className="fill-gray-900 text-xs font-bold"
           >
-            {Math.round((s.value / revenue) * 100)}%
+            {Math.round((s.value / base) * 100)}%
           </text>
         );
       })}
