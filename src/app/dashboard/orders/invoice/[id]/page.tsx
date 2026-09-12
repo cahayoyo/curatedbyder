@@ -19,6 +19,7 @@ import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { BuyerShell } from "@/components/BuyerShell";
+import { CopyResi } from "@/components/BuyerTabs";
 import { FORMAT_BADGE, PAYMENT_BADGE, PAYMENT_LABEL } from "@/lib/orderOptions";
 import { dateShortLabel, formatIDR, timeShortLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
@@ -153,10 +154,14 @@ export default async function InvoiceDetailPage({
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
             <div className="flex min-w-0 items-start gap-3">
-              <Cover image={cover} alt={dto.items[0]?.book.title ?? "Item pesanan"} className="h-[76px] w-[56px]" />
-              <div className="min-w-0 flex-1 space-y-1.5 text-sm">
-                <div className="flex items-center justify-between gap-2 md:block">
-                  <p className="font-mono text-sm font-bold break-all text-black">{dto.invoiceNumber}</p>
+              <Cover image={cover} alt={dto.items[0]?.book.title ?? "Item pesanan"} className="h-[110px] w-[80px]" />
+              <div className="min-w-0 flex-1 space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <CopyResi
+                    value={dto.invoiceNumber}
+                    label="Copy nomor invoice"
+                    valueClassName="font-mono text-base font-bold break-all text-black md:text-lg"
+                  />
                   <span
                     className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold md:hidden ${PAYMENT_BADGE[dto.paymentStatus] ?? ""}`}
                   >
@@ -178,22 +183,22 @@ export default async function InvoiceDetailPage({
               </div>
             </div>
 
-            <div className="space-y-3 md:w-[45%]">
-              <div className="rounded-lg border border-[#F0CBCB]/60 p-3">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#B04A4A]">
-                  <MapPin className="h-3.5 w-3.5" />
+            <div className="space-y-4 md:w-[45%]">
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
+                  <MapPin className="h-4 w-4 text-[#C96A6A]" />
                   Alamat Pengiriman
                 </p>
-                <p className="mt-1.5 whitespace-pre-line text-sm text-black/80">
+                <p className="mt-1 whitespace-pre-line pl-6 text-sm text-muted-foreground">
                   {dto.buyerContact || "—"}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#F0CBCB]/60 p-3">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-[#B04A4A]">
-                  <Truck className="h-3.5 w-3.5" />
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
+                  <Truck className="h-4 w-4 text-[#C96A6A]" />
                   Metode Pengiriman
                 </p>
-                <p className="mt-1.5 text-sm text-black/80">Ongkir {formatIDR(ongkir)}</p>
+                <p className="mt-1 pl-6 text-sm text-muted-foreground">Ongkir {formatIDR(ongkir)}</p>
               </div>
             </div>
           </div>
@@ -207,31 +212,31 @@ export default async function InvoiceDetailPage({
 
           <table className="mt-3 hidden w-full text-sm md:table">
             <thead>
-              <tr className="border-b border-[#F0CBCB]/60 text-left text-xs text-muted-foreground">
-                <th className="w-10 py-2 font-medium">#</th>
-                <th className="py-2 font-medium">Produk</th>
-                <th className="py-2 font-medium">Format</th>
-                <th className="py-2 text-right font-medium">Harga</th>
-                <th className="py-2 text-right font-medium">Jumlah</th>
-                <th className="py-2 text-right font-medium">Subtotal</th>
+              <tr className="bg-[#FBE6E6] text-left text-xs text-black/70">
+                <th className="w-10 rounded-l-lg px-2 py-2 font-medium">#</th>
+                <th className="px-2 py-2 font-medium">Produk</th>
+                <th className="px-2 py-2 font-medium">Format</th>
+                <th className="px-2 py-2 text-right font-medium">Harga</th>
+                <th className="px-2 py-2 text-right font-medium">Jumlah</th>
+                <th className="rounded-r-lg px-2 py-2 text-right font-medium">Subtotal</th>
               </tr>
             </thead>
             <tbody>
               {dto.items.map((it, i) => (
                 <tr key={i} className="border-b border-[#F0CBCB]/40 last:border-0">
-                  <td className="py-3 align-middle text-muted-foreground">{i + 1}</td>
-                  <td className="py-3">
+                  <td className="px-2 py-3 align-middle text-muted-foreground">{i + 1}</td>
+                  <td className="px-2 py-3">
                     <div className="flex items-center gap-3">
                       <Cover image={it.image} alt={it.book.title} className="h-[48px] w-[34px]" />
                       <span className="font-medium">{it.book.title}</span>
                     </div>
                   </td>
-                  <td className="py-3">
+                  <td className="px-2 py-3">
                     <FormatTags kind={it.kind} formats={it.book.formats} />
                   </td>
-                  <td className="py-3 text-right">{formatIDR(it.unitPrice)}</td>
-                  <td className="py-3 text-right">{it.quantity}</td>
-                  <td className="py-3 text-right font-semibold">{formatIDR(it.subtotal)}</td>
+                  <td className="px-2 py-3 text-right">{formatIDR(it.unitPrice)}</td>
+                  <td className="px-2 py-3 text-right">{it.quantity}</td>
+                  <td className="px-2 py-3 text-right font-semibold">{formatIDR(it.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -264,7 +269,6 @@ export default async function InvoiceDetailPage({
           <div className="mt-3 space-y-2 text-sm">
             <PayRow label="Subtotal Produk" value={formatIDR(subtotal)} />
             <PayRow label="Ongkir" value={formatIDR(ongkir)} />
-            <PayRow label="Biaya Layanan" value={formatIDR(0)} />
           </div>
           <div className="mt-3 flex items-center justify-between rounded-lg bg-[#FBE6E6] px-3 py-2.5">
             <span className="text-sm font-bold text-[#B04A4A]">Total Pembayaran</span>

@@ -473,9 +473,11 @@ function PaymentCard({ order }: { order: OrderDTO }) {
 export function CopyResi({
   value,
   label = "Copy nomor resi",
+  valueClassName = "font-mono text-xs font-semibold break-all",
 }: {
   value: string | null;
   label?: string;
+  valueClassName?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -494,7 +496,7 @@ export function CopyResi({
 
   return (
     <span className="flex items-center gap-1">
-      <span className="font-mono text-xs font-semibold break-all">{value}</span>
+      <span className={valueClassName}>{value}</span>
       <button
         type="button"
         onClick={copy}
