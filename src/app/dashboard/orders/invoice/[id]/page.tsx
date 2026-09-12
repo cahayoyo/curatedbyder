@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CalendarClock,
   ChevronRight,
+  FileText,
   ImageIcon,
   Info,
   ListOrdered,
@@ -86,6 +87,29 @@ function PayRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between py-2">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function ShippingBlock({ contact, ongkir }: { contact: string | null; ongkir: number }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
+          <MapPin className="h-4 w-4 text-[#C96A6A]" />
+          Alamat Pengiriman
+        </p>
+        <p className="mt-1 whitespace-pre-line pl-6 text-sm text-muted-foreground">
+          {contact || "—"}
+        </p>
+      </div>
+      <div>
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
+          <Truck className="h-4 w-4 text-[#C96A6A]" />
+          Metode Pengiriman
+        </p>
+        <p className="mt-1 pl-6 text-sm text-muted-foreground">Ongkir {formatIDR(ongkir)}</p>
+      </div>
     </div>
   );
 }
@@ -183,25 +207,14 @@ export default async function InvoiceDetailPage({
               </div>
             </div>
 
-            <div className="space-y-4 md:w-[45%]">
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
-                  <MapPin className="h-4 w-4 text-[#C96A6A]" />
-                  Alamat Pengiriman
-                </p>
-                <p className="mt-1 whitespace-pre-line pl-6 text-sm text-muted-foreground">
-                  {dto.buyerContact || "—"}
-                </p>
-              </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-black">
-                  <Truck className="h-4 w-4 text-[#C96A6A]" />
-                  Metode Pengiriman
-                </p>
-                <p className="mt-1 pl-6 text-sm text-muted-foreground">Ongkir {formatIDR(ongkir)}</p>
-              </div>
+            <div className="hidden md:block md:w-[45%]">
+              <ShippingBlock contact={dto.buyerContact} ongkir={ongkir} />
             </div>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm md:hidden">
+          <ShippingBlock contact={dto.buyerContact} ongkir={ongkir} />
         </div>
 
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm">
@@ -246,18 +259,20 @@ export default async function InvoiceDetailPage({
 
           <div className="mt-3 space-y-3 md:hidden">
             {dto.items.map((it, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Cover image={it.image} alt={it.book.title} className="h-[56px] w-[40px]" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{it.book.title}</p>
-                  <div className="mt-1">
-                    <FormatTags kind={it.kind} formats={it.book.formats} />
+              <div key={i}>
+                <div className="flex items-center gap-3">
+                  <Cover image={it.image} alt={it.book.title} className="h-[56px] w-[40px]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{it.book.title}</p>
+                    <div className="mt-1">
+                      <FormatTags kind={it.kind} formats={it.book.formats} />
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {formatIDR(it.unitPrice)} × {it.quantity}
-                  </p>
+                  <span className="shrink-0 font-semibold">{formatIDR(it.subtotal)}</span>
                 </div>
-                <span className="shrink-0 font-semibold">{formatIDR(it.subtotal)}</span>
+                <p className="mt-1 text-left text-xs text-muted-foreground">
+                  {formatIDR(it.unitPrice)} × {it.quantity}
+                </p>
               </div>
             ))}
           </div>
@@ -296,6 +311,7 @@ export default async function InvoiceDetailPage({
               title="Segera hadir"
               className="order-2 inline-flex h-10 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-[#D97A7A] bg-white px-4 text-sm font-semibold text-[#B04A4A] sm:order-1"
             >
+              <FileText className="h-4 w-4" />
               Lihat Panduan
             </button>
             {waHref && (
@@ -305,6 +321,7 @@ export default async function InvoiceDetailPage({
                 rel="noopener noreferrer"
                 className="order-1 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#D97A7A] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#c9686b] sm:order-2"
               >
+                <Wallet className="h-4 w-4" />
                 Konfirmasi Pembayaran
               </a>
             )}
