@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { Prisma, type Toy } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
@@ -45,7 +45,7 @@ async function ensureUniqueTitle(title: string, excludeId?: string): Promise<str
 
 export async function createToy(
   input: z.infer<typeof toySchema>
-): Promise<ActionResultWithData<Toy>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -58,7 +58,7 @@ export async function createToy(
     revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
     emitLog(`Toy "${toy.title}" created`, { actor, toy_id: toy.id, title: toy.title });
-    return { ok: true, data: toy };
+    return { ok: true, data: { id: toy.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Toy "${data.title}" save failed: duplicate title`, { actor, title: data.title }, SeverityNumber.WARN);
@@ -72,7 +72,7 @@ export async function createToy(
 export async function updateToy(
   id: string,
   input: z.infer<typeof toySchema>
-): Promise<ActionResultWithData<Toy>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -85,7 +85,7 @@ export async function updateToy(
     revalidateTag("toys", "max");
     revalidatePath("/admin/toys");
     emitLog(`Toy "${toy.title}" updated`, { actor, toy_id: toy.id, title: toy.title });
-    return { ok: true, data: toy };
+    return { ok: true, data: { id: toy.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Toy "${data.title}" update failed: duplicate title`, { actor, toy_id: id, title: data.title }, SeverityNumber.WARN);

@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { Prisma, type Book } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
@@ -49,7 +49,7 @@ async function ensureUniqueTitle(title: string, excludeId?: string): Promise<str
 
 export async function createBook(
   input: z.infer<typeof bookSchema>
-): Promise<ActionResultWithData<Book>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -62,7 +62,7 @@ export async function createBook(
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
     emitLog(`Book "${book.title}" created`, { actor, book_id: book.id, title: book.title });
-    return { ok: true, data: book };
+    return { ok: true, data: { id: book.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Book "${data.title}" save failed: duplicate title`, { actor, title: data.title }, SeverityNumber.WARN);
@@ -76,7 +76,7 @@ export async function createBook(
 export async function updateBook(
   id: string,
   input: z.infer<typeof bookSchema>
-): Promise<ActionResultWithData<Book>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -89,7 +89,7 @@ export async function updateBook(
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
     emitLog(`Book "${book.title}" updated`, { actor, book_id: book.id, title: book.title });
-    return { ok: true, data: book };
+    return { ok: true, data: { id: book.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Book "${data.title}" update failed: duplicate title`, { actor, book_id: id, title: data.title }, SeverityNumber.WARN);

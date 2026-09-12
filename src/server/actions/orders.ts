@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { Prisma, type Order } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
@@ -191,7 +191,7 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
 
 export async function createOrder(
   input: z.infer<typeof orderSchema>
-): Promise<ActionResultWithData<Order>> {
+): Promise<ActionResultWithData<{ id: string; invoiceNumber: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -325,7 +325,7 @@ export async function createOrder(
       revalidatePath("/admin");
       revalidatePath("/admin/orders");
       revalidatePath("/dashboard");
-      return { ok: true, data: order };
+      return { ok: true, data: { id: order.id, invoiceNumber: order.invoiceNumber } };
     } catch (e) {
       if (e instanceof UserInputError) {
         return { ok: false, error: e.message };
@@ -616,7 +616,7 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
     revalidatePath("/admin/orders");
     revalidatePath("/admin");
     emitLog(`Order ${order.invoiceNumber} payment status updated to ${valid}`, { actor, order_id: id, invoice_number: order.invoiceNumber, payment_status: valid });
-    return order;
+    return { id: order.id, paymentStatus: order.paymentStatus };
   } catch (e) {
     emitLog(`Order ${id} payment status update failed`, { actor, order_id: id, payment_status: valid, error: String(e) }, SeverityNumber.ERROR);
     throw e;
