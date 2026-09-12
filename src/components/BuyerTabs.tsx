@@ -189,7 +189,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
               {itemCount} Item · {formatIDR(order.total)}
             </span>
           </span>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#C0474A]">
+          <span className="inline-flex shrink-0 items-center gap-1.5 self-end rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#C0474A]">
             Lihat Detail
             <ChevronRight className="h-3.5 w-3.5" />
           </span>
