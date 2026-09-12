@@ -2,27 +2,28 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { Prisma, type Order } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
-import { ActionResult, ActionResultWithData, UserInputError } from "@/lib/actionResult";
+import { ActionResult, ActionResultWithData, UserInputError, parseInput } from "@/lib/actionResult";
 import { formatIDR } from "@/lib/format";
 import {
   STATUS_TYPE,
   ETA_TYPE,
   PAYMENT_TYPE,
 } from "@/lib/orderOptions";
+import { MAX_ID, MAX_MONEY, MAX_NAME, MAX_QTY } from "@/lib/limits";
 
 const orderSchema = z.object({
-  buyerId: z.string().min(1),
-  dp: z.number().int().min(0).optional().nullable(),
-  shippingCost: z.number().int().min(0).optional().nullable(),
+  buyerId: z.string().min(1).max(MAX_ID),
+  dp: z.number().int().min(0).max(MAX_MONEY).optional().nullable(),
+  shippingCost: z.number().int().min(0).max(MAX_MONEY).optional().nullable(),
   trackingNumber: z
     .string()
     .trim()
-    .max(100)
+    .max(MAX_NAME)
     .optional()
     .nullable()
     .transform((v) => (v ? v : null)),
@@ -30,22 +31,23 @@ const orderSchema = z.object({
   items: z
     .array(
       z.object({
-        bookId: z.string().optional().nullable(),
-        toyId: z.string().optional().nullable(),
-        batchId: z.string().min(1),
+        bookId: z.string().max(MAX_ID).optional().nullable(),
+        toyId: z.string().max(MAX_ID).optional().nullable(),
+        batchId: z.string().min(1).max(MAX_ID),
         eta: z.enum(ETA_TYPE),
-        quantity: z.number().int().min(1),
-        unitPrice: z.number().int().min(0).optional(),
+        quantity: z.number().int().min(1).max(MAX_QTY),
+        unitPrice: z.number().int().min(0).max(MAX_MONEY).optional(),
       })
     )
     .min(1)
+    .max(500)
     .refine((items) => items.every((i) => i.bookId || i.toyId), {
       message: "Setiap item wajib memiliki buku atau mainan",
     }),
 });
 
 const orderPaymentSchema = z.object({
-  amount: z.number().int().min(1),
+  amount: z.number().int().min(1).max(MAX_MONEY),
   proofUrl: z
     .string()
     .trim()
@@ -113,6 +115,9 @@ export async function createBatch(name: string) {
 
   const batchName = name.trim().toUpperCase();
   if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
+  if (batchName.length > MAX_NAME) {
+    return { ok: false as const, error: `Nama batch maksimal ${MAX_NAME} karakter` };
+  }
   if (!/^[A-Z0-9]+( [A-Z0-9]+)*$/.test(batchName)) {
     return { ok: false as const, error: "Nama batch hanya boleh huruf/angka/spasi (mis. READY STOCK)" };
   }
@@ -139,6 +144,9 @@ export async function updateBatch(id: string, name: string) {
 
   const batchName = name.trim().toUpperCase();
   if (!batchName) return { ok: false as const, error: "Nama batch tidak boleh kosong" };
+  if (batchName.length > MAX_NAME) {
+    return { ok: false as const, error: `Nama batch maksimal ${MAX_NAME} karakter` };
+  }
   if (!/^[A-Z0-9]+( [A-Z0-9]+)*$/.test(batchName)) {
     return { ok: false as const, error: "Nama batch hanya boleh huruf/angka/spasi (mis. READY STOCK)" };
   }
@@ -191,11 +199,13 @@ export async function deleteBatch(id: string): Promise<ActionResult> {
 
 export async function createOrder(
   input: z.infer<typeof orderSchema>
-): Promise<ActionResultWithData<Order>> {
+): Promise<ActionResultWithData<{ id: string; invoiceNumber: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = orderSchema.parse(input);
+  const parsed = parseInput(orderSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   const run = (seqOffset: number) =>
     db.$transaction(async (tx) => {
@@ -325,7 +335,7 @@ export async function createOrder(
       revalidatePath("/admin");
       revalidatePath("/admin/orders");
       revalidatePath("/dashboard");
-      return { ok: true, data: order };
+      return { ok: true, data: { id: order.id, invoiceNumber: order.invoiceNumber } };
     } catch (e) {
       if (e instanceof UserInputError) {
         return { ok: false, error: e.message };
@@ -353,7 +363,9 @@ export async function updateOrder(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = orderSchema.parse(input);
+  const parsed = parseInput(orderSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   let invoiceNumber: string | undefined;
 
   try {
@@ -616,7 +628,7 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
     revalidatePath("/admin/orders");
     revalidatePath("/admin");
     emitLog(`Order ${order.invoiceNumber} payment status updated to ${valid}`, { actor, order_id: id, invoice_number: order.invoiceNumber, payment_status: valid });
-    return order;
+    return { id: order.id, paymentStatus: order.paymentStatus };
   } catch (e) {
     emitLog(`Order ${id} payment status update failed`, { actor, order_id: id, payment_status: valid, error: String(e) }, SeverityNumber.ERROR);
     throw e;
@@ -674,7 +686,9 @@ export async function addOrderPayment(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = orderPaymentSchema.parse(input);
+  const parsed = parseInput(orderPaymentSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   try {
     const result = await db.$transaction(async (tx) => {
@@ -738,7 +752,9 @@ export async function updateOrderPayment(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = orderPaymentSchema.parse(input);
+  const parsed = parseInput(orderPaymentSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   try {
     const result = await db.$transaction(async (tx) => {
@@ -797,7 +813,7 @@ export async function updateOrderPayment(
 }
 
 const orderDpSchema = z.object({
-  amount: z.number().int().min(0),
+  amount: z.number().int().min(0).max(MAX_MONEY),
   proofUrl: z
     .string()
     .trim()
@@ -815,7 +831,9 @@ export async function updateOrderDp(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = orderDpSchema.parse(input);
+  const parsed = parseInput(orderDpSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   try {
     const result = await db.$transaction(async (tx) => {

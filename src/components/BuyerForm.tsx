@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { AtSign, Check, MapPin, Phone, Plus, Trash2, User, UserPlus, X } from "lucide-react";
 import { generateUsername } from "@/lib/username";
+import { MAX_CONTACT, MAX_NAME, MAX_PHONE } from "@/lib/limits";
 
 type InitialBuyer = {
   id?: string;
@@ -170,6 +171,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                     value={r.name}
                     onChange={(e) => upRow(i, "name", e.target.value)}
                     required
+                    maxLength={MAX_NAME}
                     placeholder="Masukkan nama lengkap..."
                     className="pl-9 placeholder:text-[#b5b5b5]"
                   />
@@ -204,6 +206,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                   <Input
                     value={r.phone}
                     inputMode="numeric"
+                    maxLength={MAX_PHONE}
                     onChange={(e) => upRow(i, "phone", e.target.value.replace(/\D/g, ""))}
                     required
                     placeholder="Masukkan nomor telepon..."
@@ -219,6 +222,7 @@ export function BuyerForm({ initial }: { initial?: InitialBuyer }) {
                   <Textarea
                     value={r.contact}
                     onChange={(e) => upRow(i, "contact", e.target.value)}
+                    maxLength={MAX_CONTACT}
                     placeholder="Opsional..."
                     rows={2}
                     className="pl-9 placeholder:text-[#b5b5b5]"

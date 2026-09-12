@@ -2,21 +2,22 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { Prisma, type Book } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
-import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
+import { ActionResult, ActionResultWithData, parseInput } from "@/lib/actionResult";
 import { FORMAT_TYPE, BOOK_STATUS_TYPE } from "@/lib/orderOptions";
+import { MAX_ID, MAX_MONEY, MAX_NAME, MAX_STOCK } from "@/lib/limits";
 
 const bookSchema = z.object({
-  title: z.string().trim().min(1),
+  title: z.string().trim().min(1).max(MAX_NAME),
   publisher: z.string().trim().max(500).optional(),
   info: z.string().trim().max(5000).optional(),
   image: z.string().trim().max(2000).optional(),
-  price: z.number().int().min(0),
-  stock: z.number().int().min(0),
+  price: z.number().int().min(0).max(MAX_MONEY),
+  stock: z.number().int().min(0).max(MAX_STOCK),
   status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
   formats: z.array(z.enum(FORMAT_TYPE)).default([]),
 });
@@ -49,11 +50,13 @@ async function ensureUniqueTitle(title: string, excludeId?: string): Promise<str
 
 export async function createBook(
   input: z.infer<typeof bookSchema>
-): Promise<ActionResultWithData<Book>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = bookSchema.parse(input);
+  const parsed = parseInput(bookSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const dupError = await ensureUniqueTitle(data.title);
   if (dupError) return { ok: false, error: dupError };
 
@@ -62,7 +65,7 @@ export async function createBook(
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
     emitLog(`Book "${book.title}" created`, { actor, book_id: book.id, title: book.title });
-    return { ok: true, data: book };
+    return { ok: true, data: { id: book.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Book "${data.title}" save failed: duplicate title`, { actor, title: data.title }, SeverityNumber.WARN);
@@ -76,11 +79,13 @@ export async function createBook(
 export async function updateBook(
   id: string,
   input: z.infer<typeof bookSchema>
-): Promise<ActionResultWithData<Book>> {
+): Promise<ActionResultWithData<{ id: string }>> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = bookSchema.parse(input);
+  const parsed = parseInput(bookSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const dupError = await ensureUniqueTitle(data.title, id);
   if (dupError) return { ok: false, error: dupError };
 
@@ -89,7 +94,7 @@ export async function updateBook(
     revalidateTag("books", "max");
     revalidatePath("/admin/books");
     emitLog(`Book "${book.title}" updated`, { actor, book_id: book.id, title: book.title });
-    return { ok: true, data: book };
+    return { ok: true, data: { id: book.id } };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       emitLog(`Book "${data.title}" update failed: duplicate title`, { actor, book_id: id, title: data.title }, SeverityNumber.WARN);
@@ -129,20 +134,24 @@ export async function deleteBook(id: string): Promise<ActionResult> {
 }
 
 const bookBatchPriceSchema = z.object({
-  bookId: z.string().min(1),
+  bookId: z.string().min(1).max(MAX_ID),
   entries: z.array(
     z.object({
-      batchId: z.string().min(1),
-      price: z.number().int().min(0),
+      batchId: z.string().min(1).max(MAX_ID),
+      price: z.number().int().min(0).max(MAX_MONEY),
       formats: z.array(z.enum(FORMAT_TYPE)).default([]),
     })
   ),
 });
 
-export async function setBookBatchPrices(input: z.infer<typeof bookBatchPriceSchema>) {
+export async function setBookBatchPrices(
+  input: z.infer<typeof bookBatchPriceSchema>
+): Promise<ActionResult> {
   await requireAdmin();
 
-  const data = bookBatchPriceSchema.parse(input);
+  const parsed = parseInput(bookBatchPriceSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   await db.$transaction(async (tx) => {
     await tx.bookBatchPrice.deleteMany({ where: { bookId: data.bookId } });
@@ -162,4 +171,5 @@ export async function setBookBatchPrices(input: z.infer<typeof bookBatchPriceSch
   revalidatePath("/admin/books");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/orders/new");
+  return { ok: true };
 }

@@ -12,6 +12,7 @@ import {
   updateOrderDp,
   updateOrderPayment,
 } from "@/server/actions/orders";
+import { MAX_NAME } from "@/lib/limits";
 import { BookImagePicker } from "@/components/BookImagePicker";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { OrderInvoicePreview } from "@/components/OrderInvoicePreview";
@@ -759,6 +760,7 @@ export function OrderForm({
           <Input
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
+            maxLength={MAX_NAME}
             placeholder="Masukkan nomor resi..."
           />
         </div>
@@ -1029,6 +1031,7 @@ export function OrderForm({
                   <Input
                     value={payNote}
                     onChange={(e) => setPayNote(e.target.value)}
+                    maxLength={200}
                     placeholder="Contoh: transfer BCA..."
                   />
                 </div>

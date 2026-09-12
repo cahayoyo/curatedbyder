@@ -8,21 +8,24 @@ import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
 import { generateUsername } from "@/lib/username";
 import type { User } from "@prisma/client";
-import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
+import { ActionResult, parseInput } from "@/lib/actionResult";
+import { MAX_CONTACT, MAX_NAME, MAX_PHONE } from "@/lib/limits";
 
 const buyerSchema = z.object({
-  name: z.string().min(2),
-  phone: z.string().min(6).regex(/^\d+$/, "Nomor telepon hanya boleh angka"),
-  contact: z.string().optional().nullable(),
+  name: z.string().min(2).max(MAX_NAME),
+  phone: z.string().min(6).max(MAX_PHONE).regex(/^\d+$/, "Nomor telepon hanya boleh angka"),
+  contact: z.string().max(MAX_CONTACT).optional().nullable(),
 });
 
 export async function createBuyer(
   input: z.infer<typeof buyerSchema>
-): Promise<ActionResultWithData<User>> {
+): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = buyerSchema.parse(input);
+  const parsed = parseInput(buyerSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const [existingByPhone, existingByUsername] = await Promise.all([
     db.user.findUnique({ where: { phone: data.phone } }),
     (async () => {
@@ -53,17 +56,19 @@ export async function createBuyer(
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
   emitLog(`Buyer "${buyer.name}" created`, { actor, buyer_id: buyer.id, name: buyer.name });
-  return { ok: true, data: buyer };
+  return { ok: true };
 }
 
 export async function updateBuyer(
   id: string,
   input: z.infer<typeof buyerSchema>
-): Promise<ActionResultWithData<User>> {
+): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = buyerSchema.parse(input);
+  const parsed = parseInput(buyerSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const username = generateUsername(data.name, data.phone);
   const [existingByPhone, existingByUsername] = await Promise.all([
     db.user.findFirst({ where: { phone: data.phone, NOT: { id } } }),
@@ -87,7 +92,7 @@ export async function updateBuyer(
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
   emitLog(`Buyer "${buyer.name}" updated`, { actor, buyer_id: buyer.id, name: buyer.name });
-  return { ok: true, data: buyer };
+  return { ok: true };
 }
 
 export async function deleteBuyer(id: string): Promise<ActionResult> {

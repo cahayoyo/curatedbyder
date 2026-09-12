@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
 import { createToy, updateToy, setToyBatchPrices } from "@/server/actions/toys";
+import { MAX_NAME } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -263,6 +264,7 @@ export function ToyForm({
                   value={r.title}
                   onChange={(e) => upRow(i, "title", e.target.value)}
                   required
+                  maxLength={MAX_NAME}
                   placeholder="Masukkan judul mainan..."
                   className="placeholder:text-[#b5b5b5]"
                 />

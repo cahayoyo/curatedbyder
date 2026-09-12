@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Prisma, PaymentStatus, OrderStatus } from "@prisma/client";
 import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
+import { withBuyer } from "@/lib/rls";
 import { BuyerTabs, OrderDTO } from "@/components/BuyerTabs";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { SearchInput } from "@/components/SearchInput";
@@ -186,14 +187,18 @@ async function OrdersSection({
     where.paymentStatus = { in: paymentStatuses as PaymentStatus[] };
   }
 
-  const total = await db.order.count({ where });
+  const { total, orders } = await withBuyer(userId, async (tx) => {
+    const total = await tx.order.count({ where });
 
-  const orders = await db.order.findMany({
-    where,
-    include: buyerOrderInclude,
-    orderBy: { soldAt: sort },
-    skip: (page - 1) * per,
-    take: per,
+    const orders = await tx.order.findMany({
+      where,
+      include: buyerOrderInclude,
+      orderBy: { soldAt: sort },
+      skip: (page - 1) * per,
+      take: per,
+    });
+
+    return { total, orders };
   });
 
   const dto: OrderDTO[] = orders.map(toBuyerOrderDTO);

@@ -5,15 +5,16 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
-import type { ActionResult } from "@/lib/actionResult";
+import { parseInput, type ActionResult } from "@/lib/actionResult";
+import { MAX_ID, MAX_MONEY, MAX_RATE } from "@/lib/limits";
 
 const SETTINGS_ID = "singleton";
 
 const settingsSchema = z.object({
-  fixedCost: z.number().int().min(0),
-  serviceFee: z.number().int().min(0),
-  myrToIdr: z.number().int().min(1),
-  shippingPerKg: z.number().int().min(0),
+  fixedCost: z.number().int().min(0).max(MAX_MONEY),
+  serviceFee: z.number().int().min(0).max(MAX_MONEY),
+  myrToIdr: z.number().int().min(1).max(MAX_RATE),
+  shippingPerKg: z.number().int().min(0).max(MAX_MONEY),
 });
 
 export async function updateStoreSettings(
@@ -21,7 +22,9 @@ export async function updateStoreSettings(
 ): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
-  const data = settingsSchema.parse(input);
+  const parsed = parseInput(settingsSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   await db.storeSetting.upsert({
     where: { id: SETTINGS_ID },
@@ -37,7 +40,7 @@ export async function updateStoreSettings(
 }
 
 const visibilitySchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).max(MAX_ID),
   show: z.boolean(),
 });
 
@@ -46,7 +49,9 @@ export async function setBookDashboardVisibility(input: {
   show: boolean;
 }): Promise<ActionResult> {
   await requireAdmin();
-  const data = visibilitySchema.parse(input);
+  const parsed = parseInput(visibilitySchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   await db.book.update({ where: { id: data.id }, data: { showOnDashboard: data.show } });
 
@@ -60,7 +65,9 @@ export async function setToyDashboardVisibility(input: {
   show: boolean;
 }): Promise<ActionResult> {
   await requireAdmin();
-  const data = visibilitySchema.parse(input);
+  const parsed = parseInput(visibilitySchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   await db.toy.update({ where: { id: data.id }, data: { showOnDashboard: data.show } });
 

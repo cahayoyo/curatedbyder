@@ -8,6 +8,8 @@ const nextConfig = {
   // only after root-causing. reactCompiler also disabled pending investigation.
   cacheComponents: false,
   reactCompiler: false,
+  // Don't advertise the stack in responses.
+  poweredByHeader: false,
   // Prisma runs engine-free (engineType "client" + Neon adapter); nft still
   // traces unused edge engine/compiler wasm variants into every function.
   outputFileTracingExcludes: {
@@ -24,6 +26,26 @@ const nextConfig = {
       {
         source: "/ingest/:path*",
         destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+          },
+        ],
       },
     ];
   },
