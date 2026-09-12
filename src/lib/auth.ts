@@ -26,15 +26,16 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email },
           });
           if (!user || user.role !== "SUPER_ADMIN") {
-            emitLog("Admin login failed", { actor: credentials.email, login_mode: "admin", reason: "email_not_found" }, SeverityNumber.WARN);
+            emitLog(`Admin "${credentials.email}" login failed`, { actor: credentials.email, login_mode: "admin", reason: "email_not_found" }, SeverityNumber.WARN);
             throw new Error("Email salah");
           }
           const ok = await bcrypt.compare(credentials.password, user.passwordHash ?? "");
+          const adminName = user.name ?? user.email ?? credentials.email;
           if (!ok) {
-            emitLog("Admin login failed", { actor: credentials.email, login_mode: "admin", reason: "wrong_password" }, SeverityNumber.WARN);
+            emitLog(`Admin "${adminName}" login failed`, { actor: credentials.email, login_mode: "admin", reason: "wrong_password" }, SeverityNumber.WARN);
             throw new Error("Kata sandi salah");
           }
-          emitLog("Admin login succeeded", { actor: user.email ?? user.id, login_mode: "admin" });
+          emitLog(`Admin "${adminName}" login succeeded`, { actor: user.email ?? user.id, login_mode: "admin" });
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
@@ -46,17 +47,18 @@ export const authOptions: NextAuthOptions = {
 
           const user = await db.user.findFirst({ where: { username, role: "USER" } });
           if (!user) {
-            emitLog("Buyer login failed", { actor: username, login_mode: "buyer", reason: "username_not_found" }, SeverityNumber.WARN);
+            emitLog(`Buyer "${username}" login failed`, { actor: username, login_mode: "buyer", reason: "username_not_found" }, SeverityNumber.WARN);
             throw new Error("USERNAME_NOT_FOUND");
           }
 
           const storedPhone = (user.phone || "").replace(/\D/g, "");
+          const buyerName = user.name ?? username;
           if (!storedPhone || storedPhone !== phoneInput) {
-            emitLog("Buyer login failed", { actor: username, login_mode: "buyer", reason: "phone_mismatch" }, SeverityNumber.WARN);
+            emitLog(`Buyer "${buyerName}" login failed`, { actor: username, login_mode: "buyer", reason: "phone_mismatch" }, SeverityNumber.WARN);
             throw new Error("PHONE_MISMATCH");
           }
 
-          emitLog("Buyer login succeeded", { actor: username, buyer_id: user.id, login_mode: "buyer" });
+          emitLog(`Buyer "${buyerName}" login succeeded`, { actor: username, buyer_id: user.id, login_mode: "buyer" });
           return { id: user.id, email: user.email, name: user.name, role: user.role };
         }
 
