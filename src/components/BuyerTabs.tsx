@@ -1,10 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +25,6 @@ import {
 } from "@/lib/orderOptions";
 import { formatIDR, dateLabel, dateShortLabel, timeShortLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
-import { useBuyerNav } from "@/components/BuyerShell";
 import { StageTimeline, StageTimelineVertical, StageStatusBanner } from "@/components/TrackingTimeline";
 import { aggregateStamp, currentStageIndex, earliestEta, stageDateParts } from "@/lib/tracking";
 import {
@@ -41,19 +38,16 @@ import {
   Download,
   ImageIcon,
   ListOrdered,
-  Loader2,
   MapPin,
   MessageCircle,
   Package,
   Phone,
   PiggyBank,
   ShieldCheck,
-  Search,
   Truck,
   UserRound,
   Wallet,
   Calculator,
-  FileText,
 } from "lucide-react";
 
 type OrderItemDTO = {
@@ -724,80 +718,54 @@ export function BuyerTabs({
   query: Record<string, string | undefined>;
   defaultTab: string;
 }) {
-  const { active: pending, navigate } = useBuyerNav("tabs");
-  const searchParams = useSearchParams();
   const tab = defaultTab;
-
-  const lastRequested = useRef<string | null>(null);
-
-  function selectTab(v: string) {
-    if (v === tab || v === lastRequested.current) return;
-    lastRequested.current = v;
-    const params = new URLSearchParams(searchParams.toString());
-    if (v === "invoice") params.delete("tab");
-    else params.set("tab", v);
-    navigate(`${basePath}?${params.toString()}`);
-  }
-
-  const tabTriggerCls =
-    "flex-1 gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-black/60 transition-colors data-[state=active]:bg-[#FBE6E6] data-[state=active]:text-[#C0474A] data-[state=active]:shadow-none";
-
   const current = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
   const start = total === 0 ? 0 : (current - 1) * pageSize + 1;
   const end = Math.min(current * pageSize, total);
 
   return (
-    <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-[#FDF1F1] p-1">
-        <TabsTrigger value="invoice" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-          Invoice
-        </TabsTrigger>
-        <TabsTrigger value="payment" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-          Pembayaran
-        </TabsTrigger>
-        <TabsTrigger value="shipment" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-          Lacak
-        </TabsTrigger>
-      </TabsList>
+    <div>
+      {tab === "invoice" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {orders.map((s) => (
+                <OrderCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      <TabsContent value="invoice" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No orders yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {orders.map((s) => (
-              <OrderCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
+      {tab === "payment" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((s) => (
+                <PaymentCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      <TabsContent value="payment" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No orders yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((s) => (
-              <PaymentCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
-
-      <TabsContent value="shipment" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No shipments yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((s) => (
-              <TrackCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
+      {tab === "shipment" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No shipments yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((s) => (
+                <TrackCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       <div className="mt-5 flex flex-col items-center gap-3 md:flex-row md:justify-between">
         <p className="text-xs text-muted-foreground">
@@ -812,6 +780,6 @@ export function BuyerTabs({
           variant="rose"
         />
       </div>
-    </Tabs>
+    </div>
   );
 }

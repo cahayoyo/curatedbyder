@@ -10,6 +10,7 @@ import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { SortSelect } from "@/components/SortSelect";
 import { BuyerFilter } from "@/components/BuyerFilter";
 import { BuyerShell, PendingDim } from "@/components/BuyerShell";
+import { OrderTabNav } from "@/components/OrderTabNav";
 import { ListLoader } from "@/components/ListLoader";
 import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
 import { BUYER_DEFAULT_PAGE_SIZE, parsePerPage, perQuery, scalarize } from "@/lib/pagination";
@@ -72,6 +73,9 @@ export default async function DashboardPage({
 
   const meta = tabMeta(sp?.tab);
   const TabIcon = meta.icon;
+  const tab = (TAB_KEYS as readonly string[]).includes(sp?.tab ?? "")
+    ? (sp!.tab as string)
+    : "invoice";
 
   return (
     <BuyerShell>
@@ -106,6 +110,8 @@ export default async function DashboardPage({
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">{meta.subtitle}</p>
         </div>
+
+        <OrderTabNav basePath="/dashboard/orders" defaultTab={tab} />
 
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <div className="min-w-0 flex-1">
