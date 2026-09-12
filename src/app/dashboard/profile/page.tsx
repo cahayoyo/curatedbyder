@@ -164,9 +164,10 @@ export default async function ProfilePage() {
 
           <section className={cardCls}>
             <SectionTitle icon={Truck} title="Metode Pengiriman Pilihan" />
-            <p className="mt-3 pl-0.5 text-sm font-semibold text-black">
-              Kurir Pilihan CuratedByDer
-            </p>
+            <div className="mt-4 flex items-center gap-3.5">
+              <Truck className="h-9 w-9 shrink-0 text-black" strokeWidth={1.6} />
+              <p className="text-sm font-semibold text-black">Kurir Pilihan CuratedByDer</p>
+            </div>
           </section>
         </div>
       </div>
