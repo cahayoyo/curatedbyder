@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
 import { createBook, updateBook, setBookBatchPrices } from "@/server/actions/books";
+import { MAX_NAME } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -321,6 +322,7 @@ export function BookForm({
                   value={r.title}
                   onChange={(e) => upRow(i, "title", e.target.value)}
                   required
+                  maxLength={MAX_NAME}
                   placeholder="Masukkan judul buku..."
                   className="placeholder:text-[#b5b5b5]"
                 />
@@ -343,6 +345,7 @@ export function BookForm({
                     <Input
                       value={r.publisher}
                       onChange={(e) => upRow(i, "publisher", e.target.value)}
+                      maxLength={500}
                       placeholder="Masukkan publisher..."
                       className="placeholder:text-[#b5b5b5]"
                     />
