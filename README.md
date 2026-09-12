@@ -1,1 +1,1 @@
-![Arsitektur Runtime CuratedByDer](./arsitektur-runtime-curatedbyder.png)
+![CuratedByDer runtime architecture](./curatedbyder-runtime.png)
