@@ -32,7 +32,7 @@ export function OrderTabNav({
   }
 
   const tabCls =
-    "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-black/45 transition-colors data-[active=true]:bg-[#F8CFCF] data-[active=true]:font-semibold data-[active=true]:text-[#B04A4A] data-[active=true]:shadow-sm";
+    "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-black/45 transition-colors hover:bg-[#FBE6E6] hover:text-[#B04A4A] data-[active=true]:bg-[#F8CFCF] data-[active=true]:font-semibold data-[active=true]:text-[#B04A4A] data-[active=true]:shadow-sm data-[active=true]:hover:bg-[#F8CFCF]";
 
   return (
     <div className="flex w-full gap-1 overflow-hidden rounded-xl bg-white p-1">
