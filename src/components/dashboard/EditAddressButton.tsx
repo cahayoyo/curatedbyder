@@ -56,7 +56,10 @@ export function EditAddressButton({ contact }: { contact: string | null }) {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] max-w-md gap-5 rounded-2xl border-none bg-[#FDF7F3] p-6 shadow-xl sm:rounded-2xl [&>button.absolute]:bg-[#EDEBE8] [&>button.absolute]:text-[#4B5563] [&>button.absolute]:hover:bg-[#E2DFDB]">
+        <DialogContent
+          className="w-[90%] max-w-md gap-5 rounded-2xl border-none p-6 shadow-xl sm:rounded-2xl [&>button.absolute]:bg-[#EDEBE8] [&>button.absolute]:text-[#4B5563] [&>button.absolute]:hover:bg-[#E2DFDB]"
+          style={{ backgroundColor: "#F6F1E7" }}
+        >
           <DialogHeader className="space-y-3 text-center sm:text-center">
             <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
               <span className="absolute inset-0 rounded-full bg-[#F9D2D8]" />
