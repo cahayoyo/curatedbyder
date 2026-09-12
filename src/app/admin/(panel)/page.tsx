@@ -322,6 +322,8 @@ export default async function AdminOverviewPage({
     year: "numeric",
   }).format(new Date());
 
+  const financialBase = stats.totalDp + stats.totalRemaining;
+
   return (
     <RangeProvider>
       <div className="space-y-6 px-2 md:px-6">
@@ -406,7 +408,7 @@ export default async function AdminOverviewPage({
             <div className="w-full min-w-0 flex-1 lg:max-w-[420px] lg:self-start">
               <h3 className="text-lg font-bold text-gray-900">Distribusi Keuangan</h3>
               <p className="text-sm text-muted-foreground">
-                Proporsi revenue, DP, dan sisa tagihan.
+                Proporsi DP dan sisa tagihan.
               </p>
               <ul className="mt-8 grid w-full grid-cols-[minmax(0,1fr)_max-content] gap-x-6 gap-y-6">
                 {(
@@ -437,7 +439,7 @@ export default async function AdminOverviewPage({
                         />
                         {row.pct && (
                           <StatValue
-                            value={`${stats.revenue ? Math.round((row.value / stats.revenue) * 100) : 0}%`}
+                            value={`${financialBase ? Math.round((row.value / financialBase) * 100) : 0}%`}
                             className="text-sm text-muted-foreground"
                           />
                         )}
