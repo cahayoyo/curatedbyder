@@ -754,7 +754,7 @@ export function BuyerTabs({
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl bg-[#FDF1F1] p-1">
+      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-[#FDF1F1] p-1">
         <TabsTrigger value="invoice" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
