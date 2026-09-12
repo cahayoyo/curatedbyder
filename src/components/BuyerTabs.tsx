@@ -164,7 +164,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
   const extraItems = order.items.length - 1;
 
   return (
-    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:rounded-none md:border-0 md:p-4 md:shadow-none">
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:p-4">
       {/* Mobile: condensed row that opens the detail */}
       <button
         type="button"
@@ -773,7 +773,7 @@ export function BuyerTabs({
         {orders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No orders yet.</p>
         ) : (
-          <div className="space-y-3 md:space-y-0 md:divide-y md:divide-[#F0CBCB]/60 md:overflow-hidden md:rounded-xl md:border md:border-[#F0CBCB]/60 md:bg-white">
+          <div className="space-y-2">
             {orders.map((s) => (
               <OrderCard key={s.id} order={s} />
             ))}
