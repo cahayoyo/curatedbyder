@@ -9,12 +9,6 @@ import { Pagination } from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -31,39 +25,35 @@ import {
   FORMAT_BADGE,
   etaLabel,
 } from "@/lib/orderOptions";
-import { formatIDR, dateLabel } from "@/lib/format";
+import { formatIDR, dateLabel, dateShortLabel, timeShortLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { useBuyerNav } from "@/components/BuyerShell";
 import { StageTimeline, StageTimelineVertical, StageStatusBanner } from "@/components/TrackingTimeline";
 import { aggregateStamp, currentStageIndex, earliestEta, stageDateParts } from "@/lib/tracking";
 import {
   ArrowRight,
-  Boxes,
-  Calculator,
   CalendarClock,
   Check,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Copy,
   Download,
-  Eye,
-  FileText,
   ImageIcon,
   ListOrdered,
   Loader2,
   MapPin,
   MessageCircle,
-  MoreVertical,
   Package,
   Phone,
   PiggyBank,
-  ReceiptText,
-  Search,
   ShieldCheck,
-  ShoppingCart,
+  Search,
   Truck,
   UserRound,
   Wallet,
+  Calculator,
+  FileText,
 } from "lucide-react";
 
 type OrderItemDTO = {
@@ -116,18 +106,6 @@ function InfoRow({ icon, title, children }: { icon: React.ReactNode; title: stri
   );
 }
 
-function SummaryCol({ icon, title, className, children }: { icon: React.ReactNode; title: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`flex flex-col items-center gap-0.5${className ? ` ${className}` : ""}`}>
-      <div className="flex items-center gap-1 text-xs text-black/60">
-        {icon}
-        <span>{title}</span>
-      </div>
-      <span className="font-semibold">{children}</span>
-    </div>
-  );
-}
-
 function ProductTag({ kind }: { kind?: string }) {
   if (kind === "BUKU")
     return (
@@ -144,118 +122,133 @@ function ProductTag({ kind }: { kind?: string }) {
   return null;
 }
 
+function ItemCover({ image, alt }: { image: string | null; alt: string }) {
+  return (
+    <div className="relative h-[68px] w-[50px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70">
+      {image ? (
+        <Image src={image} alt={alt} fill sizes="50px" className="object-cover object-center" />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <ImageIcon className="h-4 w-4 text-black/30" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ItemTags({ item }: { item: OrderItemDTO }) {
+  return (
+    <p className="flex flex-wrap items-center gap-1">
+      <ProductTag kind={item.kind} />
+      {item.book.formats.map((f) => (
+        <span
+          key={f}
+          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+        >
+          {f}
+        </span>
+      ))}
+      <span
+        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE[item.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+      >
+        {STATUS_LABEL[item.status] || item.status}
+      </span>
+    </p>
+  );
+}
+
 function OrderCard({ order }: { order: OrderDTO }) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const cover = order.items.find((it) => it.image)?.image ?? null;
+  const itemCount = order.items.reduce((n, it) => n + it.quantity, 0);
+  const firstTitle = order.items[0]?.book.title ?? "—";
+  const extraItems = order.items.length - 1;
 
   return (
-    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2 font-semibold leading-snug">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
-            <ReceiptText className="h-5 w-5 text-[#D97A7A]" />
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:rounded-none md:border-0 md:p-4 md:shadow-none">
+      {/* Mobile: condensed row that opens the detail */}
+      <button
+        type="button"
+        onClick={() => setDetailOpen(true)}
+        className="flex w-full flex-col gap-2.5 text-left md:hidden"
+      >
+        <span className="flex items-start justify-between gap-2">
+          <span className="min-w-0">
+            <span className="block font-mono text-xs font-bold break-all text-[#B04A4A]">
+              {order.invoiceNumber}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
+            </span>
           </span>
-          <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
-        </span>
-        <span className="flex shrink-0 items-center gap-1.5">
           <BadgeGroup payment={order.paymentStatus} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Aksi pesanan"
-                className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-[#D97A7A] hover:text-white"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="border-[#F0CBCB] bg-white">
-              <DropdownMenuItem
-                onSelect={() => setDetailOpen(true)}
-                className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
-              >
-                <Eye className="h-4 w-4" />
-                Lihat
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </span>
-      </div>
+        <span className="flex items-center gap-3">
+          <ItemCover image={cover} alt={firstTitle} />
+          <span className="min-w-0 flex-1">
+            <span className="line-clamp-1 text-sm font-semibold">
+              {firstTitle}
+              {extraItems > 0 ? ` +${extraItems}` : ""}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              {itemCount} Item · {formatIDR(order.total)}
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </span>
+      </button>
 
-      <div className="mb-2 h-px w-full bg-black/15" />
+      {/* Desktop: invoice row */}
+      <div className="hidden md:flex md:items-start md:gap-4">
+        <ItemCover image={cover} alt={firstTitle} />
 
-      <div className="space-y-2.5 pt-1 text-sm">
-        <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
-          {order.buyerName}
-        </InfoRow>
-        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No HP:">
-          {order.buyerPhone || "—"}
-        </InfoRow>
-        <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
-          {new Date(order.soldAt).toLocaleDateString("id-ID")}
-        </InfoRow>
-      </div>
+        <div className="w-52 shrink-0 space-y-2 text-sm">
+          <div>
+            <p className="font-mono text-sm font-bold break-all text-[#B04A4A]">{order.invoiceNumber}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
+            </p>
+          </div>
+          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
+            {order.buyerName}
+          </InfoRow>
+          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No HP:">
+            {order.buyerPhone || "—"}
+          </InfoRow>
+          <InfoRow
+            icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+            title="Waktu:"
+          >
+            {dateShortLabel(order.soldAt)}
+          </InfoRow>
+        </div>
 
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      <div className="mt-2 space-y-2.5">
-        {order.items.map((it, i) => (
-          <div key={i} className="flex items-start gap-1.5 text-sm">
-            <div className="mt-[3px]">
-              <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <span className="line-clamp-1 min-w-0 flex-1">{it.book.title}</span>
-                <span className="shrink-0 font-bold">{formatIDR(it.unitPrice * it.quantity)}</span>
+        <div className="min-w-0 flex-1 space-y-3">
+          {order.items.map((it, i) => (
+            <div key={i} className="min-w-0">
+              <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
+              <div className="mt-1">
+                <ItemTags item={it} />
               </div>
-              <p className="mt-0.5 flex flex-wrap items-center gap-1">
-                <ProductTag kind={it.kind} />
-                {it.book.formats.length
-                  ? it.book.formats.map((f) => (
-                      <span
-                        key={f}
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                      >
-                        {f}
-                      </span>
-                    ))
-                  : ""}
-                <span
-                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                >
-                  {STATUS_LABEL[it.status] || it.status}
-                </span>
-              </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)} · {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      <div className="mt-2 grid grid-cols-4 items-center justify-items-center gap-x-4 gap-y-2 text-sm md:grid-cols-6">
-        <SummaryCol className="col-span-2 md:col-span-1" icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
-          {order.items.reduce((n, it) => n + it.quantity, 0)}
-        </SummaryCol>
-        <SummaryCol className="col-span-2 md:col-span-1" icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
-          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
-        </SummaryCol>
-        <SummaryCol icon={<Wallet className="h-3.5 w-3.5" />} title="DP">
-          {formatIDR(order.dp ?? 0)}
-        </SummaryCol>
-        <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa Tagihan">
-          {formatIDR(order.remaining ?? 0)}
-        </SummaryCol>
-        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
-          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
-        </SummaryCol>
-        <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
-          {formatIDR(order.total)}
-        </SummaryCol>
+        <div className="flex shrink-0 flex-col items-end gap-3">
+          <BadgeGroup payment={order.paymentStatus} />
+          <span className="text-base font-bold">{formatIDR(order.total)}</span>
+          <Button
+            type="button"
+            onClick={() => setDetailOpen(true)}
+            className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+          >
+            Lihat Detail
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
       <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
@@ -757,11 +750,15 @@ export function BuyerTabs({
   }
 
   const tabTriggerCls =
-    "flex-1 gap-1.5 rounded-none border-b-2 border-transparent border-r border-r-[#F0CBCB] px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors last:border-r-0 data-[state=active]:border-[#D97A7A] data-[state=active]:bg-transparent data-[state=active]:text-[#B04A4A] data-[state=active]:shadow-none";
+    "flex-1 gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors max-md:rounded-lg max-md:data-[state=active]:bg-[#D97A7A] max-md:data-[state=active]:text-white max-md:data-[state=active]:shadow-sm md:rounded-none md:border-b-2 md:border-transparent md:border-r md:border-r-[#F0CBCB] md:last:border-r-0 md:data-[state=active]:border-[#D97A7A] md:data-[state=active]:bg-transparent md:data-[state=active]:text-[#B04A4A] md:data-[state=active]:shadow-none";
+
+  const current = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
+  const start = total === 0 ? 0 : (current - 1) * pageSize + 1;
+  const end = Math.min(current * pageSize, total);
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-white p-0">
+      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-white p-0 max-md:border-0 max-md:bg-[#FDF1F1] max-md:p-1">
         <TabsTrigger value="invoice" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
@@ -780,7 +777,7 @@ export function BuyerTabs({
         {orders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No orders yet.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-0 md:divide-y md:divide-[#F0CBCB]/60 md:overflow-hidden md:rounded-xl md:border md:border-[#F0CBCB]/60 md:bg-white">
             {orders.map((s) => (
               <OrderCard key={s.id} order={s} />
             ))}
@@ -812,8 +809,18 @@ export function BuyerTabs({
         )}
       </TabsContent>
 
-      <div className="mt-5 flex justify-center">
-        <Pagination total={total} page={page} pageSize={pageSize} basePath={basePath} query={query} />
+      <div className="mt-5 flex flex-col items-center gap-3 md:flex-row md:justify-between">
+        <p className="text-xs text-muted-foreground">
+          Menampilkan {start} - {end} dari {total} {tab === "invoice" ? "invoice" : "pesanan"}
+        </p>
+        <Pagination
+          total={total}
+          page={page}
+          pageSize={pageSize}
+          basePath={basePath}
+          query={query}
+          variant="rose"
+        />
       </div>
     </Tabs>
   );
