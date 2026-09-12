@@ -55,7 +55,7 @@ export default async function ProfilePage() {
   const session = await requireRole("USER");
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, phone: true, contact: true, createdAt: true },
+    select: { name: true, username: true, phone: true, contact: true, createdAt: true },
   });
   if (!user) notFound();
 
@@ -137,6 +137,7 @@ export default async function ProfilePage() {
           <SectionTitle icon={IdCard} title="Informasi Pribadi" />
           <div className="mt-2 divide-y divide-[#F6D5D5]">
             <InfoRow label="Nama Lengkap" value={user.name} />
+            <InfoRow label="Username" value={user.username || "-"} />
             <InfoRow label="Nomor WhatsApp" value={user.phone || "-"} />
           </div>
         </section>
