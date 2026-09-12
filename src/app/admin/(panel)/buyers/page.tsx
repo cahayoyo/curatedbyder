@@ -14,10 +14,10 @@ import {
   MapPin,
   Pencil,
   Phone,
+  Plus,
   Settings2,
   User,
   UserCheck,
-  UserPlus,
   Users,
   UserX,
 } from "lucide-react";
@@ -146,25 +146,25 @@ async function BuyersStats() {
             c.card
           )}
         >
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 xl:gap-x-3">
+            <p className="col-span-2 text-[13px] leading-tight text-black/60 sm:text-[15px] xl:col-span-1 xl:col-start-2 xl:row-start-1">
+              <span className="sm:hidden">{c.short}</span>
+              <span className="hidden sm:inline">{c.label}</span>
+            </p>
             <span
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
+                "col-start-1 row-start-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11 xl:row-span-3 xl:row-start-1",
                 c.circle
               )}
             >
               <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
-            <div className="min-w-0">
-              <p className="text-[13px] leading-tight text-black/60 sm:text-[15px]">
-                <span className="sm:hidden">{c.short}</span>
-                <span className="hidden sm:inline">{c.label}</span>
-              </p>
-              <p className="text-[26px] font-bold leading-tight sm:text-3xl">{c.value}</p>
-              <p className="hidden text-[11px] leading-tight text-black/50 sm:block">
-                {c.caption}
-              </p>
-            </div>
+            <p className="col-start-2 row-start-2 text-[26px] font-bold leading-tight sm:text-3xl xl:row-start-2">
+              {c.value}
+            </p>
+            <p className="col-span-2 hidden text-[11px] leading-tight text-black/50 sm:block xl:col-span-1 xl:col-start-2 xl:row-start-3">
+              {c.caption}
+            </p>
           </div>
           <c.icon
             aria-hidden
@@ -370,7 +370,7 @@ export default async function AdminBuyersPage({
         </div>
         <NavActionButton
           href="/admin/buyers/new"
-          icon={<UserPlus className="h-4 w-4" />}
+          icon={<Plus className="h-4 w-4" />}
           className="h-9 shrink-0 gap-1.5 rounded-md bg-[#D97A7A] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c9686b] hover:text-white sm:h-11 sm:gap-2 sm:px-5 sm:text-[15px]"
         >
           Tambah Pembeli
