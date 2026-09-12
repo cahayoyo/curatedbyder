@@ -746,7 +746,7 @@ export function BuyerTabs({
   }
 
   const tabTriggerCls =
-    "flex-1 gap-1.5 px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors max-md:rounded-lg max-md:data-[state=active]:bg-[#D97A7A] max-md:data-[state=active]:text-white max-md:data-[state=active]:shadow-sm md:rounded-none md:border-b-2 md:border-transparent md:border-r md:border-r-[#F0CBCB] md:last:border-r-0 md:data-[state=active]:border-[#D97A7A] md:data-[state=active]:bg-transparent md:data-[state=active]:text-[#B04A4A] md:data-[state=active]:shadow-none";
+    "flex-1 gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-black/60 transition-colors data-[state=active]:bg-[#FBE6E6] data-[state=active]:text-[#C0474A] data-[state=active]:shadow-none";
 
   const current = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
   const start = total === 0 ? 0 : (current - 1) * pageSize + 1;
@@ -754,7 +754,7 @@ export function BuyerTabs({
 
   return (
     <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-white p-0 max-md:border-0 max-md:bg-[#FDF1F1] max-md:p-1">
+      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl bg-[#FDF1F1] p-1">
         <TabsTrigger value="invoice" className={tabTriggerCls}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
           Invoice
