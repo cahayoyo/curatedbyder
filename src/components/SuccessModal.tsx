@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { Check, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FeedbackVariant = "success" | "error";
@@ -16,7 +16,7 @@ type FeedbackVariant = "success" | "error";
 type FeedbackOptions = { title?: string; hint?: string; emphasis?: string };
 
 type SuccessModalContextValue = {
-  success: (message: string) => void;
+  success: (message: string, options?: FeedbackOptions) => void;
   error: (message: string, options?: FeedbackOptions) => void;
 };
 
@@ -76,7 +76,10 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
     [stopTimer],
   );
 
-  const success = useCallback((msg: string) => show(msg, "success"), [show]);
+  const success = useCallback(
+    (msg: string, options?: FeedbackOptions) => show(msg, "success", options),
+    [show],
+  );
   const error = useCallback(
     (msg: string, options?: FeedbackOptions) => show(msg, "error", options),
     [show],
@@ -129,7 +132,15 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
                 <XCircle className="relative h-10 w-10 text-[#E1445A]" />
               </div>
             ) : (
-              <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-[#D9F2E1]" />
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#2E9E62]">
+                  <Check className="h-6 w-6 text-white" strokeWidth={3} />
+                </span>
+                <span className="absolute -left-0.5 top-4 h-1.5 w-1.5 -rotate-45 rounded-full bg-[#2E9E62]" />
+                <span className="absolute -right-0.5 top-4 h-1.5 w-1.5 rotate-45 rounded-full bg-[#2E9E62]" />
+                <span className="absolute left-1.5 -top-0.5 h-1.5 w-1.5 rotate-12 rounded-full bg-[#2E9E62]" />
+              </div>
             )}
             {title ? (
               <h2 className="mt-3 break-words text-lg font-bold text-black">
@@ -148,16 +159,11 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
             {hint ? (
               <p className="mt-1 break-words text-sm text-[#6B7280]">{hint}</p>
             ) : null}
-            <div
-              className={cn(
-                "mt-5 h-1.5 w-full overflow-hidden rounded-full",
-                variant === "error" ? "bg-[#F9D2D8]" : "bg-black/10",
-              )}
-            >
+            <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-[#F9D2D8]">
               <div
                 className={cn(
                   "h-full",
-                  variant === "error" ? "bg-[#E1445A]" : "bg-green-600",
+                  variant === "error" ? "bg-[#E1445A]" : "bg-[#2E9E62]",
                 )}
                 style={{
                   width: deplete ? "0%" : "100%",
@@ -165,6 +171,11 @@ export function SuccessModalProvider({ children }: { children: React.ReactNode }
                 }}
               />
             </div>
+            {variant === "success" ? (
+              <p className="mt-2 text-xs text-[#9CA3AF]">
+                Menutup otomatis dalam beberapa detik…
+              </p>
+            ) : null}
           </div>
         </div>
       )}
