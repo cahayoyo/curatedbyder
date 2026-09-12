@@ -336,7 +336,7 @@ export default async function AdminOverviewPage({
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-stretch justify-between gap-2 sm:gap-3">
+        <div className="flex flex-nowrap items-stretch justify-between gap-2 sm:gap-3">
           <div className="flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#FBE6E6] px-4 py-3 sm:gap-3 sm:px-5">
             <CalendarDays className="h-5 w-5 shrink-0 text-[#C96A6A] sm:h-6 sm:w-6" />
             <div>
