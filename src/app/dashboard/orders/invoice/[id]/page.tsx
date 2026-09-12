@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { requireRole } from "@/lib/session";
-import { db } from "@/lib/db";
+import { withBuyer } from "@/lib/rls";
 import { buyerOrderInclude, toBuyerOrderDTO } from "@/lib/orderDto";
 import { BuyerShell } from "@/components/BuyerShell";
 import { CopyResi } from "@/components/BuyerTabs";
@@ -121,10 +121,12 @@ export default async function InvoiceDetailPage({
   const { id } = await params;
   const session = await requireRole("USER");
 
-  const order = await db.order.findFirst({
-    where: { id, buyerId: session.user.id },
-    include: buyerOrderInclude,
-  });
+  const order = await withBuyer(session.user.id, (tx) =>
+    tx.order.findFirst({
+      where: { id, buyerId: session.user.id },
+      include: buyerOrderInclude,
+    })
+  );
   if (!order) notFound();
 
   const dto = toBuyerOrderDTO(order);

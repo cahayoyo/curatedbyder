@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { requireRole } from "@/lib/session";
 import { db } from "@/lib/db";
+import { withBuyer } from "@/lib/rls";
 import {
   PAYMENT_BADGE,
   STATUSES,
@@ -96,37 +97,45 @@ export default async function DashboardPage() {
   const session = await requireRole("USER");
   const userId = session.user.id;
 
-  const [activeCount, unpaidCount, shippingCount, doneCount, recent, catalogBooks, catalogToys] =
-    await Promise.all([
-      db.order.count({
-        where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
-      }),
-      db.order.count({ where: { buyerId: userId, paymentStatus: { not: "LUNAS" } } }),
-      db.order.count({
-        where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
-      }),
-      db.order.count({
-        where: { buyerId: userId, items: { every: { status: "ORDER_DELIVERED" } } },
-      }),
-      db.order.findMany({
-        where: { buyerId: userId },
-        orderBy: { soldAt: "desc" },
-        take: 3,
-        include: buyerOrderInclude,
-      }),
-      db.book.findMany({
-        where: { image: { not: null }, showOnDashboard: true },
-        orderBy: { createdAt: "desc" },
-        take: 8,
-        select: { id: true, title: true, image: true, price: true, formats: true },
-      }),
-      db.toy.findMany({
-        where: { image: { not: null }, showOnDashboard: true },
-        orderBy: { createdAt: "desc" },
-        take: 8,
-        select: { id: true, title: true, image: true, price: true },
-      }),
-    ]);
+  const { activeCount, unpaidCount, shippingCount, doneCount, recent } = await withBuyer(
+    userId,
+    async (tx) => {
+      const [activeCount, unpaidCount, shippingCount, doneCount, recent] = await Promise.all([
+        tx.order.count({
+          where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
+        }),
+        tx.order.count({ where: { buyerId: userId, paymentStatus: { not: "LUNAS" } } }),
+        tx.order.count({
+          where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
+        }),
+        tx.order.count({
+          where: { buyerId: userId, items: { every: { status: "ORDER_DELIVERED" } } },
+        }),
+        tx.order.findMany({
+          where: { buyerId: userId },
+          orderBy: { soldAt: "desc" },
+          take: 3,
+          include: buyerOrderInclude,
+        }),
+      ]);
+      return { activeCount, unpaidCount, shippingCount, doneCount, recent };
+    }
+  );
+
+  const [catalogBooks, catalogToys] = await Promise.all([
+    db.book.findMany({
+      where: { image: { not: null }, showOnDashboard: true },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: { id: true, title: true, image: true, price: true, formats: true },
+    }),
+    db.toy.findMany({
+      where: { image: { not: null }, showOnDashboard: true },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: { id: true, title: true, image: true, price: true },
+    }),
+  ]);
 
   const recentOrders = recent.map(toBuyerOrderDTO);
 
