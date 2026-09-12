@@ -44,7 +44,7 @@ export function SortSelect({
       <SelectTrigger
         aria-label="Urutkan"
         disabled={isPending}
-        className={cn("h-9 w-auto shrink-0 gap-1.5 bg-white", isPending && "cursor-wait opacity-70", className)}
+        className={cn("h-9 w-auto shrink-0 gap-1.5 border-[#F0CBCB] bg-white", isPending && "cursor-wait opacity-70", className)}
       >
         {isPending ? (
           <Loader2 className="h-4 w-4 animate-spin text-[#D97A7A]" />
