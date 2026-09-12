@@ -53,6 +53,7 @@ logs-dev.log
 # local tooling
 .claude/
 .opencode/
+.playwright-mcp/
 .codegraph/
 graphify-out/
 CLAUDE.md
@@ -64,3 +65,6 @@ posthog-*-report.md
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Playwright test-account seed (contains dev test credentials)
+scripts/seed-playwright.ts

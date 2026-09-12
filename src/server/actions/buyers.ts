@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
 import { generateUsername } from "@/lib/username";
 import type { User } from "@prisma/client";
-import { ActionResult, ActionResultWithData } from "@/lib/actionResult";
+import { ActionResult } from "@/lib/actionResult";
 
 const buyerSchema = z.object({
   name: z.string().min(2),
@@ -18,7 +18,7 @@ const buyerSchema = z.object({
 
 export async function createBuyer(
   input: z.infer<typeof buyerSchema>
-): Promise<ActionResultWithData<User>> {
+): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -53,13 +53,13 @@ export async function createBuyer(
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
   emitLog(`Buyer "${buyer.name}" created`, { actor, buyer_id: buyer.id, name: buyer.name });
-  return { ok: true, data: buyer };
+  return { ok: true };
 }
 
 export async function updateBuyer(
   id: string,
   input: z.infer<typeof buyerSchema>
-): Promise<ActionResultWithData<User>> {
+): Promise<ActionResult> {
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
@@ -87,7 +87,7 @@ export async function updateBuyer(
   revalidatePath("/admin/buyers");
   revalidatePath("/admin/orders");
   emitLog(`Buyer "${buyer.name}" updated`, { actor, buyer_id: buyer.id, name: buyer.name });
-  return { ok: true, data: buyer };
+  return { ok: true };
 }
 
 export async function deleteBuyer(id: string): Promise<ActionResult> {

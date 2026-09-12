@@ -15,10 +15,10 @@ export function AdminLoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldError, setFieldError] = useState<{ email?: boolean; password?: boolean }>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
-  function onFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setFieldError((f) => (f[e.target.name as "email" | "password"] ? { ...f, [e.target.name]: false } : f));
+  function onFieldChange() {
+    setFormError(null);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -36,15 +36,11 @@ export function AdminLoginForm() {
     });
 
     if (res?.error) {
-      const err = res.error.toLowerCase();
-      setFieldError({
-        email: err.includes("email"),
-        password: err.includes("sandi") || err.includes("password"),
-      });
+      setFormError("Email atau kata sandi salah. Coba lagi.");
       setLoading(false);
       return;
     }
-    setFieldError({});
+    setFormError(null);
     capture("admin_login_succeeded", { login_mode: "admin" });
     router.push("/admin");
     router.refresh();
@@ -79,15 +75,11 @@ export function AdminLoginForm() {
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="curatedbyderadmin@mail.com"
-                className={`rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                placeholder="admin@example.com"
+                className="rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
                 onChange={onFieldChange}
-                aria-invalid={fieldError.email}
               />
             </div>
-            {fieldError.email && (
-              <p className="text-xs font-medium text-red-600">Email salah!</p>
-            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="login-password" className="font-semibold text-gray-900">Password</Label>
@@ -100,9 +92,8 @@ export function AdminLoginForm() {
                 required
                 autoComplete="current-password"
                 placeholder="Masukkan password"
-                className={`rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className="rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
                 onChange={onFieldChange}
-                aria-invalid={fieldError.password}
               />
               <button
                 type="button"
@@ -113,10 +104,15 @@ export function AdminLoginForm() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {fieldError.password && (
-              <p className="text-xs font-medium text-red-600">Password salah!</p>
-            )}
           </div>
+          {formError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-600"
+            >
+              {formError}
+            </p>
+          )}
           <Button
             type="submit"
             className="h-11 w-full rounded-lg bg-[#D97A7A] text-white transition-colors hover:bg-[#C96A6A]"

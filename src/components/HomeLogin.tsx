@@ -27,11 +27,10 @@ const PLATFORMS = [
 export function HomeLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [fieldError, setFieldError] = useState<{ username?: boolean; phone?: boolean }>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
-  function onFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const name = e.target.name as "username" | "phone";
-    setFieldError((f) => (f[name] ? { ...f, [name]: false } : f));
+  function onFieldChange() {
+    setFormError(null);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -46,15 +45,11 @@ export function HomeLogin() {
     });
 
     if (res?.error) {
-      const err = res.error;
-      setFieldError({
-        username: err.includes("USERNAME_NOT_FOUND"),
-        phone: err.includes("PHONE_MISMATCH"),
-      });
+      setFormError("Username atau nomor telepon salah. Coba lagi.");
       setLoading(false);
       return;
     }
-    setFieldError({});
+    setFormError(null);
     capture("buyer_login_succeeded", { login_mode: "buyer" });
     router.push("/dashboard");
     router.refresh();
@@ -76,15 +71,11 @@ export function HomeLogin() {
                 name="username"
                 required
                 autoComplete="username"
-                placeholder="Contoh: curatedbyder123"
-                className={`rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                placeholder="Contoh: namamu1234"
+                className="rounded-lg border-rose-200 bg-white pl-9 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
                 onChange={onFieldChange}
-                aria-invalid={fieldError.username}
               />
             </div>
-            {fieldError.username && (
-              <p className="text-xs font-medium text-red-600">Username tidak ditemukan!</p>
-            )}
             <p className="text-xs text-gray-500">
               Masukkan username yang sudah pernah diberikan oleh admin
             </p>
@@ -101,16 +92,21 @@ export function HomeLogin() {
                 required
                 autoComplete="tel"
                 placeholder="Contoh: 08128312345"
-                className={`rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4] ${fieldError.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                className="rounded-lg border-rose-200 bg-white pl-9 pr-10 placeholder:text-[#c9c9c9] focus-visible:ring-[#E8B4B4]"
                 onChange={onFieldChange}
-                aria-invalid={fieldError.phone}
               />
             </div>
-            {fieldError.phone && (
-              <p className="text-xs font-medium text-red-600">Nomor telepon tidak cocok!</p>
-            )}
           </div>
         </div>
+
+        {formError && (
+          <p
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-medium text-red-600"
+          >
+            {formError}
+          </p>
+        )}
 
         <Button
           type="submit"
