@@ -7,15 +7,16 @@ import { SeverityNumber } from "@opentelemetry/api-logs";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { emitLog } from "@/instrumentation";
-import { ActionResultWithData } from "@/lib/actionResult";
+import { ActionResult, ActionResultWithData, parseInput } from "@/lib/actionResult";
 import { BOOK_STATUS_TYPE } from "@/lib/orderOptions";
+import { MAX_ID, MAX_MONEY, MAX_NAME, MAX_STOCK } from "@/lib/limits";
 
 const toySchema = z.object({
-  title: z.string().trim().min(1),
+  title: z.string().trim().min(1).max(MAX_NAME),
   info: z.string().trim().max(5000).optional(),
   image: z.string().trim().max(2000).optional(),
-  price: z.number().int().min(0),
-  stock: z.number().int().min(0),
+  price: z.number().int().min(0).max(MAX_MONEY),
+  stock: z.number().int().min(0).max(MAX_STOCK),
   status: z.enum(BOOK_STATUS_TYPE).default("READY_STOCK"),
 });
 
@@ -49,7 +50,9 @@ export async function createToy(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = toySchema.parse(input);
+  const parsed = parseInput(toySchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const dupError = await ensureUniqueTitle(data.title);
   if (dupError) return { ok: false, error: dupError };
 
@@ -76,7 +79,9 @@ export async function updateToy(
   const session = await requireAdmin();
   const actor = session?.user?.email ?? "unknown";
 
-  const data = toySchema.parse(input);
+  const parsed = parseInput(toySchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
   const dupError = await ensureUniqueTitle(data.title, id);
   if (dupError) return { ok: false, error: dupError };
 
@@ -113,19 +118,23 @@ export async function deleteToy(id: string) {
 }
 
 const toyBatchPriceSchema = z.object({
-  toyId: z.string().min(1),
+  toyId: z.string().min(1).max(MAX_ID),
   entries: z.array(
     z.object({
-      batchId: z.string().min(1),
-      price: z.number().int().min(0),
+      batchId: z.string().min(1).max(MAX_ID),
+      price: z.number().int().min(0).max(MAX_MONEY),
     })
   ),
 });
 
-export async function setToyBatchPrices(input: z.infer<typeof toyBatchPriceSchema>) {
+export async function setToyBatchPrices(
+  input: z.infer<typeof toyBatchPriceSchema>
+): Promise<ActionResult> {
   await requireAdmin();
 
-  const data = toyBatchPriceSchema.parse(input);
+  const parsed = parseInput(toyBatchPriceSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
 
   await db.$transaction(async (tx) => {
     await tx.toyBatchPrice.deleteMany({ where: { toyId: data.toyId } });
@@ -141,4 +150,5 @@ export async function setToyBatchPrices(input: z.infer<typeof toyBatchPriceSchem
   });
 
   revalidatePath("/admin/toys");
+  return { ok: true };
 }

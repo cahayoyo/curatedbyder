@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { capture } from "@/lib/posthog";
 import { createBatch, updateBatch, deleteBatch } from "@/server/actions/orders";
+import { MAX_NAME } from "@/lib/limits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -135,6 +136,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                 <Input
                   value={val}
                   onChange={(e) => updateField(i, e.target.value)}
+                  maxLength={MAX_NAME}
                   placeholder="Contoh: BATCH3"
                   className="bg-white placeholder:text-black/30"
                 />
@@ -205,6 +207,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleSaveEdit();
                         }}
+                        maxLength={MAX_NAME}
                         className="bg-white uppercase placeholder:text-black/30"
                       />
                       <Button
