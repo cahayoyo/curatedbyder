@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, ImageIcon, Phone } from "lucide-react";
 import { FormatBadge } from "@/components/FormatBadge";
 import { formatIDR } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
@@ -19,6 +19,9 @@ export type CatalogItem = {
 
 const arrowCls =
   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F0CBCB] bg-white text-[#C96A6A] shadow-sm transition-colors hover:bg-[#FBE6E6]";
+
+const lihatSemuaCls =
+  "flex shrink-0 items-center gap-1 rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#D97A7A] transition-colors hover:bg-[#F6D5D5]";
 
 const kindCls: Record<CatalogItem["kind"], string> = {
   BUKU: "border-[#F0CBCB] bg-[#FBE6E6] text-[#C96A6A]",
@@ -227,19 +230,16 @@ export function CatalogCarousel({
           <>
             <Link
               href="/dashboard/catalog"
-              className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline md:hidden"
+              className={`${lihatSemuaCls} md:hidden`}
             >
               Lihat Semua
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
             <div className="hidden items-center gap-3 md:flex">
               {arrows}
-              <Link
-                href="/dashboard/catalog"
-                className="flex items-center gap-0.5 text-xs font-semibold text-[#D97A7A] hover:underline"
-              >
+              <Link href="/dashboard/catalog" className={lihatSemuaCls}>
                 Lihat Semua
-                <ArrowRight className="h-3.5 w-3.5" />
+                <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </>

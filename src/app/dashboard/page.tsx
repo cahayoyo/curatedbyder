@@ -278,7 +278,7 @@ export default async function DashboardPage() {
           <>
             <table className="mt-3 hidden w-full text-sm md:table">
               <thead>
-                <tr className="border-b border-[#F0CBCB] text-left text-xs text-black/60">
+                <tr className="border-b border-[#F0CBCB] bg-[#F2C9C9] text-left text-xs text-[#6E3B3B] [&>th]:font-semibold">
                   <th className="py-2 font-medium">#</th>
                   <th className="py-2 font-medium">Invoice</th>
                   <th className="py-2 font-medium">Produk</th>
