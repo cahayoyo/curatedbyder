@@ -88,8 +88,8 @@ export default async function ProfilePage() {
         <Image
           src="/illustrations/reading.svg"
           alt=""
-          width={190}
-          height={153}
+          width={130}
+          height={120}
           unoptimized
           priority
           className="hidden shrink-0 lg:block"
