@@ -96,11 +96,10 @@ function BadgeGroup({ payment }: { payment: string }) {
   );
 }
 
-function InfoRow({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function InfoRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       {icon}
-      <span className="w-16 shrink-0 text-muted-foreground">{title}</span>
       <span className="line-clamp-1 min-w-0 flex-1 text-black/80">{children}</span>
     </div>
   );
@@ -174,7 +173,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
       >
         <span className="flex items-start justify-between gap-2">
           <span className="min-w-0">
-            <span className="block font-mono text-xs font-bold break-all text-[#B04A4A]">
+            <span className="block font-mono text-xs font-bold break-all text-black">
               {order.invoiceNumber}
             </span>
             <span className="mt-0.5 block text-[11px] text-muted-foreground">
@@ -199,26 +198,23 @@ function OrderCard({ order }: { order: OrderDTO }) {
       </button>
 
       {/* Desktop: invoice row */}
-      <div className="hidden md:flex md:items-start md:gap-4">
+      <div className="hidden md:flex md:items-center md:gap-4">
         <ItemCover image={cover} alt={firstTitle} />
 
         <div className="w-52 shrink-0 space-y-2 text-sm">
           <div>
-            <p className="font-mono text-sm font-bold break-all text-[#B04A4A]">{order.invoiceNumber}</p>
+            <p className="font-mono text-sm font-bold break-all text-black">{order.invoiceNumber}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
             </p>
           </div>
-          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
+          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
             {order.buyerName}
           </InfoRow>
-          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No HP:">
+          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
             {order.buyerPhone || "—"}
           </InfoRow>
-          <InfoRow
-            icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-            title="Waktu:"
-          >
+          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
             {dateShortLabel(order.soldAt)}
           </InfoRow>
         </div>
@@ -243,7 +239,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
           <Button
             type="button"
             onClick={() => setDetailOpen(true)}
-            className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+            className="h-8 gap-1.5 rounded-lg border-0 bg-[#FBE6E6] px-3 text-xs font-semibold text-[#C0474A] shadow-none hover:bg-[#F6D5D5] hover:text-[#C0474A]"
           >
             Lihat Detail
             <ChevronRight className="h-3.5 w-3.5" />
