@@ -178,7 +178,11 @@ export default async function InvoiceDetailPage({
         <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
             <div className="flex min-w-0 items-start gap-3">
-              <Cover image={cover} alt={dto.items[0]?.book.title ?? "Item pesanan"} className="h-[110px] w-[80px]" />
+              <Cover
+                image={cover}
+                alt={dto.items[0]?.book.title ?? "Item pesanan"}
+                className="w-[80px] self-stretch min-h-[110px]"
+              />
               <div className="min-w-0 flex-1 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <CopyResi
