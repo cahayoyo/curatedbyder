@@ -144,22 +144,22 @@ async function ToysStats({ searchParams }: { searchParams: ToySearchParams }) {
             c.card
           )}
         >
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 xl:gap-x-3">
+            <p className="col-span-2 text-[13px] leading-tight text-black/60 sm:text-[15px] xl:col-span-1 xl:col-start-2 xl:row-start-1">
+              <span className="sm:hidden">{c.short}</span>
+              <span className="hidden sm:inline">{c.label}</span>
+            </p>
             <span
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
+                "col-start-1 row-start-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11 xl:row-span-2 xl:row-start-1",
                 c.circle
               )}
             >
               <c.icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
-            <div className="min-w-0">
-              <p className="text-[13px] leading-tight text-black/60 sm:text-[15px]">
-                <span className="sm:hidden">{c.short}</span>
-                <span className="hidden sm:inline">{c.label}</span>
-              </p>
-              <p className="text-[26px] font-bold leading-tight sm:text-3xl">{c.value}</p>
-            </div>
+            <p className="col-start-2 row-start-2 text-[26px] font-bold leading-tight sm:text-3xl xl:row-start-2">
+              {c.value}
+            </p>
           </div>
           <c.icon
             aria-hidden
