@@ -1,19 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -31,39 +23,31 @@ import {
   FORMAT_BADGE,
   etaLabel,
 } from "@/lib/orderOptions";
-import { formatIDR, dateLabel } from "@/lib/format";
+import { formatIDR, dateLabel, dateShortLabel, timeShortLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
-import { useBuyerNav } from "@/components/BuyerShell";
 import { StageTimeline, StageTimelineVertical, StageStatusBanner } from "@/components/TrackingTimeline";
 import { aggregateStamp, currentStageIndex, earliestEta, stageDateParts } from "@/lib/tracking";
 import {
   ArrowRight,
-  Boxes,
-  Calculator,
   CalendarClock,
   Check,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Copy,
   Download,
-  Eye,
-  FileText,
   ImageIcon,
   ListOrdered,
-  Loader2,
   MapPin,
   MessageCircle,
-  MoreVertical,
   Package,
   Phone,
   PiggyBank,
-  ReceiptText,
-  Search,
   ShieldCheck,
-  ShoppingCart,
   Truck,
   UserRound,
   Wallet,
+  Calculator,
 } from "lucide-react";
 
 type OrderItemDTO = {
@@ -106,24 +90,11 @@ function BadgeGroup({ payment }: { payment: string }) {
   );
 }
 
-function InfoRow({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function InfoRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       {icon}
-      <span className="w-16 shrink-0 text-muted-foreground">{title}</span>
       <span className="line-clamp-1 min-w-0 flex-1 text-black/80">{children}</span>
-    </div>
-  );
-}
-
-function SummaryCol({ icon, title, className, children }: { icon: React.ReactNode; title: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`flex flex-col items-center gap-0.5${className ? ` ${className}` : ""}`}>
-      <div className="flex items-center gap-1 text-xs text-black/60">
-        {icon}
-        <span>{title}</span>
-      </div>
-      <span className="font-semibold">{children}</span>
     </div>
   );
 }
@@ -144,121 +115,129 @@ function ProductTag({ kind }: { kind?: string }) {
   return null;
 }
 
+function ItemCover({ image, alt }: { image: string | null; alt: string }) {
+  return (
+    <div className="relative h-[68px] w-[50px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70 md:h-[98px] md:w-[70px]">
+      {image ? (
+        <Image src={image} alt={alt} fill sizes="(min-width: 768px) 70px, 50px" className="object-cover object-center" />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <ImageIcon className="h-4 w-4 text-black/30" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ItemTags({ item }: { item: OrderItemDTO }) {
+  return (
+    <p className="flex flex-wrap items-center gap-1">
+      <ProductTag kind={item.kind} />
+      {item.book.formats.map((f) => (
+        <span
+          key={f}
+          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+        >
+          {f}
+        </span>
+      ))}
+      <span
+        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE[item.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+      >
+        {STATUS_LABEL[item.status] || item.status}
+      </span>
+    </p>
+  );
+}
+
 function OrderCard({ order }: { order: OrderDTO }) {
-  const [detailOpen, setDetailOpen] = useState(false);
+  const cover = order.items.find((it) => it.image)?.image ?? null;
+  const itemCount = order.items.reduce((n, it) => n + it.quantity, 0);
+  const firstTitle = order.items[0]?.book.title ?? "—";
+  const extraItems = order.items.length - 1;
+  const href = `/dashboard/orders/invoice/${order.id}`;
 
   return (
-    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2 font-semibold leading-snug">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
-            <ReceiptText className="h-5 w-5 text-[#D97A7A]" />
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:p-4">
+      {/* Mobile: condensed row that opens the invoice detail */}
+      <Link href={href} className="flex w-full flex-col gap-2.5 text-left md:hidden">
+        <span className="flex items-start justify-between gap-2">
+          <span className="min-w-0">
+            <span className="block font-mono text-xs font-bold break-all text-black">
+              {order.invoiceNumber}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
+            </span>
           </span>
-          <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
-        </span>
-        <span className="flex shrink-0 items-center gap-1.5">
           <BadgeGroup payment={order.paymentStatus} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Aksi pesanan"
-                className="h-8 w-8 shrink-0 border border-black/10 bg-black/10 text-black hover:bg-[#D97A7A] hover:text-white"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="border-[#F0CBCB] bg-white">
-              <DropdownMenuItem
-                onSelect={() => setDetailOpen(true)}
-                className="cursor-pointer text-[#D97A7A] hover:bg-[#F9DEDE] hover:text-[#D97A7A] focus:bg-[#F9DEDE] focus:text-[#D97A7A]"
-              >
-                <Eye className="h-4 w-4" />
-                Lihat
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </span>
-      </div>
+        <span className="flex items-center gap-3">
+          <ItemCover image={cover} alt={firstTitle} />
+          <span className="min-w-0 flex-1">
+            <span className="line-clamp-1 text-sm font-semibold">
+              {firstTitle}
+              {extraItems > 0 ? ` +${extraItems}` : ""}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              {itemCount} Item · {formatIDR(order.total)}
+            </span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1.5 self-end rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#C0474A]">
+            Lihat Detail
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
+        </span>
+      </Link>
 
-      <div className="mb-2 h-px w-full bg-black/15" />
+      {/* Desktop: invoice row */}
+      <div className="hidden md:flex md:items-center md:gap-4">
+        <ItemCover image={cover} alt={firstTitle} />
 
-      <div className="space-y-2.5 pt-1 text-sm">
-        <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Nama:">
-          {order.buyerName}
-        </InfoRow>
-        <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="No HP:">
-          {order.buyerPhone || "—"}
-        </InfoRow>
-        <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />} title="Waktu:">
-          {new Date(order.soldAt).toLocaleDateString("id-ID")}
-        </InfoRow>
-      </div>
+        <div className="w-52 shrink-0 space-y-2 text-sm">
+          <div>
+            <p className="font-mono text-sm font-bold break-all text-black">{order.invoiceNumber}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
+            </p>
+          </div>
+          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+            {order.buyerName}
+          </InfoRow>
+          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+            {order.buyerPhone || "—"}
+          </InfoRow>
+          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+            {dateShortLabel(order.soldAt)}
+          </InfoRow>
+        </div>
 
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      <div className="mt-2 space-y-2.5">
-        {order.items.map((it, i) => (
-          <div key={i} className="flex items-start gap-1.5 text-sm">
-            <div className="mt-[3px]">
-              <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <span className="line-clamp-1 min-w-0 flex-1">{it.book.title}</span>
-                <span className="shrink-0 font-bold">{formatIDR(it.unitPrice * it.quantity)}</span>
+        <div className="min-w-0 flex-1 space-y-3">
+          {order.items.map((it, i) => (
+            <div key={i} className="min-w-0">
+              <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
+              <div className="mt-1">
+                <ItemTags item={it} />
               </div>
-              <p className="mt-0.5 flex flex-wrap items-center gap-1">
-                <ProductTag kind={it.kind} />
-                {it.book.formats.length
-                  ? it.book.formats.map((f) => (
-                      <span
-                        key={f}
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                      >
-                        {f}
-                      </span>
-                    ))
-                  : ""}
-                <span
-                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE[it.status] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                >
-                  {STATUS_LABEL[it.status] || it.status}
-                </span>
-              </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[11px] text-muted-foreground">
                 {it.quantity} × {formatIDR(it.unitPrice)} · {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-3">
+          <BadgeGroup payment={order.paymentStatus} />
+          <span className="text-base font-bold">{formatIDR(order.total)}</span>
+          <Link
+            href={href}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#FBE6E6] px-3 text-xs font-semibold text-[#C0474A] transition-colors hover:bg-[#F6D5D5]"
+          >
+            Lihat Detail
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
-
-      <div className="mt-2 h-px w-full bg-black/15" />
-
-      <div className="mt-2 grid grid-cols-4 items-center justify-items-center gap-x-4 gap-y-2 text-sm md:grid-cols-6">
-        <SummaryCol className="col-span-2 md:col-span-1" icon={<Boxes className="h-3.5 w-3.5" />} title="Total Barang">
-          {order.items.reduce((n, it) => n + it.quantity, 0)}
-        </SummaryCol>
-        <SummaryCol className="col-span-2 md:col-span-1" icon={<Package className="h-3.5 w-3.5" />} title="No Resi">
-          <span className="font-mono text-xs font-semibold">{order.trackingNumber || "—"}</span>
-        </SummaryCol>
-        <SummaryCol icon={<Wallet className="h-3.5 w-3.5" />} title="DP">
-          {formatIDR(order.dp ?? 0)}
-        </SummaryCol>
-        <SummaryCol icon={<PiggyBank className="h-3.5 w-3.5" />} title="Sisa Tagihan">
-          {formatIDR(order.remaining ?? 0)}
-        </SummaryCol>
-        <SummaryCol icon={<Truck className="h-3.5 w-3.5" />} title="Ongkir">
-          {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
-        </SummaryCol>
-        <SummaryCol icon={<Calculator className="h-3.5 w-3.5" />} title="Total">
-          {formatIDR(order.total)}
-        </SummaryCol>
-      </div>
-
-      <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }
@@ -491,9 +470,11 @@ function PaymentCard({ order }: { order: OrderDTO }) {
 export function CopyResi({
   value,
   label = "Copy nomor resi",
+  valueClassName = "font-mono text-xs font-semibold break-all",
 }: {
   value: string | null;
   label?: string;
+  valueClassName?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -512,7 +493,7 @@ export function CopyResi({
 
   return (
     <span className="flex items-center gap-1">
-      <span className="font-mono text-xs font-semibold break-all">{value}</span>
+      <span className={valueClassName}>{value}</span>
       <button
         type="button"
         onClick={copy}
@@ -532,7 +513,6 @@ export function TrackCard({
   order: OrderDTO;
   variant?: "list" | "detail";
 }) {
-  const [detailOpen, setDetailOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const cover = order.items.find((it) => it.image)?.image ?? null;
   const eta = earliestEta(order.items);
@@ -649,14 +629,13 @@ export function TrackCard({
           <BadgeGroup payment={order.paymentStatus} />
 
           {variant === "detail" ? (
-            <Button
-              type="button"
-              onClick={() => setDetailOpen(true)}
-              className="h-auto gap-1 rounded-none bg-transparent p-0 text-xs font-semibold text-[#C96A6A] shadow-none hover:bg-transparent hover:text-[#B04A4A]"
+            <Link
+              href={`/dashboard/orders/invoice/${order.id}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
             >
               Lihat Invoice
               <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            </Link>
           ) : (
             <Button
               asChild
@@ -718,8 +697,6 @@ export function TrackCard({
           <StageTimeline items={order.items} />
         </div>
       )}
-
-      <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }
@@ -741,80 +718,68 @@ export function BuyerTabs({
   query: Record<string, string | undefined>;
   defaultTab: string;
 }) {
-  const { active: pending, navigate } = useBuyerNav("tabs");
-  const searchParams = useSearchParams();
   const tab = defaultTab;
-
-  const lastRequested = useRef<string | null>(null);
-
-  function selectTab(v: string) {
-    if (v === tab || v === lastRequested.current) return;
-    lastRequested.current = v;
-    const params = new URLSearchParams(searchParams.toString());
-    if (v === "invoice") params.delete("tab");
-    else params.set("tab", v);
-    navigate(`${basePath}?${params.toString()}`);
-  }
-
-  const tabTriggerCls =
-    "flex-1 gap-1.5 rounded-none border-b-2 border-transparent border-r border-r-[#F0CBCB] px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors last:border-r-0 data-[state=active]:border-[#D97A7A] data-[state=active]:bg-transparent data-[state=active]:text-[#B04A4A] data-[state=active]:shadow-none";
+  const current = Math.min(page, Math.max(1, Math.ceil(total / pageSize)));
+  const start = total === 0 ? 0 : (current - 1) * pageSize + 1;
+  const end = Math.min(current * pageSize, total);
 
   return (
-    <Tabs value={tab} onValueChange={selectTab}>
-      <TabsList className="h-auto w-full gap-1 overflow-hidden rounded-xl border border-[#F0CBCB] bg-white p-0">
-        <TabsTrigger value="invoice" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-          Invoice
-        </TabsTrigger>
-        <TabsTrigger value="payment" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-          Pembayaran
-        </TabsTrigger>
-        <TabsTrigger value="shipment" className={tabTriggerCls}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-          Lacak
-        </TabsTrigger>
-      </TabsList>
+    <div>
+      {tab === "invoice" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {orders.map((s) => (
+                <OrderCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      <TabsContent value="invoice" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No orders yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((s) => (
-              <OrderCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
+      {tab === "payment" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((s) => (
+                <PaymentCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      <TabsContent value="payment" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No orders yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((s) => (
-              <PaymentCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
+      {tab === "shipment" && (
+        <>
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No shipments yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((s) => (
+                <TrackCard key={s.id} order={s} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      <TabsContent value="shipment" className="mt-4">
-        {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No shipments yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((s) => (
-              <TrackCard key={s.id} order={s} />
-            ))}
-          </div>
-        )}
-      </TabsContent>
-
-      <div className="mt-5 flex justify-center">
-        <Pagination total={total} page={page} pageSize={pageSize} basePath={basePath} query={query} />
+      <div className="mt-5 flex flex-col items-center gap-3 md:flex-row md:justify-between">
+        <p className="text-xs text-muted-foreground">
+          Menampilkan {start} - {end} dari {total} {tab === "invoice" ? "invoice" : "pesanan"}
+        </p>
+        <Pagination
+          total={total}
+          page={page}
+          pageSize={pageSize}
+          basePath={basePath}
+          query={query}
+          variant="rose"
+        />
       </div>
-    </Tabs>
+    </div>
   );
 }
