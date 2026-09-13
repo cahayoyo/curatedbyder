@@ -158,7 +158,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
   const href = `/dashboard/orders/invoice/${order.id}`;
 
   return (
-    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm md:p-4">
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FBE6E6] to-[#F6D5D5] p-3 shadow-sm md:p-4">
       {/* Mobile: condensed row that opens the invoice detail */}
       <Link href={href} className="flex w-full flex-col gap-2.5 text-left md:hidden">
         <span className="flex items-start justify-between gap-2">
@@ -166,7 +166,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
             <span className="block font-mono text-xs font-bold break-all text-black">
               {order.invoiceNumber}
             </span>
-            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+            <span className="mt-0.5 block text-[11px] text-black/70">
               {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
             </span>
           </span>
@@ -179,11 +179,11 @@ function OrderCard({ order }: { order: OrderDTO }) {
               {firstTitle}
               {extraItems > 0 ? ` +${extraItems}` : ""}
             </span>
-            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+            <span className="mt-0.5 block text-[11px] text-black/70">
               {itemCount} Item · {formatIDR(order.total)}
             </span>
           </span>
-          <span className="inline-flex shrink-0 items-center gap-1.5 self-end rounded-lg bg-[#FBE6E6] px-3 py-1.5 text-xs font-semibold text-[#C0474A]">
+          <span className="inline-flex shrink-0 items-center gap-1.5 self-end rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#C0474A]">
             Lihat Detail
             <ChevronRight className="h-3.5 w-3.5" />
           </span>
@@ -197,17 +197,17 @@ function OrderCard({ order }: { order: OrderDTO }) {
         <div className="w-52 shrink-0 space-y-2 text-sm">
           <div>
             <p className="font-mono text-sm font-bold break-all text-black">{order.invoiceNumber}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-black/70">
               {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
             </p>
           </div>
-          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+          <InfoRow icon={<UserRound className="h-3.5 w-3.5 shrink-0 text-black/60" />}>
             {order.buyerName}
           </InfoRow>
-          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+          <InfoRow icon={<Phone className="h-3.5 w-3.5 shrink-0 text-black/60" />}>
             {order.buyerPhone || "—"}
           </InfoRow>
-          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}>
+          <InfoRow icon={<CalendarClock className="h-3.5 w-3.5 shrink-0 text-black/60" />}>
             {dateShortLabel(order.soldAt)}
           </InfoRow>
         </div>
@@ -219,7 +219,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
               <div className="mt-1">
                 <ItemTags item={it} />
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-[11px] text-black/70">
                 {it.quantity} × {formatIDR(it.unitPrice)} · {it.batchName ?? "—"} · ETA {etaLabel(it.eta)}
               </p>
             </div>
@@ -231,7 +231,7 @@ function OrderCard({ order }: { order: OrderDTO }) {
           <span className="text-base font-bold">{formatIDR(order.total)}</span>
           <Link
             href={href}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#FBE6E6] px-3 text-xs font-semibold text-[#C0474A] transition-colors hover:bg-[#F6D5D5]"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-semibold text-[#C0474A] transition-colors hover:bg-[#FBE6E6]"
           >
             Lihat Detail
             <ChevronRight className="h-3.5 w-3.5" />
@@ -410,58 +410,80 @@ export function BuyerOrderDetail({
 }
 
 function PaymentCard({ order }: { order: OrderDTO }) {
-  const [detailOpen, setDetailOpen] = useState(false);
+  const paid = Math.max(0, order.total - (order.remaining ?? 0));
+  const pct = order.total > 0 ? Math.min(100, Math.round((paid / order.total) * 100)) : 0;
+  const href = `/dashboard/orders/payment/${order.id}`;
 
   return (
-    <div className="rounded-lg border p-3" style={{ backgroundColor: "#F6F1E7" }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
+    <div className="rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-[#FBE6E6] to-[#F6D5D5] p-3 shadow-sm md:p-4">
+      <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 font-semibold leading-snug">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D97A7A]/30 bg-[#D97A7A]/10">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/70 bg-white">
             <Wallet className="h-5 w-5 text-[#D97A7A]" />
           </span>
-          <span className="font-mono text-xs font-bold break-all">{order.invoiceNumber}</span>
+          <span className="min-w-0">
+            <span className="block font-mono text-xs font-bold break-all">
+              {order.invoiceNumber}
+            </span>
+            <span className="block text-[11px] text-black/60">
+              {dateShortLabel(order.soldAt)} · {timeShortLabel(order.soldAt)}
+            </span>
+          </span>
         </span>
-        <Badge variant="outline" className={`whitespace-nowrap px-2 py-0.5 text-xs ${PAYMENT_BADGE[order.paymentStatus] ?? ""}`}>
+        <Badge
+          variant="outline"
+          className={`whitespace-nowrap px-2 py-0.5 text-xs ${PAYMENT_BADGE[order.paymentStatus] ?? ""}`}
+        >
           {PAYMENT_LABEL[order.paymentStatus] || order.paymentStatus}
         </Badge>
       </div>
 
-      <div className="mb-2 h-px w-full bg-black/15" />
+      <div className="mt-3 rounded-xl bg-white/70 p-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-medium text-black/60">Sisa Tagihan</p>
+            <p className="mt-0.5 text-xl font-bold text-[#B04A4A]">
+              {formatIDR(order.remaining ?? 0)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] font-medium text-black/60">Total</p>
+            <p className="mt-0.5 text-sm font-bold">{formatIDR(order.total)}</p>
+          </div>
+        </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#F0CBCB]">
+          <div className="h-full rounded-full bg-[#D97A7A]" style={{ width: `${pct}%` }} />
+        </div>
+        <p className="mt-1 text-[11px] text-black/60">
+          <span className="font-semibold text-[#B04A4A]">{formatIDR(paid)}</span> terbayar ({pct}%)
+        </p>
+      </div>
 
-      <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Wallet className="h-3.5 w-3.5" />
-            DP
-          </span>
-          <span className="font-medium">{formatIDR(order.dp ?? 0)}</span>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="rounded-lg bg-white/60 p-2">
+          <p className="text-[10px] font-medium text-black/60">DP</p>
+          <p className="mt-0.5 font-semibold">{formatIDR(order.dp ?? 0)}</p>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <PiggyBank className="h-3.5 w-3.5" />
-            Sisa Tagihan
-          </span>
-          <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
+        <div className="rounded-lg bg-white/60 p-2">
+          <p className="text-[10px] font-medium text-black/60">Ongkir</p>
+          <p className="mt-0.5 font-semibold">
+            {order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}
+          </p>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Truck className="h-3.5 w-3.5" />
-            Ongkir
-          </span>
-          <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "—"}</span>
-        </div>
-        <div className="h-px w-full bg-black/15" />
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Calculator className="h-3.5 w-3.5" />
-            Total
-          </span>
-          <span className="font-semibold">{formatIDR(order.total)}</span>
+        <div className="rounded-lg bg-white/60 p-2">
+          <p className="text-[10px] font-medium text-black/60">Dibayar</p>
+          <p className="mt-0.5 font-semibold">{formatIDR(paid)}</p>
         </div>
       </div>
 
-      <div className="mt-3">
-        <BuyerOrderDetail order={order} open={detailOpen} onOpenChange={setDetailOpen} />
+      <div className="mt-3 flex">
+        <Link
+          href={href}
+          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-white text-xs font-semibold text-[#B04A4A] transition-colors hover:bg-[#FBE6E6] md:ml-auto md:w-auto md:px-4"
+        >
+          Lihat Detail
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
     </div>
   );
@@ -498,7 +520,7 @@ export function CopyResi({
         type="button"
         onClick={copy}
         aria-label={label}
-        className="text-[#C96A6A] transition-colors hover:text-[#B04A4A]"
+        className="text-black/60 transition-colors hover:text-black/80"
       >
         {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
       </button>
@@ -538,7 +560,11 @@ export function TrackCard({
   );
 
   return (
-    <div className="rounded-xl border border-[#F0CBCB]/60 bg-white p-3 shadow-sm sm:p-4">
+    <div
+      className={`rounded-xl border border-[#F0CBCB]/60 p-3 shadow-sm sm:p-4 ${
+        variant === "list" ? "bg-gradient-to-br from-[#FBE6E6] to-[#F6D5D5]" : "bg-white"
+      }`}
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="flex min-w-0 flex-1 gap-3">
           <div className="relative h-[92px] w-[66px] shrink-0 overflow-hidden rounded-lg border border-[#F0CBCB] bg-white/70">
@@ -582,7 +608,7 @@ export function TrackCard({
                         </span>
                       ))}
                     </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    <p className="mt-1 text-[11px] text-black/70">
                       {it.quantity} × {formatIDR(it.unitPrice)} · ETA {etaLabel(it.eta)}
                     </p>
                   </div>
@@ -596,7 +622,7 @@ export function TrackCard({
                 <button
                   type="button"
                   onClick={() => setExpanded((v) => !v)}
-                  className="flex h-7 items-center gap-1 rounded-lg bg-[#FBE6E6] px-2.5 text-[11px] font-semibold text-[#B04A4A] transition-colors hover:bg-[#F6D5D5]"
+                  className="flex h-7 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-semibold text-[#B04A4A] transition-colors hover:bg-[#FBE6E6]"
                 >
                   {expanded ? "Sembunyikan" : "Tampilkan"}
                   {expanded ? (
@@ -613,13 +639,13 @@ export function TrackCard({
         {variant === "list" && (
           <div className="hidden flex-col gap-1.5 text-xs text-black/70 md:flex md:flex-1">
             <p className="flex items-center gap-1.5">
-              <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">No. Resi:</span>
+              <Package className="h-3.5 w-3.5 shrink-0 text-black/60" />
+              <span className="text-black/70">No. Resi:</span>
               <CopyResi value={order.trackingNumber} />
             </p>
             <p className="flex items-center gap-1.5">
-              <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Estimasi Tiba:</span>
+              <CalendarClock className="h-3.5 w-3.5 shrink-0 text-black/60" />
+              <span className="text-black/70">Estimasi Tiba:</span>
               <span className="font-semibold">{etaLabel(eta)}</span>
             </p>
           </div>
@@ -639,7 +665,7 @@ export function TrackCard({
           ) : (
             <Button
               asChild
-              className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white/70 px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
+              className="h-8 gap-1.5 rounded-lg border border-[#D97A7A] bg-white px-3 text-xs font-semibold text-[#B04A4A] shadow-none hover:bg-[#FBE6E6] hover:text-[#B04A4A]"
             >
               <Link href={`/dashboard/orders/tracking/${order.id}`}>
                 Lihat Detail Pengiriman
