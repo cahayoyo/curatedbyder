@@ -109,7 +109,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
         <Button
           type="button"
           variant="default"
-          className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
+          className="h-9 w-full border border-[#F0CBCB] bg-white px-3 text-xs font-medium text-[#D97A7A] shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-[#B04A4A] sm:w-40"
         >
           <Layers2 className="h-4 w-4" />
           Kelola Batch
@@ -117,8 +117,8 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
       </DialogTrigger>
       <DialogContent
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="max-h-[80vh] w-[92%] max-w-md overflow-y-auto"
-        style={{ backgroundColor: "#F6F1E7" }}
+        className="max-h-[80vh] w-[92%] max-w-md overflow-y-auto [--border:0_55%_87%] [--input:0_55%_87%]"
+        style={{ backgroundColor: "#FDF1F1" }}
       >
         <DialogHeader>
           <DialogTitle>Kelola Batch</DialogTitle>
@@ -161,13 +161,13 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           type="button"
           variant="outline"
           onClick={addField}
-          className="border border-input bg-transparent text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
+          className="border border-input bg-white text-black transition-colors hover:bg-[#D97A7A] hover:text-white"
         >
           <Plus className="h-4 w-4" />
           Tambah
         </Button>
 
-        <div className="my-1 h-px w-full bg-black/15" />
+        <div className="my-1 h-px w-full bg-[#F0CBCB]" />
 
         <DialogFooter className="flex-row gap-2">
           <Button
@@ -177,7 +177,7 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
               setFields([""]);
               cancelEdit();
             }}
-            className="flex-1 border border-input bg-transparent"
+            className="flex-1 border border-input bg-white"
           >
             Tutup
           </Button>
@@ -190,14 +190,14 @@ export function ManageBatchDialog({ batches }: { batches: Batch[] }) {
           </Button>
         </DialogFooter>
 
-        <div className="my-1 h-px w-full bg-black/15" />
+        <div className="my-1 h-px w-full bg-[#F0CBCB]" />
 
         {batches.length > 0 && (
           <>
             <p className="text-sm font-semibold">Batch yang Ada</p>
             <div className="space-y-2">
               {batches.map((b) => (
-                <div key={b.id} className="rounded-lg border p-2">
+                <div key={b.id} className="rounded-lg border bg-white p-2">
                   {editingId === b.id ? (
                     <div className="flex items-center gap-2">
                       <Input
