@@ -18,7 +18,8 @@ import { avatarClass, initials } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { EditAddressButton } from "@/components/dashboard/EditAddressButton";
 
-const cardCls = "rounded-2xl border border-[#F0CBCB] bg-white p-5 shadow-sm";
+const cardCls =
+  "rounded-2xl border border-[#F0CBCB] bg-gradient-to-br from-[#FBE6E6] to-[#F6D5D5] p-5 shadow-sm";
 
 function SectionTitle({
   icon: Icon,
@@ -32,7 +33,7 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FDE7E7] text-[#C96A6A]">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#D97A7A] text-white shadow-sm">
           <Icon className="h-4 w-4" />
         </span>
         <h2 className="text-[17px] font-bold leading-tight">{title}</h2>
@@ -123,8 +124,8 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        <div className={cn(cardCls, "hidden bg-[#FDF7F3] lg:flex lg:flex-col lg:justify-center")}>
-          <Quote className="h-8 w-8 fill-[#F5C9C9] text-[#F5C9C9]" />
+        <div className={cn(cardCls, "hidden lg:flex lg:flex-col lg:justify-center")}>
+          <Quote className="h-8 w-8 fill-[#E9B5B5] text-[#E9B5B5]" />
           <p className="mt-2 text-base italic leading-relaxed text-black/80">
             &ldquo;Buku adalah jendela kecil untuk melihat dunia yang lebih besar.&rdquo;
           </p>
@@ -135,7 +136,7 @@ export default async function ProfilePage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className={cardCls}>
           <SectionTitle icon={IdCard} title="Informasi Pribadi" />
-          <div className="mt-2 divide-y divide-[#F6D5D5]">
+          <div className="mt-2 divide-y divide-[#E9B5B5]">
             <InfoRow label="Nama Lengkap" value={user.name} />
             <InfoRow label="Username" value={user.username || "-"} />
             <InfoRow label="Nomor WhatsApp" value={user.phone || "-"} />
@@ -155,7 +156,7 @@ export default async function ProfilePage() {
                 {user.contact?.trim() ? user.contact : "-"}
               </p>
               {user.contact?.trim() ? (
-                <span className="ml-auto shrink-0 rounded-md bg-[#FBE6E6] px-2 py-0.5 text-xs font-semibold text-[#C96A6A]">
+                <span className="ml-auto shrink-0 rounded-md bg-[#D97A7A] px-2 py-0.5 text-xs font-semibold text-white shadow-sm">
                   Utama
                 </span>
               ) : null}
