@@ -50,7 +50,7 @@ export function EditAddressButton({ contact }: { contact: string | null }) {
           setValue(contact ?? "");
           setOpen(true);
         }}
-        className="rounded-lg border border-[#E58A8A] bg-white px-3 py-1.5 text-xs font-semibold text-[#D97A7A] transition-colors hover:bg-[#FBE6E6]"
+        className="rounded-lg border border-[#D97A7A] bg-[#D97A7A] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#c9686b]"
       >
         Ubah
       </button>

@@ -13,7 +13,7 @@ export function OrderViewButton({ order }: { order: OrderDTO }) {
         type="button"
         variant="outline"
         onClick={() => setOpen(true)}
-        className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-sky-400 hover:text-black"
+        className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-[#FED6D6] hover:text-[#B04A4A]"
       >
         <Eye className="h-3.5 w-3.5" />
         Lihat

@@ -122,11 +122,11 @@ export function OrderSummaryAccordion(data: OrderSummaryDTO) {
     month === "all" ? data.grandTotal : data.grandTotalByMonth[Number(month)] ?? 0;
 
   return (
-    <div className="rounded-lg border">
+    <div className="overflow-hidden rounded-lg border">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-black/5"
+        className="flex w-full items-center justify-between gap-2 bg-[#F3CFCF] px-4 py-3 text-sm font-semibold transition-colors hover:bg-[#EDBEBE]"
       >
         <span className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-[#D97A7A]" />

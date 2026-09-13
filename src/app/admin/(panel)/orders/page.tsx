@@ -6,7 +6,6 @@ import { Prisma, PaymentStatus, OrderStatus, Eta } from "@prisma/client";
 import { StatusSelect, PaymentStatusSelect } from "@/components/OrderRow";
 import { NavActionButton } from "@/components/NavActionButton";
 import { ManageBatchDialog } from "@/components/ManageBatchDialog";
-import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { deleteOrder } from "@/server/actions/orders";
@@ -15,12 +14,12 @@ import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
 import { OrderSummaryAccordion, type OrderSummaryDTO } from "@/components/OrderSummaryAccord";
-import { OrderViewButton } from "@/components/OrderViewButton";
+import { OrderActionsMenu } from "@/components/OrderActionsMenu";
 import { OrderFilter } from "@/components/OrderFilter";
 import { SortButton } from "@/components/SortButton";
 import { ListLoader } from "@/components/ListLoader";
 import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
-import { Plus, Pencil, ShoppingCart, ReceiptText, Layers, CalendarClock, UserRound, BookOpen, Tag, ListOrdered, Banknote, Calculator, Wallet, PiggyBank, ShieldCheck, PackageCheck, Hand, Truck, Package } from "lucide-react";
+import { Plus, ShoppingCart } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -121,13 +120,13 @@ function ProductLabel({ it }: { it: ItemOrToy }) {
   const kind = itemKind(it);
   if (kind === "BUKU")
     return (
-      <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
+      <span className="inline-flex shrink-0 items-center rounded-full border border-sky-300 bg-sky-100 px-1.5 text-[10px] font-semibold text-sky-800">
         Buku
       </span>
     );
   if (kind === "MAINAN")
     return (
-      <span className="ml-1 inline-flex shrink-0 items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
+      <span className="inline-flex shrink-0 items-center rounded-full border border-amber-300 bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800">
         Mainan
       </span>
     );
@@ -329,57 +328,51 @@ async function OrdersList({
       </div>
 
       {/* Desktop: table layout */}
-      <div className="hidden overflow-x-auto rounded-lg border md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-[#F0CBCB]/60 md:block">
         <Table className="border-collapse">
           <TableHeader>
-            <TableRow className="border-b border-input" style={{ backgroundColor: "#F2F1ED" }}>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" /><SortButton label="Invoice" column="invoice" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />Status Pembayaran</span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" /><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+            <TableRow className="border-b border-input hover:bg-transparent" style={{ backgroundColor: "#F3CFCF" }}>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><SortButton label="Invoice" column="invoice" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /><SortButton label="Nama Produk" column="book" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                  <span className="inline-flex items-center gap-1">Status Pembayaran</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Format</span>
+                  <span className="inline-flex items-center gap-1"><SortButton label="Nama" column="name" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><ListOrdered className="h-3.5 w-3.5" />Quantity</span>
+                  <span className="inline-flex items-center gap-1"><SortButton label="Nama Produk" column="book" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                  <span className="inline-flex items-center gap-1">Qty</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />Batch</span>
+                  <span className="inline-flex items-center gap-1"><SortButton label="Harga" column="price" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" />ETA</span>
+                  <span className="inline-flex items-center gap-1">Batch</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="flex items-center gap-1"><PackageCheck className="h-3.5 w-3.5" />Status Item</span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Calculator className="h-3.5 w-3.5" /><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /><SortButton label="DP" column="dp" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><PiggyBank className="h-3.5 w-3.5" /><SortButton label="Sisa Tagihan" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" />Ongkir</span>
-                </TableHead>
-              <TableHead className="font-bold">
-                  <span className="flex items-center gap-1"><Package className="h-3.5 w-3.5" />No Resi</span>
+                  <span className="inline-flex items-center gap-1">ETA</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" />Aksi</span>
+                  <span className="inline-flex items-center gap-1">Status Item</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><SortButton label="DP" column="dp" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1"><SortButton label="Sisa Tagihan" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1">Ongkir</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1">Aksi</span>
                 </TableHead>
             </TableRow>
           </TableHeader>
@@ -387,112 +380,82 @@ async function OrdersList({
             {orders.map((s) => (
               <Fragment key={s.id}>
                 <TableRow className="border-b border-input last:border-0">
-                  <TableCell className="font-mono text-xs font-medium" rowSpan={s.items.length}>{s.invoiceNumber}</TableCell>
+                  <TableCell className="font-mono font-medium" rowSpan={s.items.length}>{s.invoiceNumber}</TableCell>
                   <TableCell rowSpan={s.items.length}>
-                    <div className="space-y-1">
-                      <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
-                      {s.dp != null && s.paymentStatus !== "LUNAS" && (
-                        <p className="text-xs text-muted-foreground">
-                          DP {formatIDR(s.dp)} / Sisa Tagihan {formatIDR(effectiveRemaining(s))}
-                        </p>
-                      )}
-                    </div>
+                    <PaymentStatusSelect orderId={s.id} current={s.paymentStatus} />
                   </TableCell>
                   <TableCell rowSpan={s.items.length}>{s.buyer.name}</TableCell>
-                  <TableCell className="text-center text-xs">
-                    <span className="inline-flex items-center">
-                      {s.items[0] ? itemTitle(s.items[0]) : "—"}
-                      <ProductLabel it={s.items[0]} />
+                  <TableCell>
+                    <span className="flex flex-col items-start gap-1">
+                      <span>{s.items[0] ? itemTitle(s.items[0]) : "—"}</span>
+                      <span className="flex flex-wrap items-center gap-1">
+                        <ProductLabel it={s.items[0]} />
+                        {itemFormats(s.items[0]).map((f) => (
+                          <span
+                            key={f}
+                            className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                          >
+                            {f}
+                          </span>
+                        ))}
+                      </span>
                     </span>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-wrap items-center justify-center gap-1">
-                      {itemFormats(s.items[0]).length > 0
-                        ? itemFormats(s.items[0]).map((f) => (
-                            <span
-                              key={f}
-                              className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                            >
-                              {f}
-                            </span>
-                          ))
-                        : "--"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center text-xs">{s.items[0].quantity}</TableCell>
-                  <TableCell className="text-center text-xs">{formatIDR(s.items[0].unitPrice)}</TableCell>
-                  <TableCell className="text-center text-xs">{s.items[0].batch?.name || "—"}</TableCell>
-                  <TableCell className="text-center text-xs">{etaLabel(s.items[0].eta)}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center">{s.items[0].quantity}</TableCell>
+                  <TableCell>{formatIDR(s.items[0].unitPrice)}</TableCell>
+                  <TableCell>{s.items[0].batch?.name || "—"}</TableCell>
+                  <TableCell>{etaLabel(s.items[0].eta)}</TableCell>
+                  <TableCell>
                     <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
                   </TableCell>
-                  <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
-                  <TableCell className="border-l border-input font-mono text-xs" rowSpan={s.items.length}>{s.trackingNumber || "—"}</TableCell>
-                  <TableCell className="border-l border-input text-center" rowSpan={s.items.length}>
-                    <div className="flex justify-center gap-2">
-                      <OrderViewButton
-                        order={{
-                          id: s.id,
-                          invoiceNumber: s.invoiceNumber,
-                          soldAt: s.soldAt,
-                          total: s.total,
-                          dp: s.dp,
-                          remaining: effectiveRemaining(s),
-                          shippingCost: s.shippingCost,
-                          trackingNumber: s.trackingNumber,
-                          paymentStatus: s.paymentStatus,
-                          buyer: s.buyer,
-                          items: s.items.map((it) => toItemDTO(it)),
-              payments: s.payments.map((p) => ({ amount: p.amount })),
-                        }}
-                      />
-                      <NavActionButton
-                        href={`/admin/orders/${s.id}/edit`}
-                        icon={<Pencil className="h-3.5 w-3.5" />}
-                        className="h-9 border border-input bg-transparent px-3 text-xs text-black shadow-sm transition-colors hover:bg-yellow-400 hover:text-black"
-                      >
-                        Ubah
-                      </NavActionButton>
-                      <ConfirmDeleteButton
-                        title="Hapus Order?"
-                        description={`Apakah anda benar ingin menghapus order "${s.invoiceNumber}"? Stok buku akan dikembalikan.`}
-                        warningText={`Data order yang dihapus tidak akan bisa dikembalikan.`}
-                        successMessage={`${s.invoiceNumber} berhasil dihapus!`}
-                        onConfirm={deleteOrder.bind(null, s.id)}
-                      />
-                    </div>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>
+                    <OrderActionsMenu
+                      order={{
+                        id: s.id,
+                        invoiceNumber: s.invoiceNumber,
+                        soldAt: s.soldAt,
+                        total: s.total,
+                        dp: s.dp,
+                        remaining: effectiveRemaining(s),
+                        shippingCost: s.shippingCost,
+                        trackingNumber: s.trackingNumber,
+                        paymentStatus: s.paymentStatus,
+                        buyer: s.buyer,
+                        items: s.items.map((it) => toItemDTO(it)),
+                        payments: s.payments.map((p) => ({ amount: p.amount })),
+                      }}
+                      onDelete={deleteOrder.bind(null, s.id)}
+                      deleteSuccessMessage={`${s.invoiceNumber} berhasil dihapus!`}
+                    />
                   </TableCell>
                 </TableRow>
                 {s.items.slice(1).map((it, i) => (
                   <TableRow key={`${s.id}-item-${i}`} className="border-b border-input last:border-0">
-                    <TableCell className="text-center text-xs">
-                    <span className="inline-flex items-center">
-                      {itemTitle(it)}
-                      <ProductLabel it={it} />
+                    <TableCell>
+                    <span className="flex flex-col items-start gap-1">
+                      <span>{itemTitle(it)}</span>
+                      <span className="flex flex-wrap items-center gap-1">
+                        <ProductLabel it={it} />
+                        {itemFormats(it).map((f) => (
+                          <span
+                            key={f}
+                            className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
+                          >
+                            {f}
+                          </span>
+                        ))}
+                      </span>
                     </span>
                   </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-wrap items-center justify-center gap-1">
-                        {itemFormats(it).length > 0
-                          ? itemFormats(it).map((f) => (
-                              <span
-                                key={f}
-                                className={`inline-flex h-4 items-center rounded-full border px-1.5 text-[10px] font-medium leading-none ${FORMAT_BADGE[f] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
-                              >
-                                {f}
-                              </span>
-                            ))
-                          : "--"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center text-xs">{it.quantity}</TableCell>
-                    <TableCell className="text-center text-xs">{formatIDR(it.unitPrice)}</TableCell>
-                    <TableCell className="text-center text-xs">{it.batch?.name || "—"}</TableCell>
-                    <TableCell className="text-center text-xs">{etaLabel(it.eta)}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center">{it.quantity}</TableCell>
+                    <TableCell>{formatIDR(it.unitPrice)}</TableCell>
+                    <TableCell>{it.batch?.name || "—"}</TableCell>
+                    <TableCell>{etaLabel(it.eta)}</TableCell>
+                    <TableCell>
                       <StatusSelect itemId={it.id} current={it.status} />
                     </TableCell>
                   </TableRow>
@@ -501,7 +464,7 @@ async function OrdersList({
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={16} className="text-center text-muted-foreground">
+                <TableCell colSpan={14} className="text-center text-muted-foreground">
                   Belum ada pesanan.
                 </TableCell>
               </TableRow>
@@ -593,7 +556,7 @@ export default async function AdminOrdersPage({
   const batches = await getBatches();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 [--border:0_55%_87%] [--input:0_55%_87%]">
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -605,7 +568,7 @@ export default async function AdminOrdersPage({
             <NavActionButton
               href="/admin/orders/new"
               icon={<Plus className="h-4 w-4" />}
-              className="h-9 w-full border border-input bg-black px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#D97A7A] hover:text-white sm:w-40"
+              className="h-9 w-full border border-[#D97A7A] bg-[#D97A7A] px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#c96666] hover:text-white sm:w-40"
             >
               Tambah Pesanan
             </NavActionButton>
@@ -619,7 +582,7 @@ export default async function AdminOrdersPage({
         <div className="flex flex-col gap-2 md:flex-row md:items-start">
           <div className="flex w-full items-center gap-2 md:w-[80%]">
             <div className="w-full">
-              <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." />
+              <SearchInput basePath="/admin/orders" placeholder="Cari invoice / pembeli / judul buku..." inputClassName="border-[#F0CBCB] bg-white focus-visible:ring-[#D97A7A]" />
             </div>
             <PageSizeSelect basePath="/admin/orders" />
           </div>
