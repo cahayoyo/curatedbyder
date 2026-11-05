@@ -578,7 +578,7 @@ export function OrderForm({
 
       <div className="space-y-3 rounded-lg border bg-[#FCFBFB] p-4">
         <SectionHeader n={2} title="Produk" />
-        <div className="hidden gap-2 px-3 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_auto]">
+        <div className="hidden gap-2 px-[13px] text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_40px]">
           <span>Type</span>
           <span>Nama Produk</span>
           <span>Format</span>
@@ -589,7 +589,7 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_40px] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
           >
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Type</span>
