@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
+import { Plus, Minus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -342,8 +342,16 @@ export function OrderForm({
   }, 0);
   const shippingCostNum = shippingCost ? Number(shippingCost) : 0;
   const total = productTotal + shippingCostNum;
-  const autoDp = Math.round(total * 0.3);
+  const autoDp = items.reduce((acc, it) => {
+    const qty = Number(it.quantity) || 0;
+    const price = itemPrice(it);
+    if (qty <= 0 || price <= 0) return acc;
+    // Books: Rp30k per copy capped at the copy price. Toys keep the old 30%.
+    return acc + (it.kind === "book" ? Math.min(30_000, price) * qty : Math.round(price * qty * 0.3));
+  }, 0);
   const effectiveDp = isEdit ? (dp ? Number(dp) : 0) : total > 0 ? autoDp : 0;
+  const hasToy = items.some((it) => it.kind === "toy" && it.toyId);
+  const dpLabel = `DP (Min. Rp30.000/Buku${hasToy ? " + 30% Mainan" : ""})`;
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
@@ -570,7 +578,7 @@ export function OrderForm({
 
       <div className="space-y-3 rounded-lg border bg-[#FCFBFB] p-4">
         <SectionHeader n={2} title="Produk" />
-        <div className="hidden gap-2 px-3 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_auto]">
+        <div className="hidden gap-2 px-[13px] text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_40px]">
           <span>Type</span>
           <span>Nama Produk</span>
           <span>Format</span>
@@ -581,7 +589,7 @@ export function OrderForm({
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_auto] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
+            className="space-y-2 rounded-lg border border-input bg-white/50 p-3 sm:grid sm:grid-cols-[80px_minmax(120px,1fr)_80px_90px_100px_40px] sm:items-end sm:gap-2 sm:space-y-0 sm:bg-transparent sm:p-3"
           >
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Type</span>
@@ -692,12 +700,40 @@ export function OrderForm({
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Quantity</span>
-              <Input
-                type="number"
-                min="1"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, { quantity: e.target.value })}
-              />
+              <div className="flex h-9 items-center overflow-hidden rounded-md border border-input bg-transparent shadow-sm">
+                <button
+                  type="button"
+                  aria-label="Kurangi quantity"
+                  onClick={() =>
+                    updateItem(idx, {
+                      quantity: String(Math.max(1, (Number(item.quantity) || 0) - 1)),
+                    })
+                  }
+                  disabled={(Number(item.quantity) || 0) <= 1}
+                  className="flex h-full w-6 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5 disabled:opacity-40"
+                >
+                  <Minus className="h-3 w-3" />
+                </button>
+                <Input
+                  type="number"
+                  min="1"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, { quantity: e.target.value })}
+                  className="h-full min-w-0 rounded-none border-0 bg-transparent px-0 text-center text-sm shadow-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  aria-label="Tambah quantity"
+                  onClick={() =>
+                    updateItem(idx, {
+                      quantity: String((Number(item.quantity) || 0) + 1),
+                    })
+                  }
+                  className="flex h-full w-6 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Harga</span>
@@ -780,7 +816,7 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            DP (Min. 30% dari Total Order)
+            {dpLabel}
           </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
@@ -1109,7 +1145,7 @@ export function OrderForm({
             subtotal={productTotal}
             shippingCost={shippingCostNum}
             dp={effectiveDp}
-            dpLabel="DP (Min. 30% dari Total Order)"
+            dpLabel={dpLabel}
             total={total}
           />
         </div>
