@@ -350,6 +350,8 @@ export function OrderForm({
     return acc + (it.kind === "book" ? Math.min(30_000, price) * qty : Math.round(price * qty * 0.3));
   }, 0);
   const effectiveDp = isEdit ? (dp ? Number(dp) : 0) : total > 0 ? autoDp : 0;
+  const hasToy = items.some((it) => it.kind === "toy" && it.toyId);
+  const dpLabel = `DP (Min. Rp30.000/Buku${hasToy ? " + 30% Mainan" : ""})`;
   const payments = initial?.payments ?? [];
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
@@ -786,7 +788,7 @@ export function OrderForm({
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4 text-muted-foreground" />
-            DP (Min. Rp30.000/Buku + 30% Mainan)
+            {dpLabel}
           </Label>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-black/60">
@@ -1115,7 +1117,7 @@ export function OrderForm({
             subtotal={productTotal}
             shippingCost={shippingCostNum}
             dp={effectiveDp}
-            dpLabel="DP (Min. Rp30.000/Buku + 30% Mainan)"
+            dpLabel={dpLabel}
             total={total}
           />
         </div>
