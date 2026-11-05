@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
-import { Plus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
+import { Plus, Minus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { formatIDR, formatRp } from "@/lib/format";
@@ -700,12 +700,40 @@ export function OrderForm({
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Quantity</span>
-              <Input
-                type="number"
-                min="1"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, { quantity: e.target.value })}
-              />
+              <div className="flex h-9 items-center overflow-hidden rounded-md border border-input bg-transparent shadow-sm">
+                <button
+                  type="button"
+                  aria-label="Kurangi quantity"
+                  onClick={() =>
+                    updateItem(idx, {
+                      quantity: String(Math.max(1, (Number(item.quantity) || 0) - 1)),
+                    })
+                  }
+                  disabled={(Number(item.quantity) || 0) <= 1}
+                  className="flex h-full w-6 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5 disabled:opacity-40"
+                >
+                  <Minus className="h-3 w-3" />
+                </button>
+                <Input
+                  type="number"
+                  min="1"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, { quantity: e.target.value })}
+                  className="h-full min-w-0 rounded-none border-0 bg-transparent px-0 text-center text-sm shadow-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  aria-label="Tambah quantity"
+                  onClick={() =>
+                    updateItem(idx, {
+                      quantity: String((Number(item.quantity) || 0) + 1),
+                    })
+                  }
+                  className="flex h-full w-6 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground sm:hidden">Harga</span>
