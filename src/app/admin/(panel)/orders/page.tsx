@@ -360,6 +360,12 @@ async function OrdersList({
                   <span className="inline-flex items-center gap-1">Status Item</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1">Subtotal Produk</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
+                  <span className="inline-flex items-center gap-1">Ongkir</span>
+                </TableHead>
+              <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><SortButton label="Total" column="total" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
                 </TableHead>
               <TableHead className="text-center font-bold">
@@ -367,9 +373,6 @@ async function OrdersList({
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1"><SortButton label="Sisa Tagihan" column="remaining" type="num" currentSort={sortValid} currentDir={dir} basePath="/admin/orders" query={pageQuery} /></span>
-                </TableHead>
-              <TableHead className="text-center font-bold">
-                  <span className="inline-flex items-center gap-1">Ongkir</span>
                 </TableHead>
               <TableHead className="text-center font-bold">
                   <span className="inline-flex items-center gap-1">Aksi</span>
@@ -408,10 +411,11 @@ async function OrdersList({
                   <TableCell>
                     <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
                   </TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.items.reduce((n, it) => n + it.subtotal, 0))}</TableCell>
+                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.total)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.dp)}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(effectiveRemaining(s))}</TableCell>
-                  <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>
                     <OrderActionsMenu
                       order={{
@@ -464,7 +468,7 @@ async function OrdersList({
             ))}
             {orders.length === 0 && (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-muted-foreground">
+                <TableCell colSpan={15} className="text-center text-muted-foreground">
                   Belum ada pesanan.
                 </TableCell>
               </TableRow>

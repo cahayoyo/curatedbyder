@@ -90,6 +90,7 @@ const STATUS_PILL: Record<string, { bg: [number, number, number]; fg: [number, n
 export function buildOrderPdf(order: OrderPdfDTO) {
   const doc = new jsPDF();
   const margin = 14;
+  const productSubtotal = order.items.reduce((n, it) => n + it.subtotal, 0);
 
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -173,9 +174,10 @@ export function buildOrderPdf(order: OrderPdfDTO) {
       formatIDR(it.subtotal),
     ]),
     foot: [
+      [{ content: "Subtotal Produk", colSpan: 7, styles: { halign: "right" } }, formatIDR(productSubtotal)],
+      [{ content: "Ongkos Kirim", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "Total", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.total)],
       [{ content: "", colSpan: 8 }],
-      [{ content: "Ongkos Kirim", colSpan: 7, styles: { halign: "right" } }, order.shippingCost != null ? formatIDR(order.shippingCost) : "—"],
       [{ content: "DP", colSpan: 7, styles: { halign: "right" } }, formatIDR(order.dp ?? 0)],
       ...(order.payments ?? []).map((p, i) => [
         { content: pembayaranLabel(i), colSpan: 7, styles: { halign: "right" as const } },
