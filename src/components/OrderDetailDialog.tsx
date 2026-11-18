@@ -92,6 +92,7 @@ function getPeriod(date: Date): string {
 function buildWaText(order: OrderDTO): string {
   const period = getPeriod(new Date());
   const pdfLink = `${window.location.origin}/api/download/orders/${order.id}`;
+  const productSubtotal = order.items.reduce((n, it) => n + it.subtotal, 0);
   const lines: string[] = [
     `Selamat ${period}, Kak ${order.buyer.name}. Izin share invoice pelunasan orderan kakak. Mohon diperiksa kembali ya kak 😊🙏🏼`,
     "",
@@ -101,10 +102,11 @@ function buildWaText(order: OrderDTO): string {
   lines.push(
     "",
     `Invoice : ${order.invoiceNumber}`,
-    `DP : ${order.dp != null ? formatIDR(order.dp) : "--"}`,
-    `Sisa Tagihan : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
+    `Subtotal Produk : ${formatIDR(productSubtotal)}`,
     `Ongkir : ${order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}`,
     `*Total : ${formatIDR(order.total)}*`,
+    `DP : ${order.dp != null ? formatIDR(order.dp) : "--"}`,
+    `Sisa Tagihan : ${order.remaining != null ? formatIDR(order.remaining) : "--"}`,
     "",
     "Transfer hanya melalui rekening :",
     "BCA 8990789330 Adera Nurul",
@@ -155,6 +157,8 @@ export function OrderDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const productSubtotal = order.items.reduce((n, it) => n + it.subtotal, 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -258,6 +262,27 @@ export function OrderDetailDialog({
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-muted-foreground">
+              <ListOrdered className="h-3.5 w-3.5" />
+              Subtotal Produk
+            </span>
+            <span className="font-medium">{formatIDR(productSubtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Truck className="h-3.5 w-3.5" />
+              Ongkir
+            </span>
+            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Calculator className="h-3.5 w-3.5" />
+              Total
+            </span>
+            <span className="font-semibold">{formatIDR(order.total)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" />
               DP
             </span>
@@ -269,21 +294,6 @@ export function OrderDetailDialog({
               Sisa Tagihan
             </span>
             <span className="font-medium">{formatIDR(order.remaining ?? 0)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Truck className="h-3.5 w-3.5" />
-              Ongkir
-            </span>
-            <span className="font-medium">{order.shippingCost != null ? formatIDR(order.shippingCost) : "--"}</span>
-          </div>
-          <div className="h-px w-full bg-black/15" />
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Calculator className="h-3.5 w-3.5" />
-              Total
-            </span>
-            <span className="font-semibold">{formatIDR(order.total)}</span>
           </div>
         </div>
 
