@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, FORMAT_BADGE } from "@/lib/orderOptions";
+import { ETAS, PAYMENT_STATUSES, PAYMENT_BADGE, PAYMENT_TYPE, FORMAT_BADGE } from "@/lib/orderOptions";
 import { Plus, Minus, Trash2, Save, X, UserRound, Truck, Package, PiggyBank, Wallet, Calculator, ShieldCheck, Pencil } from "lucide-react";
 import { useSuccessModal } from "@/components/SuccessModal";
 import { cn, stockBadgeClass } from "@/lib/utils";
@@ -72,7 +72,7 @@ type OrderInitial = {
   dpProofUrl: string | null;
   shippingCost: number | null;
   trackingNumber: string | null;
-  paymentStatus: "NO_PAYMENT" | "LUNAS" | "DONE_DP";
+  paymentStatus: (typeof PAYMENT_TYPE)[number];
   payments: {
     id: string;
     amount: number;
@@ -356,11 +356,13 @@ export function OrderForm({
   const paidSum = payments.reduce((n, p) => n + p.amount, 0);
   const remaining = Math.max(0, total - effectiveDp - paidSum);
   const effectivePaymentStatus =
-    remaining === 0
-      ? "LUNAS"
-      : paymentStatus === "LUNAS"
-        ? "NO_PAYMENT"
-        : paymentStatus;
+    paymentStatus === "REFUNDED"
+      ? "REFUNDED"
+      : remaining === 0
+        ? "LUNAS"
+        : paymentStatus === "LUNAS"
+          ? "NO_PAYMENT"
+          : paymentStatus;
 
   const previewItems = items
     .filter((i) => (i.kind === "book" ? i.bookId : i.toyId))
@@ -520,7 +522,7 @@ export function OrderForm({
           dp: effectiveDp,
           shippingCost: shippingCost ? Number(shippingCost) : null,
           trackingNumber: trackingNumber.trim() || null,
-          paymentStatus: effectivePaymentStatus as "NO_PAYMENT" | "LUNAS" | "DONE_DP",
+          paymentStatus: effectivePaymentStatus as (typeof PAYMENT_TYPE)[number],
           items: itemPayload,
         };
         if (initial?.id) {

@@ -85,6 +85,7 @@ const STATUS_PILL: Record<string, { bg: [number, number, number]; fg: [number, n
   LUNAS: { bg: [220, 252, 231], fg: [22, 101, 52] },
   DONE_DP: { bg: [254, 243, 199], fg: [146, 64, 14] },
   NO_PAYMENT: { bg: [254, 226, 226], fg: [153, 27, 27] },
+  REFUNDED: { bg: [237, 233, 254], fg: [91, 33, 182] },
 };
 
 export function buildOrderPdf(order: OrderPdfDTO) {

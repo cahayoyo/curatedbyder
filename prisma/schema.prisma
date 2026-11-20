@@ -27,6 +27,7 @@ enum PaymentStatus {
   NO_PAYMENT
   LUNAS
   DONE_DP
+  REFUNDED
 }
 
 enum Eta {
