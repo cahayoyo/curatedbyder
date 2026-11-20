@@ -14,10 +14,12 @@ export function BookFilter({
   basePath,
   className,
   triggerClassName,
+  statusOptions = BOOK_STATUSES,
 }: {
   basePath: string;
   className?: string;
   triggerClassName?: string;
+  statusOptions?: readonly { readonly value: string; readonly label: string }[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -110,8 +112,8 @@ export function BookFilter({
             style={{ backgroundColor: "#F6F1E7" }}
           >
             <p className="mb-2 text-sm font-semibold">Status Stok</p>
-            <div className="flex flex-row gap-4 text-sm">
-              {BOOK_STATUSES.map((opt) => (
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              {statusOptions.map((opt) => (
                 <label
                   key={opt.value}
                   className="flex cursor-pointer items-center gap-1.5"

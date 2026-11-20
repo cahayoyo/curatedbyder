@@ -460,6 +460,12 @@ export function BookForm({
                       </label>
                     ))}
                   </div>
+                  {Number(r.stock) <= 0 && (
+                    <p className="text-[13px] text-[#C96A6A]">
+                      Stok 0 — status otomatis tampil sebagai Out of Stock. Pilihan di
+                      atas berlaku kembali setelah stok diisi.
+                    </p>
+                  )}
                 </div>
 
                 {batches.length > 0 && (

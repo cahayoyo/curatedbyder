@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/session";
 import Image from "next/image";
 import { Fragment, Suspense } from "react";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
   Table,
@@ -20,6 +21,7 @@ import {
   ImageIcon,
   Package,
   PackageCheck,
+  PackageX,
   Pencil,
   Plus,
   Settings2,
@@ -43,6 +45,25 @@ import { ListLoader } from "@/components/ListLoader";
 import { cn, stockBadgeClass } from "@/lib/utils";
 import { parsePerPage, perQuery, scalarize } from "@/lib/pagination";
 import { FORMAT_TYPE } from "@/lib/orderOptions";
+import {
+  BOOK_STOCK_STATUS_FILTERS,
+  bookStatusLabel,
+  isBookStockStatusFilter,
+  resolveBookStatus,
+  type BookStockStatus,
+} from "@/lib/bookStatus";
+
+const STATUS_BADGE: Record<BookStockStatus, string> = {
+  READY_STOCK: "gap-1.5 border-emerald-300 bg-emerald-100 text-emerald-800",
+  PRE_ORDER: "gap-1.5 border-amber-300 bg-yellow-300 text-yellow-900",
+  OUT_OF_STOCK: "gap-1.5 border-red-300 bg-red-100 text-red-800",
+};
+
+const STATUS_DOT: Record<BookStockStatus, string> = {
+  READY_STOCK: "h-1.5 w-1.5 rounded-full bg-emerald-500",
+  PRE_ORDER: "h-1.5 w-1.5 rounded-full bg-amber-500",
+  OUT_OF_STOCK: "h-1.5 w-1.5 rounded-full bg-red-500",
+};
 
 type BookSearchParams = {
   q?: string;
@@ -78,7 +99,7 @@ function parseFilters(searchParams: BookSearchParams) {
   const statuses = (searchParams?.status ?? "")
     .split(",")
     .map((s) => s.trim())
-    .filter((s) => s === "READY_STOCK" || s === "PRE_ORDER");
+    .filter(isBookStockStatusFilter);
 
   const publisher = (searchParams?.publisher ?? "").trim();
 
@@ -94,13 +115,7 @@ function parseFilters(searchParams: BookSearchParams) {
 
   const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
 
-  const where: {
-    OR?: { title?: { contains: string; mode: "insensitive" }; publisher?: { contains: string; mode: "insensitive" } }[];
-    status?: { in: ("READY_STOCK" | "PRE_ORDER")[] };
-    publisher?: string;
-    formats?: { has: (typeof FORMAT_TYPE)[number] };
-    price?: { gte?: number; lte?: number };
-  } = {};
+  const where: Prisma.BookWhereInput = {};
 
   if (q) {
     where.OR = [
@@ -109,7 +124,20 @@ function parseFilters(searchParams: BookSearchParams) {
     ];
   }
   if (statuses.length > 0) {
-    where.status = { in: statuses as ("READY_STOCK" | "PRE_ORDER")[] };
+    // `OUT_OF_STOCK` is derived from stock, so it cannot be matched against
+    // the stored enum. Ready/Pre Order must exclude zero-stock books to stay
+    // consistent with the badge shown in the list.
+    const stored = statuses.filter(
+      (s): s is "READY_STOCK" | "PRE_ORDER" => s !== "OUT_OF_STOCK"
+    );
+    const clauses: Prisma.BookWhereInput[] = [];
+    if (stored.length > 0) {
+      clauses.push({ stock: { gt: 0 }, status: { in: stored } });
+    }
+    if (statuses.includes("OUT_OF_STOCK")) {
+      clauses.push({ stock: { lte: 0 } });
+    }
+    where.AND = clauses;
   }
   if (publisher) {
     where.publisher = publisher;
@@ -128,15 +156,19 @@ function parseFilters(searchParams: BookSearchParams) {
 
 async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) {
   const { where } = parseFilters(searchParams);
-  const [totalFiltered, statusCounts] = await Promise.all([
-    db.book.count({ where }),
-    db.book.groupBy({ by: ["status"], where, _count: { _all: true } }),
-  ]);
-
-  const readyCount =
-    statusCounts.find((s) => s.status === "READY_STOCK")?._count._all ?? 0;
-  const preOrderCount =
-    statusCounts.find((s) => s.status === "PRE_ORDER")?._count._all ?? 0;
+  const [totalFiltered, readyCount, preOrderCount, outOfStockCount] =
+    await Promise.all([
+      db.book.count({ where }),
+      db.book.count({
+        where: { AND: [where, { stock: { gt: 0 }, status: "READY_STOCK" }] },
+      }),
+      db.book.count({
+        where: { AND: [where, { stock: { gt: 0 }, status: "PRE_ORDER" }] },
+      }),
+      db.book.count({
+        where: { AND: [where, { stock: { lte: 0 } }] },
+      }),
+    ]);
 
   const cards = [
     {
@@ -166,10 +198,19 @@ async function BooksStats({ searchParams }: { searchParams: BookSearchParams }) 
       circle: "bg-[#F6E3B8] text-[#B98A1F]",
       watermark: "text-[#EED9A8]",
     },
+    {
+      label: "Total Buku Out of Stock",
+      short: "Out of Stock",
+      value: outOfStockCount,
+      icon: PackageX,
+      card: "border-[#D8D4D2] from-[#F5F3F2] to-[#E9E5E3]",
+      circle: "bg-[#E2DEDC] text-[#6B625E]",
+      watermark: "text-[#D3CDCA]",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
       {cards.map((c) => (
         <div
           key={c.label}
@@ -384,6 +425,7 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                   formats: bp.formats as string[],
                 })),
               ];
+              const status = resolveBookStatus(b.stock, b.status);
               return (
                 <Fragment key={b.id}>
                   {variants.map((v, vi) => (
@@ -464,20 +506,10 @@ async function BooksList({ searchParams }: { searchParams: BookSearchParams }) {
                           <TableCell rowSpan={variants.length}>
                             <Badge
                               variant="outline"
-                              className={
-                                b.status === "PRE_ORDER"
-                                  ? "gap-1.5 border-amber-300 bg-yellow-300 text-yellow-900"
-                                  : "gap-1.5 border-emerald-300 bg-emerald-100 text-emerald-800"
-                              }
+                              className={STATUS_BADGE[status]}
                             >
-                              <span
-                                className={
-                                  b.status === "PRE_ORDER"
-                                    ? "h-1.5 w-1.5 rounded-full bg-amber-500"
-                                    : "h-1.5 w-1.5 rounded-full bg-emerald-500"
-                                }
-                              />
-                              {b.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                              <span className={STATUS_DOT[status]} />
+                              {bookStatusLabel(status)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center" rowSpan={variants.length}>
@@ -608,6 +640,7 @@ export default async function AdminBooksPage({
             basePath="/admin/books"
             className="w-full sm:w-auto"
             triggerClassName="bg-white text-[15px] text-black hover:bg-[#FED6D6] hover:text-black"
+            statusOptions={BOOK_STOCK_STATUS_FILTERS}
           />
           <PublisherSelect basePath="/admin/books" options={publisherOptions} />
           <BookSortSelect basePath="/admin/books" />

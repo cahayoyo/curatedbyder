@@ -17,6 +17,11 @@ import { formatIDR } from "@/lib/format";
 import type { ActionResult } from "@/lib/actionResult";
 import { ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  bookStatusLabel,
+  resolveBookStatus,
+  type BookStockStatus,
+} from "@/lib/bookStatus";
 
 type BookVariant = {
   key: string;
@@ -43,6 +48,18 @@ function stockChipClass(stock: number) {
   return "border-emerald-200 bg-emerald-100 text-emerald-700";
 }
 
+const STATUS_CHIP: Record<BookStockStatus, string> = {
+  READY_STOCK: "border-emerald-200 bg-emerald-100 text-emerald-700",
+  PRE_ORDER: "border-amber-200 bg-yellow-100 text-amber-800",
+  OUT_OF_STOCK: "border-red-200 bg-red-100 text-red-700",
+};
+
+const STATUS_DOT: Record<BookStockStatus, string> = {
+  READY_STOCK: "bg-emerald-500",
+  PRE_ORDER: "bg-amber-500",
+  OUT_OF_STOCK: "bg-red-500",
+};
+
 export function BookCard({
   book,
   onDelete,
@@ -53,6 +70,7 @@ export function BookCard({
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const { success, error } = useSuccessModal();
+  const status = resolveBookStatus(book.stock, book.status);
 
   async function handleDelete() {
     try {
@@ -95,18 +113,16 @@ export function BookCard({
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium",
-                  book.status === "PRE_ORDER"
-                    ? "border-amber-200 bg-yellow-100 text-amber-800"
-                    : "border-emerald-200 bg-emerald-100 text-emerald-700"
+                  STATUS_CHIP[status]
                 )}
               >
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full",
-                    book.status === "PRE_ORDER" ? "bg-amber-500" : "bg-emerald-500"
+                    STATUS_DOT[status]
                   )}
                 />
-                {book.status === "PRE_ORDER" ? "Pre Order" : "Ready Stok"}
+                {bookStatusLabel(status)}
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
