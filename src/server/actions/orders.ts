@@ -694,7 +694,7 @@ export async function addOrderPayment(
     const result = await db.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
-        select: { id: true, invoiceNumber: true, total: true, dp: true },
+        select: { id: true, invoiceNumber: true, total: true, dp: true, paymentStatus: true },
       });
       if (!order) throw new UserInputError("Pesanan tidak ditemukan");
 
@@ -720,7 +720,10 @@ export async function addOrderPayment(
       const count = await tx.orderPayment.count({ where: { orderId } });
       const remaining = Math.max(0, sisa - data.amount);
       const orderUpdate: Prisma.OrderUpdateInput = { remaining };
-      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      // Refunded is a manual terminal state; payments must not silently un-refund.
+      if (remaining === 0 && order.paymentStatus !== "REFUNDED") {
+        orderUpdate.paymentStatus = "LUNAS";
+      }
       await tx.order.update({ where: { id: orderId }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, remaining, count };
@@ -762,7 +765,7 @@ export async function updateOrderPayment(
       if (!payment) throw new UserInputError("Pembayaran tidak ditemukan");
       const order = await tx.order.findUnique({
         where: { id: payment.orderId },
-        select: { id: true, invoiceNumber: true, total: true, dp: true },
+        select: { id: true, invoiceNumber: true, total: true, dp: true, paymentStatus: true },
       });
       if (!order) throw new UserInputError("Pesanan tidak ditemukan");
 
@@ -787,7 +790,9 @@ export async function updateOrderPayment(
 
       const remaining = Math.max(0, sisa - data.amount);
       const orderUpdate: Prisma.OrderUpdateInput = { remaining };
-      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      if (remaining === 0 && order.paymentStatus !== "REFUNDED") {
+        orderUpdate.paymentStatus = "LUNAS";
+      }
       await tx.order.update({ where: { id: order.id }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, remaining };
@@ -839,7 +844,7 @@ export async function updateOrderDp(
     const result = await db.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
-        select: { id: true, invoiceNumber: true, total: true },
+        select: { id: true, invoiceNumber: true, total: true, paymentStatus: true },
       });
       if (!order) throw new UserInputError("Pesanan tidak ditemukan");
 
@@ -853,7 +858,9 @@ export async function updateOrderDp(
         dpProofUrl: data.proofUrl,
         remaining,
       };
-      if (remaining === 0) orderUpdate.paymentStatus = "LUNAS";
+      if (remaining === 0 && order.paymentStatus !== "REFUNDED") {
+        orderUpdate.paymentStatus = "LUNAS";
+      }
       await tx.order.update({ where: { id: orderId }, data: orderUpdate });
 
       return { invoiceNumber: order.invoiceNumber, remaining };
