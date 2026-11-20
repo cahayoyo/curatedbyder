@@ -15,6 +15,7 @@ export const PAYMENT_STATUSES = [
   { value: "NO_PAYMENT", label: "Unpaid" },
   { value: "DONE_DP", label: "Deposit Paid" },
   { value: "LUNAS", label: "Fully Paid" },
+  { value: "REFUNDED", label: "Refunded" },
 ] as const;
 
 export const PAYMENT_LABEL: Record<string, string> = Object.fromEntries(
@@ -25,6 +26,7 @@ export const PAYMENT_BADGE: Record<string, string> = {
   NO_PAYMENT: "border-red-300 bg-red-100 text-red-800",
   DONE_DP: "border-amber-300 bg-amber-100 text-amber-800",
   LUNAS: "border-emerald-300 bg-emerald-100 text-emerald-800",
+  REFUNDED: "border-violet-300 bg-violet-100 text-violet-800",
 };
 
 export const STATUS_BADGE: Record<string, string> = {
@@ -66,7 +68,7 @@ export const ETA_TYPE = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
 ] as const;
-export const PAYMENT_TYPE = ["NO_PAYMENT", "LUNAS", "DONE_DP"] as const;
+export const PAYMENT_TYPE = ["NO_PAYMENT", "LUNAS", "DONE_DP", "REFUNDED"] as const;
 export const FORMAT_TYPE = ["HC", "PB", "BB", "SET", "SB"] as const;
 export const BOOK_STATUS_TYPE = ["READY_STOCK", "PRE_ORDER"] as const;
 
