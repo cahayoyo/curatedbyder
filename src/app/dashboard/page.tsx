@@ -15,7 +15,6 @@ import { db } from "@/lib/db";
 import { withBuyer } from "@/lib/rls";
 import {
   PAYMENT_BADGE,
-  PAYMENT_LABEL,
   STATUSES,
   STATUS_BADGE,
   STATUS_LABEL,
@@ -75,15 +74,6 @@ function firstTitle(o: OrderDTO) {
 }
 
 function StatusBadge({ order }: { order: OrderDTO }) {
-  if (order.paymentStatus === "REFUNDED") {
-    return (
-      <span
-        className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${PAYMENT_BADGE.REFUNDED}`}
-      >
-        {PAYMENT_LABEL.REFUNDED}
-      </span>
-    );
-  }
   if (order.paymentStatus === "NO_PAYMENT") {
     return (
       <span
@@ -114,12 +104,7 @@ export default async function DashboardPage() {
         tx.order.count({
           where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
         }),
-        tx.order.count({
-          where: {
-            buyerId: userId,
-            paymentStatus: { notIn: ["LUNAS", "REFUNDED"] },
-          },
-        }),
+        tx.order.count({ where: { buyerId: userId, paymentStatus: { not: "LUNAS" } } }),
         tx.order.count({
           where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
         }),
