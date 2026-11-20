@@ -93,7 +93,7 @@ export default async function LoginPage() {
   );
 }
 
-export async function RedirectIfAuthed() {
+async function RedirectIfAuthed() {
   const session = await getServerSession(authOptions);
   if (session) redirect("/dashboard");
   return null;
