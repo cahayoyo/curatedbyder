@@ -6,7 +6,8 @@ import { SearchInput } from "@/components/SearchInput";
 import { ParamSelect } from "@/components/ParamSelect";
 import { BookSortSelect } from "@/components/BookSortSelect";
 import { Button } from "@/components/ui/button";
-import { FORMATS, BOOK_STATUSES } from "@/lib/orderOptions";
+import { FORMATS } from "@/lib/orderOptions";
+import { BOOK_STOCK_STATUS_FILTERS } from "@/lib/bookStatus";
 import { Building2, CircleCheckBig, RotateCcw, SlidersHorizontal, Tag, X } from "lucide-react";
 
 export function MobileBookFilters({
@@ -30,7 +31,10 @@ export function MobileBookFilters({
   }
 
   const formatOptions = FORMATS.map((f) => ({ value: f.value, label: f.label }));
-  const statusOptions = BOOK_STATUSES.map((s) => ({ value: s.value, label: s.label }));
+  const statusOptions = BOOK_STOCK_STATUS_FILTERS.map((s) => ({
+    value: s.value,
+    label: s.label,
+  }));
   const publisherSelectOptions = publisherOptions.map((p) => ({
     value: p,
     label: p,
