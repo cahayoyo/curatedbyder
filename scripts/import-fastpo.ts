@@ -95,7 +95,7 @@ async function main() {
       nama,
       judul: String(r[iJudul] ?? "").trim(),
       format: normalizeFormat(r[iFormat]),
-      qty: num(r[iQty]) ?? 1,
+      qty: Math.max(0, num(r[iQty]) ?? 1),
       harga: num(r[iHarga]) ?? 0,
       total: num(r[iTotal]) ?? 0,
       dp: num(r[iDp]) ?? 0,
@@ -239,7 +239,7 @@ async function main() {
         if (r.dp > 0 && r.dp < r.total) return "DONE_DP";
         return "NO_PAYMENT";
       })();
-      const orderStatus = "ORDER_PLACED";
+      const orderStatus = qty === 0 ? "OUT_OF_STOCK" : "ORDER_PLACED";
 
       const invoiceNumber = `INVDER-${day}-${String(orderCounter).padStart(4, "0")}`;
       orderCounter++;
@@ -264,7 +264,7 @@ async function main() {
                 quantity: qty,
                 unitPrice,
                 subtotal: subTotal,
-                status: orderStatus as never,
+                status: orderStatus,
               },
             ],
           },

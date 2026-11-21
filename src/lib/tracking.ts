@@ -1,4 +1,4 @@
-import { ETA_TYPE, STATUS_TYPE } from "@/lib/orderOptions";
+import { ETA_TYPE, TRACKING_STAGES } from "@/lib/orderOptions";
 
 export type TimelineItem = {
   status: string;
@@ -23,13 +23,32 @@ export function stageDateParts(iso: string) {
   return stageParts(iso);
 }
 
+export function isOutOfStock(status: string) {
+  return status === "OUT_OF_STOCK";
+}
+
+export function hasOutOfStock(items: TimelineItem[]) {
+  return items.some((it) => isOutOfStock(it.status));
+}
+
+export function allOutOfStock(items: TimelineItem[]) {
+  return items.length > 0 && items.every((it) => isOutOfStock(it.status));
+}
+
 export function currentStageIndex(items: TimelineItem[]) {
-  const current = STATUS_TYPE.find((s) => items.some((it) => it.status === s)) ?? "ORDER_PLACED";
-  return Math.max(0, STATUS_TYPE.indexOf(current));
+  const trackingItems = items.filter((it) => !isOutOfStock(it.status));
+  const current =
+    TRACKING_STAGES.find((s) => trackingItems.some((it) => it.status === s.value))?.value ??
+    "ORDER_PLACED";
+  return Math.max(
+    0,
+    TRACKING_STAGES.findIndex((s) => s.value === current)
+  );
 }
 
 export function aggregateStamp(items: TimelineItem[], index: number) {
   return items.reduce<string | null>((acc, it) => {
+    if (isOutOfStock(it.status)) return acc;
     const d = it.stages[index];
     if (!d) return acc;
     return !acc || new Date(d) > new Date(acc) ? d : acc;

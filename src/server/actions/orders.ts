@@ -11,6 +11,7 @@ import { ActionResult, ActionResultWithData, UserInputError, parseInput } from "
 import { formatIDR } from "@/lib/format";
 import {
   STATUS_TYPE,
+  TRACKING_STAGES,
   ETA_TYPE,
   PAYMENT_TYPE,
 } from "@/lib/orderOptions";
@@ -35,7 +36,7 @@ const orderSchema = z.object({
         toyId: z.string().max(MAX_ID).optional().nullable(),
         batchId: z.string().min(1).max(MAX_ID),
         eta: z.enum(ETA_TYPE),
-        quantity: z.number().int().min(1).max(MAX_QTY),
+        quantity: z.number().int().min(0).max(MAX_QTY),
         unitPrice: z.number().int().min(0).max(MAX_MONEY).optional(),
       })
     )
@@ -251,6 +252,8 @@ export async function createOrder(
         if (i.unitPrice == null) {
           throw new UserInputError(`Harga wajib diisi untuk setiap item`);
         }
+        const status: (typeof STATUS_TYPE)[number] =
+          i.quantity === 0 ? "OUT_OF_STOCK" : "ORDER_PLACED";
         if (i.bookId) {
           const book = bookMap.get(i.bookId);
           if (!book || book.stock < i.quantity) {
@@ -258,7 +261,9 @@ export async function createOrder(
           }
           const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
           total += price * i.quantity;
-          entries.push({ bookId: i.bookId, amount: -i.quantity });
+          if (i.quantity > 0) {
+            entries.push({ bookId: i.bookId, amount: -i.quantity });
+          }
           return {
             bookId: i.bookId,
             toyId: null,
@@ -267,6 +272,7 @@ export async function createOrder(
             quantity: i.quantity,
             unitPrice: price,
             subtotal: price * i.quantity,
+            status,
             placedAt: new Date(),
           };
         }
@@ -276,7 +282,9 @@ export async function createOrder(
         }
         const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
         total += price * i.quantity;
-        entries.push({ toyId: i.toyId as string, amount: -i.quantity });
+        if (i.quantity > 0) {
+          entries.push({ toyId: i.toyId as string, amount: -i.quantity });
+        }
         return {
           bookId: null,
           toyId: i.toyId as string,
@@ -285,6 +293,7 @@ export async function createOrder(
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
+          status,
           placedAt: new Date(),
         };
       });
@@ -354,6 +363,34 @@ export async function createOrder(
   }
 
   return { ok: false, error: "Gagal membuat nomor invoice, coba lagi." };
+}
+
+type StampSet = {
+  placedAt: Date | null;
+  shippingToIndonesiaAt: Date | null;
+  arrivedInIndonesiaAt: Date | null;
+  arrivedAtWarehouseAt: Date | null;
+  shippedToCustomerAt: Date | null;
+  deliveredAt: Date | null;
+};
+
+function statusFromStamps(stamps: Pick<StampSet, "arrivedAtWarehouseAt" | "shippedToCustomerAt">) {
+  if (stamps.shippedToCustomerAt) return "SHIPPED_TO_CUSTOMER" as const;
+  if (stamps.arrivedAtWarehouseAt) return "ARRIVED_AT_WAREHOUSE" as const;
+  return "ORDER_PLACED" as const;
+}
+
+function nextItemStatus(
+  quantity: number,
+  oldQuantity: number | undefined,
+  previousStatus: string | undefined,
+  stamps: Pick<StampSet, "arrivedAtWarehouseAt" | "shippedToCustomerAt">
+): (typeof STATUS_TYPE)[number] {
+  if (quantity === 0) return "OUT_OF_STOCK";
+  if (oldQuantity === 0) return statusFromStamps(stamps);
+  return previousStatus && (STATUS_TYPE as readonly string[]).includes(previousStatus)
+    ? (previousStatus as (typeof STATUS_TYPE)[number])
+    : "ORDER_PLACED";
 }
 
 export async function updateOrder(
@@ -480,6 +517,7 @@ export async function updateOrder(
         }
         const price = effectiveBookPrice(i.batchId, i.bookId, i.unitPrice);
         total += price * i.quantity;
+        const stamps = oldStampMap.get(key) ?? emptyStamps;
         createItems.push({
           bookId: i.bookId,
           toyId: null,
@@ -488,8 +526,8 @@ export async function updateOrder(
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
-          status: oldStatusMap.get(key) ?? "ORDER_PLACED",
-          ...(oldStampMap.get(key) ?? emptyStamps),
+          status: nextItemStatus(i.quantity, oldMap.get(key), oldStatusMap.get(key), stamps),
+          ...stamps,
         });
         if (diff !== 0) stockChanges.push({ bookId: i.bookId, amount: -diff });
       } else {
@@ -500,6 +538,7 @@ export async function updateOrder(
         }
         const price = effectiveToyPrice(i.toyId as string, i.unitPrice);
         total += price * i.quantity;
+        const stamps = oldStampMap.get(key) ?? emptyStamps;
         createItems.push({
           bookId: null,
           toyId: i.toyId as string,
@@ -508,8 +547,8 @@ export async function updateOrder(
           quantity: i.quantity,
           unitPrice: price,
           subtotal: price * i.quantity,
-          status: oldStatusMap.get(key) ?? "ORDER_PLACED",
-          ...(oldStampMap.get(key) ?? emptyStamps),
+          status: nextItemStatus(i.quantity, oldMap.get(key), oldStatusMap.get(key), stamps),
+          ...stamps,
         });
         if (diff !== 0) stockChanges.push({ toyId: i.toyId as string, amount: -diff });
       }
@@ -572,22 +611,11 @@ export async function updateOrder(
   return { ok: true };
 }
 
-const STAGE_FIELDS = [
-  "placedAt",
-  "shippingToIndonesiaAt",
-  "arrivedInIndonesiaAt",
-  "arrivedAtWarehouseAt",
-  "shippedToCustomerAt",
-  "deliveredAt",
-] as const;
-
 const stageSelect = {
+  quantity: true,
   placedAt: true,
-  shippingToIndonesiaAt: true,
-  arrivedInIndonesiaAt: true,
   arrivedAtWarehouseAt: true,
   shippedToCustomerAt: true,
-  deliveredAt: true,
 } satisfies Prisma.OrderItemSelect;
 
 export async function updateOrderItemStatus(itemId: string, status: string) {
@@ -598,12 +626,17 @@ export async function updateOrderItemStatus(itemId: string, status: string) {
   try {
     const item = await db.orderItem.findUnique({ where: { id: itemId }, select: stageSelect });
     if (!item) throw new UserInputError("Item pesanan tidak ditemukan");
+    if (item.quantity === 0 && valid !== "OUT_OF_STOCK") {
+      throw new UserInputError("Item dengan quantity 0 harus berstatus Out of Stock");
+    }
 
-    const stageIndex = STATUS_TYPE.indexOf(valid);
-    const stampField = STAGE_FIELDS[stageIndex];
     const data: Prisma.OrderItemUncheckedUpdateInput = { status: valid };
-    data[stampField] = item[stampField] ?? new Date();
-    for (const field of STAGE_FIELDS.slice(stageIndex + 1)) data[field] = null;
+    if (valid !== "OUT_OF_STOCK") {
+      const stageIndex = TRACKING_STAGES.findIndex((s) => s.value === valid);
+      const stage = TRACKING_STAGES[stageIndex];
+      data[stage.field] = item[stage.field] ?? new Date();
+      for (const later of TRACKING_STAGES.slice(stageIndex + 1)) data[later.field] = null;
+    }
 
     await db.orderItem.update({ where: { id: itemId }, data });
   } catch (e) {
