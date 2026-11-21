@@ -12,7 +12,7 @@ import { BuyerFilter } from "@/components/BuyerFilter";
 import { BuyerShell, PendingDim } from "@/components/BuyerShell";
 import { OrderTabNav } from "@/components/OrderTabNav";
 import { ListLoader } from "@/components/ListLoader";
-import { PAYMENT_STATUSES, STATUSES } from "@/lib/orderOptions";
+import { PAYMENT_STATUSES, ITEM_STATUSES } from "@/lib/orderOptions";
 import { BUYER_DEFAULT_PAGE_SIZE, scalarize } from "@/lib/pagination";
 import { ArrowLeft, ChevronRight, FileText, Truck, Wallet } from "lucide-react";
 
@@ -156,7 +156,7 @@ async function OrdersSection({
   const q = (searchParams?.q ?? "").trim().toLowerCase();
   const batchId = searchParams?.batch?.trim();
   const status = searchParams?.status?.trim();
-  const statusValid = STATUSES.some((opt) => opt.value === status) ? status : undefined;
+  const statusValid = ITEM_STATUSES.some((opt) => opt.value === status) ? status : undefined;
   const paymentStatuses = (searchParams?.paymentStatus ?? "")
     .split(",")
     .map((s) => s.trim())

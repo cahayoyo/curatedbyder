@@ -10,7 +10,7 @@ import { SearchInput } from "@/components/SearchInput";
 import { PageSizeSelect } from "@/components/PageSizeSelect";
 import { deleteOrder } from "@/server/actions/orders";
 import { Pagination } from "@/components/Pagination";
-import { ETAS, STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
+import { ETAS, ITEM_STATUSES, PAYMENT_STATUSES, etaLabel, FORMAT_BADGE } from "@/lib/orderOptions";
 import { formatIDR } from "@/lib/format";
 import { OrderCard } from "@/components/OrderCard";
 import { OrderSummaryAccordion, type OrderSummaryDTO } from "@/components/OrderSummaryAccord";
@@ -209,7 +209,7 @@ async function OrdersList({
     .map((s) => s.trim())
     .filter((s) => PAYMENT_STATUSES.some((p) => p.value === s));
   const status = searchParams?.status?.trim();
-  const statusValid = STATUSES.some((p) => p.value === status) ? status : undefined;
+  const statusValid = ITEM_STATUSES.some((p) => p.value === status) ? status : undefined;
   const batchId = searchParams?.batch?.trim();
   const eta = searchParams?.eta?.trim();
   const etaValid = ETAS.some((e) => e.value === eta) ? eta : undefined;
@@ -409,7 +409,11 @@ async function OrdersList({
                   <TableCell>{s.items[0].batch?.name || "—"}</TableCell>
                   <TableCell>{etaLabel(s.items[0].eta)}</TableCell>
                   <TableCell>
-                    <StatusSelect itemId={s.items[0].id} current={s.items[0].status} />
+                    <StatusSelect
+                      itemId={s.items[0].id}
+                      current={s.items[0].status}
+                      quantity={s.items[0].quantity}
+                    />
                   </TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{formatIDR(s.items.reduce((n, it) => n + it.subtotal, 0))}</TableCell>
                   <TableCell className="border-l border-input" rowSpan={s.items.length}>{s.shippingCost != null ? formatIDR(s.shippingCost) : "--"}</TableCell>
@@ -460,7 +464,7 @@ async function OrdersList({
                     <TableCell>{it.batch?.name || "—"}</TableCell>
                     <TableCell>{etaLabel(it.eta)}</TableCell>
                     <TableCell>
-                      <StatusSelect itemId={it.id} current={it.status} />
+                      <StatusSelect itemId={it.id} current={it.status} quantity={it.quantity} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -539,7 +543,7 @@ async function OrdersSummary() {
       count: paymentMap.get(p.value)?._count._all ?? 0,
       total: paymentMap.get(p.value)?._sum.total ?? 0,
     })),
-    byStatus: STATUSES.map((s) => ({
+    byStatus: ITEM_STATUSES.map((s) => ({
       value: s.value,
       label: s.label,
       count: statusMap.get(s.value)?._count._all ?? 0,
