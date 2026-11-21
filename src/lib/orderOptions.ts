@@ -1,15 +1,20 @@
-export const STATUSES = [
+export const ITEM_STATUSES = [
   { value: "ORDER_PLACED", label: "Order Placed" },
-  { value: "SHIPPING_TO_INDONESIA", label: "Shipping to Indonesia" },
-  { value: "ARRIVED_IN_INDONESIA", label: "Arrived in Indonesia" },
   { value: "ARRIVED_AT_WAREHOUSE", label: "Arrived at Warehouse" },
   { value: "SHIPPED_TO_CUSTOMER", label: "Shipped to Customer" },
-  { value: "ORDER_DELIVERED", label: "Order Delivered" },
+  { value: "OUT_OF_STOCK", label: "Out of Stock" },
 ] as const;
 
 export const STATUS_LABEL: Record<string, string> = Object.fromEntries(
-  STATUSES.map((s) => [s.value, s.label])
+  ITEM_STATUSES.map((s) => [s.value, s.label])
 );
+
+// Linear tracking stages. OUT_OF_STOCK is an exception status, not a stage.
+export const TRACKING_STAGES = [
+  { value: "ORDER_PLACED", field: "placedAt", label: "Order Placed" },
+  { value: "ARRIVED_AT_WAREHOUSE", field: "arrivedAtWarehouseAt", label: "Arrived at Warehouse" },
+  { value: "SHIPPED_TO_CUSTOMER", field: "shippedToCustomerAt", label: "Shipped to Customer" },
+] as const;
 
 export const PAYMENT_STATUSES = [
   { value: "NO_PAYMENT", label: "Unpaid" },
@@ -31,11 +36,9 @@ export const PAYMENT_BADGE: Record<string, string> = {
 
 export const STATUS_BADGE: Record<string, string> = {
   ORDER_PLACED: "border-teal-300 bg-teal-100 text-teal-800",
-  SHIPPING_TO_INDONESIA: "border-sky-300 bg-sky-100 text-sky-800",
-  ARRIVED_IN_INDONESIA: "border-indigo-300 bg-indigo-100 text-indigo-800",
   ARRIVED_AT_WAREHOUSE: "border-violet-300 bg-violet-100 text-violet-800",
   SHIPPED_TO_CUSTOMER: "border-orange-300 bg-orange-100 text-orange-800",
-  ORDER_DELIVERED: "border-emerald-300 bg-emerald-100 text-emerald-800",
+  OUT_OF_STOCK: "border-red-300 bg-red-100 text-red-800",
 };
 
 export const FORMAT_BADGE: Record<string, string> = {
@@ -58,11 +61,9 @@ export function etaLabel(v: string | null | undefined) {
 
 export const STATUS_TYPE = [
   "ORDER_PLACED",
-  "SHIPPING_TO_INDONESIA",
-  "ARRIVED_IN_INDONESIA",
   "ARRIVED_AT_WAREHOUSE",
   "SHIPPED_TO_CUSTOMER",
-  "ORDER_DELIVERED",
+  "OUT_OF_STOCK",
 ] as const;
 export const ETA_TYPE = [
   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",

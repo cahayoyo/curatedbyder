@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   STATUS_LABEL,
-  STATUS_TYPE,
+  TRACKING_STAGES,
   PAYMENT_LABEL,
   PAYMENT_BADGE,
   STATUS_BADGE,
@@ -26,8 +26,15 @@ import {
 import { formatIDR, dateLabel, dateShortLabel, timeShortLabel } from "@/lib/format";
 import { ADMIN_WA, waLink } from "@/lib/wa";
 import { StageTimeline, StageTimelineVertical, StageStatusBanner } from "@/components/TrackingTimeline";
-import { aggregateStamp, currentStageIndex, earliestEta, stageDateParts } from "@/lib/tracking";
 import {
+  aggregateStamp,
+  allOutOfStock,
+  currentStageIndex,
+  earliestEta,
+  stageDateParts,
+} from "@/lib/tracking";
+import {
+  AlertCircle,
   ArrowRight,
   CalendarClock,
   Check,
@@ -539,9 +546,13 @@ export function TrackCard({
   const cover = order.items.find((it) => it.image)?.image ?? null;
   const eta = earliestEta(order.items);
   const done = currentStageIndex(order.items);
-  const isDelivered = done === STATUS_TYPE.length - 1;
-  const currentStamp = aggregateStamp(order.items, done);
+  const allOos = allOutOfStock(order.items);
+  const isFinal = !allOos && done === TRACKING_STAGES.length - 1;
+  const currentStamp = allOos ? null : aggregateStamp(order.items, done);
   const currentParts = currentStamp ? stageDateParts(currentStamp) : null;
+  const currentStageLabel = allOos
+    ? STATUS_LABEL.OUT_OF_STOCK
+    : (STATUS_LABEL[TRACKING_STAGES[done].value] ?? TRACKING_STAGES[done].value);
   const statusBanner = (
     <StageStatusBanner
       items={order.items}
@@ -599,6 +610,13 @@ export function TrackCard({
                     <p className="line-clamp-1 text-sm font-semibold">{it.book.title}</p>
                     <p className="mt-1 flex flex-wrap items-center gap-1">
                       <ProductTag kind={it.kind} />
+                      {it.status === "OUT_OF_STOCK" && (
+                        <span
+                          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${STATUS_BADGE.OUT_OF_STOCK}`}
+                        >
+                          {STATUS_LABEL.OUT_OF_STOCK}
+                        </span>
+                      )}
                       {it.book.formats.map((f) => (
                         <span
                           key={f}
@@ -685,7 +703,7 @@ export function TrackCard({
       {variant === "list" ? (
         <>
           <div className="mt-3 hidden border-t border-[#F0CBCB]/60 pt-3 md:block">
-            <StageTimeline items={order.items} />
+            {allOos ? statusBanner : <StageTimeline items={order.items} />}
           </div>
 
           <div className="mt-3 border-t border-[#F0CBCB]/60 pt-3 md:hidden">
@@ -695,16 +713,24 @@ export function TrackCard({
               <div className="flex w-full items-center gap-2.5">
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                    isDelivered
-                      ? "bg-emerald-500 text-white"
-                      : "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
+                    allOos
+                      ? "bg-red-500 text-white"
+                      : isFinal
+                        ? "bg-emerald-500 text-white"
+                        : "bg-[#D97A7A] text-white ring-4 ring-[#FBE6E6]"
                   }`}
                 >
-                  {isDelivered ? <Check className="h-3.5 w-3.5" /> : <Truck className="h-3.5 w-3.5" />}
+                  {allOos ? (
+                    <AlertCircle className="h-3.5 w-3.5" />
+                  ) : isFinal ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Truck className="h-3.5 w-3.5" />
+                  )}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-semibold text-black/80">
-                    {STATUS_LABEL[STATUS_TYPE[done]] ?? STATUS_TYPE[done]}
+                    {currentStageLabel}
                   </span>
                   {currentParts && (
                     <span className="block text-[11px] text-black/50">
@@ -716,7 +742,7 @@ export function TrackCard({
             )}
           </div>
 
-          {(!expanded || isDelivered) && <div className="mt-3 md:hidden">{statusBanner}</div>}
+          {(!expanded || isFinal) && <div className="mt-3 md:hidden">{statusBanner}</div>}
         </>
       ) : (
         <div className="mt-3 hidden border-t border-[#F0CBCB]/60 pt-3 md:block">

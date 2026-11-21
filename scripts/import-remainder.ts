@@ -79,7 +79,7 @@ async function main() {
     nama: String(r[iNama] ?? "").trim(),
     judul: String(r[iJudul] ?? "").trim(),
     format: normalizeFormat(r[iFormat]) ?? "",
-    qty: num(r[iQty]) ?? 1,
+    qty: Math.max(0, num(r[iQty]) ?? 1),
     harga: num(r[iHarga]) ?? 0,
     total: num(r[iTotal]) ?? 0,
     dp: num(r[iDp]) ?? 0,
@@ -201,7 +201,7 @@ async function main() {
         shippingCost: 0,
         trackingNumber: null,
         paymentStatus: payStatus as never,
-        items: { create: [{ bookId, batchId, eta: r.eta as never, quantity: r.qty, unitPrice: r.harga, subtotal: r.harga * r.qty, status: "ORDER_PLACED" as never }] },
+        items: { create: [{ bookId, batchId, eta: r.eta as never, quantity: r.qty, unitPrice: r.harga, subtotal: r.harga * r.qty, status: r.qty === 0 ? "OUT_OF_STOCK" : "ORDER_PLACED" }] },
       },
     });
     orderCreated++;

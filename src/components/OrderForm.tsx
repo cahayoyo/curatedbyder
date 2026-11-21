@@ -512,6 +512,16 @@ export function OrderForm({
     if (itemPayload.length === 0) return error("Pilih minimal satu produk");
     const hasEmptyProduct = items.some((i) => (i.kind === "book" ? !i.bookId : !i.toyId));
     if (hasEmptyProduct) return error("Semua baris produk wajib diisi");
+    if (
+      items.some(
+        (i) =>
+          i.quantity.trim() === "" ||
+          !Number.isInteger(Number(i.quantity)) ||
+          Number(i.quantity) < 0
+      )
+    ) {
+      return error("Quantity harus berupa bilangan bulat 0 atau lebih");
+    }
     if (items.some((i) => !i.batchId)) return error("Setiap baris produk wajib memilih batch");
     if (items.some((i) => !i.eta)) return error("Setiap baris produk wajib memilih ETA");
 
@@ -708,17 +718,17 @@ export function OrderForm({
                   aria-label="Kurangi quantity"
                   onClick={() =>
                     updateItem(idx, {
-                      quantity: String(Math.max(1, (Number(item.quantity) || 0) - 1)),
+                      quantity: String(Math.max(0, (Number(item.quantity) || 0) - 1)),
                     })
                   }
-                  disabled={(Number(item.quantity) || 0) <= 1}
+                  disabled={(Number(item.quantity) || 0) <= 0}
                   className="flex h-full w-6 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:bg-black/5 disabled:opacity-40"
                 >
                   <Minus className="h-3 w-3" />
                 </button>
                 <Input
                   type="number"
-                  min="1"
+                  min="0"
                   value={item.quantity}
                   onChange={(e) => updateItem(idx, { quantity: e.target.value })}
                   className="h-full min-w-0 rounded-none border-0 bg-transparent px-0 text-center text-sm shadow-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"

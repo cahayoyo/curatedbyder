@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  STATUSES,
+  ITEM_STATUSES,
   PAYMENT_STATUSES,
   STATUS_BADGE,
   PAYMENT_BADGE,
@@ -19,7 +19,15 @@ import {
 import { cn } from "@/lib/utils";
 import { useSuccessModal } from "@/components/SuccessModal";
 
-export function StatusSelect({ itemId, current }: { itemId: string; current: string }) {
+export function StatusSelect({
+  itemId,
+  current,
+  quantity,
+}: {
+  itemId: string;
+  current: string;
+  quantity: number;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const { success, error } = useSuccessModal();
@@ -36,6 +44,8 @@ export function StatusSelect({ itemId, current }: { itemId: string; current: str
     });
   }
 
+  const locked = quantity === 0;
+
   return (
     <Select value={current} onValueChange={onChange} disabled={pending}>
       <SelectTrigger
@@ -47,8 +57,8 @@ export function StatusSelect({ itemId, current }: { itemId: string; current: str
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {STATUSES.map((s) => (
-          <SelectItem key={s.value} value={s.value}>
+        {ITEM_STATUSES.map((s) => (
+          <SelectItem key={s.value} value={s.value} disabled={locked && s.value !== "OUT_OF_STOCK"}>
             {s.label}
           </SelectItem>
         ))}

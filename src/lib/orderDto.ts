@@ -41,11 +41,8 @@ export function toBuyerOrderDTO(s: BuyerOrderWithItems): OrderDTO {
       image: i.book?.image ?? i.toy?.image ?? null,
       stages: [
         i.placedAt,
-        i.shippingToIndonesiaAt,
-        i.arrivedInIndonesiaAt,
         i.arrivedAtWarehouseAt,
         i.shippedToCustomerAt,
-        i.deliveredAt,
       ].map((d) => d?.toISOString() ?? null),
       book: {
         title: i.book?.title ?? i.toy?.title ?? "—",

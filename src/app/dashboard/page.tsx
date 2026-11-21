@@ -15,9 +15,9 @@ import { db } from "@/lib/db";
 import { withBuyer } from "@/lib/rls";
 import {
   PAYMENT_BADGE,
-  STATUSES,
   STATUS_BADGE,
   STATUS_LABEL,
+  TRACKING_STAGES,
 } from "@/lib/orderOptions";
 import { dateLabel } from "@/lib/format";
 import { OrderDTO } from "@/components/BuyerTabs";
@@ -73,6 +73,13 @@ function firstTitle(o: OrderDTO) {
   return o.items.length > 1 ? `${t} +${o.items.length - 1} lainnya` : t;
 }
 
+function aggregateStatus(order: OrderDTO) {
+  if (order.items.length > 0 && order.items.every((it) => it.status === "OUT_OF_STOCK")) {
+    return "OUT_OF_STOCK";
+  }
+  return TRACKING_STAGES.find((s) => order.items.some((it) => it.status === s.value))?.value;
+}
+
 function StatusBadge({ order }: { order: OrderDTO }) {
   if (order.paymentStatus === "NO_PAYMENT") {
     return (
@@ -83,7 +90,7 @@ function StatusBadge({ order }: { order: OrderDTO }) {
       </span>
     );
   }
-  const current = STATUSES.find((s) => order.items.some((it) => it.status === s.value))?.value;
+  const current = aggregateStatus(order);
   return (
     <span
       className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${STATUS_BADGE[current ?? ""] ?? "border-gray-300 bg-gray-100 text-gray-700"}`}
@@ -102,14 +109,20 @@ export default async function DashboardPage() {
     async (tx) => {
       const [activeCount, unpaidCount, shippingCount, doneCount, recent] = await Promise.all([
         tx.order.count({
-          where: { buyerId: userId, items: { some: { status: { not: "ORDER_DELIVERED" } } } },
+          where: {
+            buyerId: userId,
+            items: { some: { status: { in: ["ORDER_PLACED", "ARRIVED_AT_WAREHOUSE"] } } },
+          },
         }),
         tx.order.count({ where: { buyerId: userId, paymentStatus: { not: "LUNAS" } } }),
         tx.order.count({
           where: { buyerId: userId, items: { some: { status: "SHIPPED_TO_CUSTOMER" } } },
         }),
         tx.order.count({
-          where: { buyerId: userId, items: { every: { status: "ORDER_DELIVERED" } } },
+          where: {
+            buyerId: userId,
+            items: { every: { status: { in: ["SHIPPED_TO_CUSTOMER", "OUT_OF_STOCK"] } } },
+          },
         }),
         tx.order.findMany({
           where: { buyerId: userId },

@@ -14,22 +14,20 @@ import {
   ArrowUp,
   BookOpen,
   CalendarDays,
-  CheckCircle2,
   ClipboardList,
   Blocks,
   FileText,
   LayoutDashboard,
   ImageIcon,
   PackageCheck,
+  PackageX,
   PieChart,
-  Plane,
   ReceiptText,
   Settings,
   ShoppingCart,
   Trophy,
   ToyBrick,
   TrendingUp,
-  Truck,
   Users,
   Wallet,
   Warehouse,
@@ -39,11 +37,9 @@ import { STATUS_BADGE } from "@/lib/orderOptions";
 
 const STEPS = [
   { key: "ORDER_PLACED", label: "Order Placed", dot: "bg-teal-500", icon: ClipboardList },
-  { key: "SHIPPING_TO_INDONESIA", label: "Shipping to Indonesia", dot: "bg-sky-500", icon: Truck },
-  { key: "ARRIVED_IN_INDONESIA", label: "Arrived in Indonesia", dot: "bg-indigo-500", icon: Plane },
   { key: "ARRIVED_AT_WAREHOUSE", label: "Arrived at Warehouse", dot: "bg-violet-500", icon: Warehouse },
   { key: "SHIPPED_TO_CUSTOMER", label: "Shipped to Customer", dot: "bg-orange-500", icon: PackageCheck },
-  { key: "ORDER_DELIVERED", label: "Order Delivered", dot: "bg-emerald-500", icon: CheckCircle2 },
+  { key: "OUT_OF_STOCK", label: "Out of Stock", dot: "bg-red-500", icon: PackageX },
 ] as const;
 
 const TONES = {
@@ -491,35 +487,21 @@ export default async function AdminOverviewPage({
       <section>
         <SectionHeading icon={PackageCheck} title="Operational" href="/admin/orders" />
         <div className="overflow-x-auto rounded-xl border border-[#F0CBCB]/60 bg-gradient-to-br from-white via-[#F9E4E4] to-[#F3CFCF] p-5 shadow-sm">
-          <div className="relative grid grid-cols-3 gap-y-5 md:flex md:min-w-[640px] md:justify-between">
-            <span className="absolute left-[8%] right-[8%] top-[47px] hidden h-0.5 bg-[#DFA6A6] md:block" />
+          <div className="relative grid grid-cols-2 gap-6 md:grid-cols-4">
+            <span
+              aria-hidden
+              className="absolute left-[12.5%] right-[12.5%] top-[47px] hidden h-0.5 bg-[#DFA6A6] md:block"
+            />
             {STEPS.map((step, i) => (
               <div
                 key={step.key}
-                className={cn(
-                  "relative z-10 flex flex-1 flex-col items-center gap-1.5",
-                  i === 3 && "order-6 md:order-none",
-                  i === 4 && "order-5 md:order-none",
-                  i === 5 && "order-4 md:order-none"
-                )}
+                className="relative flex flex-col items-center gap-1.5"
               >
-                <span
-                  className={cn(
-                    "absolute top-[47px] h-0.5 bg-[#DFA6A6] md:hidden",
-                    i === 0 || i === 5 ? "left-1/2 right-0" : "left-0 right-0"
-                  )}
-                />
-                {i === 2 && (
-                  <>
-                    <span
-                      className="absolute right-0 top-[47px] h-[calc(100%+20px)] w-0.5 bg-[#DFA6A6] md:hidden"
-                      aria-hidden
-                    />
-                    <span
-                      className="absolute right-0 top-[47px] h-0.5 w-1/2 bg-[#DFA6A6] md:hidden"
-                      aria-hidden
-                    />
-                  </>
+                {(i === 0 || i === 2) && (
+                  <span
+                    aria-hidden
+                    className="absolute left-1/2 top-[47px] h-0.5 w-[calc(100%+1.5rem)] bg-[#DFA6A6] md:hidden"
+                  />
                 )}
                 <StatValue
                   value={stats.statusCount[step.key] ?? 0}
@@ -527,7 +509,7 @@ export default async function AdminOverviewPage({
                 />
                 <span
                   className={cn(
-                    "relative flex h-7 w-7 items-center justify-center rounded-full",
+                    "relative z-10 flex h-7 w-7 items-center justify-center rounded-full",
                     step.dot
                   )}
                 >
@@ -535,7 +517,7 @@ export default async function AdminOverviewPage({
                 </span>
                 <span
                   className={cn(
-                    "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                    "rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold",
                     STATUS_BADGE[step.key]
                   )}
                 >

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SlidersHorizontal, Loader2 } from "lucide-react";
-import { STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
+import { ITEM_STATUSES, PAYMENT_STATUSES, ETAS } from "@/lib/orderOptions";
 import { cn } from "@/lib/utils";
 
 type Batch = { id: string; name: string };
@@ -190,7 +190,7 @@ export function OrderFilter({
               className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm disabled:opacity-70"
             >
               <option value="">Semua Status</option>
-              {STATUSES.map((opt) => (
+              {ITEM_STATUSES.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

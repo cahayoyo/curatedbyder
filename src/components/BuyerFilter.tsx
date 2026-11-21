@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, Loader2 } from "lucide-react";
-import { STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
+import { ITEM_STATUSES, PAYMENT_STATUSES } from "@/lib/orderOptions";
 import { useBuyerNav } from "@/components/BuyerShell";
 import { cn } from "@/lib/utils";
 
@@ -131,7 +131,7 @@ export function BuyerFilter({
               className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
             >
               <option value="">Semua Status</option>
-              {STATUSES.map((opt) => (
+              {ITEM_STATUSES.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

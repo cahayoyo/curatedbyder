@@ -38,9 +38,17 @@ const TOYS = [
   { title: "Papan Edukasi Angka", price: 88000, stock: 10 },
 ];
 
+type OrderStatusSeed =
+  | "ORDER_PLACED"
+  | "ARRIVED_AT_WAREHOUSE"
+  | "SHIPPED_TO_CUSTOMER"
+  | "OUT_OF_STOCK";
+
 type OrderSeed = {
   buyerIdx: number;
-  status: "ORDER_PLACED" | "SHIPPING_TO_INDONESIA" | "ARRIVED_IN_INDONESIA" | "ARRIVED_AT_WAREHOUSE" | "SHIPPED_TO_CUSTOMER" | "ORDER_DELIVERED";
+  status: OrderStatusSeed;
+  bookStatus?: OrderStatusSeed;
+  toyStatus?: OrderStatusSeed;
   eta: "AUG" | "SEP" | "OCT";
   dp: number | null;
   shippingCost: number;
@@ -54,10 +62,12 @@ type OrderSeed = {
 
 const ORDERS: OrderSeed[] = [
   { buyerIdx: 0, status: "ORDER_PLACED", eta: "SEP", dp: null, shippingCost: 15000, bookIdx: 0, bookQty: 1, toyIdx: 0, toyQty: 1, soldAt: new Date("2026-08-20T09:00:00Z") },
-  { buyerIdx: 1, status: "SHIPPING_TO_INDONESIA", eta: "SEP", dp: 50000, shippingCost: 20000, bookIdx: 1, bookQty: 2, toyIdx: 1, toyQty: 1, soldAt: new Date("2026-08-21T10:30:00Z") },
+  { buyerIdx: 1, status: "ORDER_PLACED", eta: "SEP", dp: 50000, shippingCost: 20000, bookIdx: 1, bookQty: 2, toyIdx: 1, toyQty: 1, soldAt: new Date("2026-08-21T10:30:00Z") },
   { buyerIdx: 2, status: "ARRIVED_AT_WAREHOUSE", eta: "OCT", dp: 100000, shippingCost: 12000, bookIdx: 2, bookQty: 1, toyIdx: 2, toyQty: 2, soldAt: new Date("2026-08-22T14:00:00Z") },
   { buyerIdx: 3, status: "SHIPPED_TO_CUSTOMER", eta: "OCT", dp: null, shippingCost: 18000, bookIdx: 3, bookQty: 1, toyIdx: 3, toyQty: 1, soldAt: new Date("2026-08-23T08:45:00Z"), tracking: "JX1234567890" },
-  { buyerIdx: 4, status: "ORDER_DELIVERED", eta: "AUG", dp: null, shippingCost: 10000, bookIdx: 4, bookQty: 3, toyIdx: 4, toyQty: 1, soldAt: new Date("2026-08-24T16:20:00Z"), tracking: "JX0987654321" },
+  { buyerIdx: 4, status: "SHIPPED_TO_CUSTOMER", eta: "AUG", dp: null, shippingCost: 10000, bookIdx: 4, bookQty: 3, toyIdx: 4, toyQty: 1, soldAt: new Date("2026-08-24T16:20:00Z"), tracking: "JX0987654321" },
+  { buyerIdx: 0, status: "ORDER_PLACED", toyStatus: "OUT_OF_STOCK", eta: "SEP", dp: null, shippingCost: 12000, bookIdx: 1, bookQty: 1, toyIdx: 2, toyQty: 0, soldAt: new Date("2026-08-25T11:15:00Z") },
+  { buyerIdx: 1, status: "OUT_OF_STOCK", eta: "OCT", dp: null, shippingCost: 9000, bookIdx: 2, bookQty: 0, toyIdx: 3, toyQty: 0, soldAt: new Date("2026-08-26T13:40:00Z") },
 ];
 
 async function main() {
@@ -137,8 +147,8 @@ async function main() {
         soldAt: o.soldAt,
         items: {
           create: [
-            { bookId: book.id, toyId: null, batchId: batch.id, eta: o.eta, quantity: o.bookQty, unitPrice: book.price, subtotal: bookSub, status: o.status },
-            { bookId: null, toyId: toy.id, batchId: batch.id, eta: o.eta, quantity: o.toyQty, unitPrice: toy.price, subtotal: toySub, status: o.status },
+            { bookId: book.id, toyId: null, batchId: batch.id, eta: o.eta, quantity: o.bookQty, unitPrice: book.price, subtotal: bookSub, status: o.bookStatus ?? o.status },
+            { bookId: null, toyId: toy.id, batchId: batch.id, eta: o.eta, quantity: o.toyQty, unitPrice: toy.price, subtotal: toySub, status: o.toyStatus ?? o.status },
           ],
         },
       },
